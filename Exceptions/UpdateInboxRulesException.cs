@@ -33,7 +33,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// Represents an exception thrown when an error occurs as a result of calling 
     /// the UpdateInboxRules operation.
     /// </summary>
-    [Serializable]
     public sealed class UpdateInboxRulesException : ServiceRemoteException
     {
         /// <summary>

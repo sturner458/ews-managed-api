@@ -32,7 +32,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents an error that occurs when a call to the CreateAttachment web method fails.
     /// </summary>
-    [Serializable]
     public sealed class CreateAttachmentException : BatchServiceResponseException<CreateAttachmentResponse>
     {
         /// <summary>

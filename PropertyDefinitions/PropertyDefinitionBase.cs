@@ -30,7 +30,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents the base class for all property definitions.
     /// </summary>
-    [Serializable]
     public abstract class PropertyDefinitionBase
     {
         /// <summary>

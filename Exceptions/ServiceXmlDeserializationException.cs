@@ -32,7 +32,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents an error that occurs when the XML for a response cannot be deserialized.
     /// </summary>
-    [Serializable]
     public sealed class ServiceXmlDeserializationException : ServiceLocalException
     {
         /// <summary>

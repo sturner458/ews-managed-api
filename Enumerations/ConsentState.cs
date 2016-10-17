@@ -30,7 +30,6 @@ namespace Microsoft.Exchange.WebServices.Data.Enumerations
     /// <summary>
     /// The consent states enumeration
     /// </summary>
-    [Serializable]
     public enum ConsentState
     {
         /// <summary>

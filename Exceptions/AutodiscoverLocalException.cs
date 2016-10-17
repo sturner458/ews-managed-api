@@ -32,7 +32,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents an exception that is thrown when the Autodiscover service could not be contacted.
     /// </summary>
-    [Serializable]
     public class AutodiscoverLocalException : ServiceLocalException
     {
         /// <summary>

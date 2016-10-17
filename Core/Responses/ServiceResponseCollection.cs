@@ -33,7 +33,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// Represents a strogly typed list of service responses.
     /// </summary>
     /// <typeparam name="TResponse">The type of response stored in the list.</typeparam>
-    [Serializable]
     public sealed class ServiceResponseCollection<TResponse> : IEnumerable<TResponse> where TResponse : ServiceResponse
     {
         private List<TResponse> responses = new List<TResponse>();

@@ -30,7 +30,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents a remote service exception that has a single response.
     /// </summary>
-    [Serializable]
     public class ServiceResponseException : ServiceRemoteException
     {
         /// <summary>

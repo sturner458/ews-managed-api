@@ -32,7 +32,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents an error that occurs when an operation on a property fails.
     /// </summary>
-    [Serializable]
     public class ServiceObjectPropertyException : PropertyException
     {
         /// <summary>

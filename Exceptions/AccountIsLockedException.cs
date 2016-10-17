@@ -30,7 +30,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents an error that occurs when the account that is being accessed is locked and requires user interaction to be unlocked.
     /// </summary>
-    [Serializable]
     public class AccountIsLockedException : ServiceRemoteException
     {
         /// <summary>

@@ -26,7 +26,6 @@
 namespace Microsoft.Exchange.WebServices.Data
 {
     // System Dependencies
-    using System.Runtime.Serialization;
 
     /// <summary>
     /// Source of resolution.

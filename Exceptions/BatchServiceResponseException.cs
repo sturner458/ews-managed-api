@@ -33,7 +33,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// Represents a remote service exception that can have multiple service responses.
     /// </summary>
     /// <typeparam name="TResponse">The type of the response.</typeparam>
-    [Serializable]
     public abstract class BatchServiceResponseException<TResponse> : ServiceRemoteException
         where TResponse : ServiceResponse
     {

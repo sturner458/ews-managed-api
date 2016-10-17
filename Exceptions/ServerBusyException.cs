@@ -30,7 +30,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents a server busy exception found in a service response.
     /// </summary>
-    [Serializable]
     public class ServerBusyException : ServiceResponseException
     {
         private const string BackOffMillisecondsKey = @"BackOffMilliseconds";

@@ -35,7 +35,6 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
     /// <summary>
     /// Represents an error returned by the Autodiscover service.
     /// </summary>
-    [Serializable]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public sealed class AutodiscoverError
     {

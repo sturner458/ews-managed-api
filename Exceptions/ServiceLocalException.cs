@@ -32,7 +32,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents an error that occurs when a service operation fails locally (e.g. validation error).
     /// </summary>
-    [Serializable]
     public class ServiceLocalException : Exception
     {
         /// <summary>

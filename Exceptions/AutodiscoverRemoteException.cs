@@ -33,7 +33,6 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
     /// <summary>
     /// Represents an exception that is thrown when the Autodiscover service returns an error.
     /// </summary>
-    [Serializable]
     public class AutodiscoverRemoteException : ServiceRemoteException
     {
         private AutodiscoverError error;

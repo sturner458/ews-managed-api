@@ -32,7 +32,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents an error that occurs when a service operation fails remotely.
     /// </summary>
-    [Serializable]
     public class ServiceRemoteException : Exception
     {
         /// <summary>

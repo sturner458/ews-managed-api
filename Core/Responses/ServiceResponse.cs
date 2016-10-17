@@ -34,7 +34,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents the standard response to an Exchange Web Services operation.
     /// </summary>
-    [Serializable]
     public class ServiceResponse
     {
         private ServiceResult result;

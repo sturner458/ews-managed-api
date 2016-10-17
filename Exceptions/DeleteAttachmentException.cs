@@ -32,7 +32,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents an error that occurs when a call to the DeleteAttachment web method fails.
     /// </summary>
-    [Serializable]
     public sealed class DeleteAttachmentException : BatchServiceResponseException<DeleteAttachmentResponse>
     {
         /// <summary>

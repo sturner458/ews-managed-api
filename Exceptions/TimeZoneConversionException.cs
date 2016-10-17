@@ -33,7 +33,6 @@ namespace Microsoft.Exchange.WebServices.Data
     /// Represents an error that occurs when a date and time cannot be converted from one time zone
     /// to another.
     /// </summary>
-    [Serializable]
     public class TimeZoneConversionException : ServiceLocalException
     {
         /// <summary>

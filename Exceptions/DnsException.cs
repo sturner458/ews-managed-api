@@ -31,7 +31,6 @@ namespace Microsoft.Exchange.WebServices.Dns
     /// <summary>
     /// Represents an error that occurs when performing a DNS operation.
     /// </summary>
-    [Serializable]
     internal class DnsException : Win32Exception
     {
         /// <summary>
