@@ -38,12 +38,14 @@ namespace Microsoft.Exchange.WebServices.Data
     /// </summary>
     internal class EwsHttpWebRequest : IEwsHttpWebRequest
     {
+#if NETSTANDARD1_3
         bool _allowAutoRedirect;
         bool _preAuthenticate;
         int _timeout;
         bool _keepAlive;
         string _connectionGroupName;
         X509CertificateCollection _clientCertificates;
+#endif
 
         /// <summary>
         /// Underlying HttpWebRequest.
@@ -127,6 +129,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </returns>
         Stream IEwsHttpWebRequest.GetRequestStream()
         {
+#if NETSTANDARD1_3
             try
             {
                 return this.request.GetRequestStreamAsync().Result;
@@ -135,6 +138,9 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 throw exception.InnerException;
             }
+#else
+            return this.request.GetRequestStream();
+#endif
         }
 
         /// <summary>
@@ -145,6 +151,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </returns>
         IEwsHttpWebResponse IEwsHttpWebRequest.GetResponse()
         {
+#if NETSTANDARD1_3
             try
             {
                 return new EwsHttpWebResponse(this.request.GetResponseAsync().Result as HttpWebResponse);
@@ -153,6 +160,9 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 throw exception.InnerException;
             }
+#else
+            return new EwsHttpWebResponse(this.request.GetResponse() as HttpWebResponse);
+#endif
         }
 
         /// <summary>
@@ -174,8 +184,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </returns>
         bool IEwsHttpWebRequest.AllowAutoRedirect
         {
+#if NETSTANDARD1_3
             get { return _allowAutoRedirect; }
             set { _allowAutoRedirect = value; }
+#else
+            get { return request.AllowAutoRedirect; }
+            set { request.AllowAutoRedirect = value; }
+#endif
         }
 
         /// <summary>
@@ -185,8 +200,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>The collection of X509 client certificates.</returns>
         X509CertificateCollection IEwsHttpWebRequest.ClientCertificates
         {
+#if NETSTANDARD1_3
             get { return _clientCertificates; }
             set { _clientCertificates = value; }
+#else
+            get { return request.ClientCertificates; }
+            set { request.ClientCertificates = value; }
+#endif
         }
 
         /// <summary>
@@ -255,8 +275,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>true to send a WWW-authenticate HTTP header with requests after authentication has taken place; otherwise, false. The default is false.</returns>
         bool IEwsHttpWebRequest.PreAuthenticate
         {
+#if NETSTANDARD1_3
             get { return _preAuthenticate; }
             set { _preAuthenticate = value; }
+#else
+            get { return request.PreAuthenticate; }
+            set { request.PreAuthenticate = value; }
+#endif
         }
 
         /// <summary>
@@ -274,8 +299,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>The number of milliseconds to wait before the request times out. The default is 100,000 milliseconds (100 seconds).</returns>
         int IEwsHttpWebRequest.Timeout
         {
+#if NETSTANDARD1_3
             get { return _timeout; }
             set { _timeout = value; }
+#else
+            get { return request.Timeout; }
+            set { request.Timeout = value; }
+#endif
         }
 
         /// <summary>
@@ -294,8 +324,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>The value of the User-agent HTTP header. The default value is null.The value for this property is stored in <see cref="T:System.Net.WebHeaderCollection"/>. If WebHeaderCollection is set, the property value is lost.</returns>
         string IEwsHttpWebRequest.UserAgent
         {
+#if NETSTANDARD1_3
             get { return request.Headers[HttpRequestHeader.UserAgent]; }
             set { request.Headers[HttpRequestHeader.UserAgent] = value; }
+#else
+            get { return request.UserAgent; }
+            set { request.UserAgent = value; }
+#endif
         }
 
         /// <summary>
@@ -303,8 +338,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         public bool KeepAlive
         {
+#if NETSTANDARD1_3
             get { return _keepAlive; }
             set { _keepAlive = value; }
+#else
+            get { return request.KeepAlive; }
+            set { request.KeepAlive = value; }
+#endif
         }
 
         /// <summary>
@@ -312,8 +352,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         public string ConnectionGroupName
         {
+#if NETSTANDARD1_3
             get { return _connectionGroupName; }
             set { _connectionGroupName = value; }
+#else
+            get { return request.ConnectionGroupName; }
+            set { request.ConnectionGroupName = value; }
+#endif
         }
 
         #endregion
