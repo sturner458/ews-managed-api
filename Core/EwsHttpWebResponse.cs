@@ -75,7 +75,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A string that describes the method that is used to encode the body of the response.</returns>
         string IEwsHttpWebResponse.ContentEncoding
         {
-            get { return this.response.Headers[HttpRequestHeader.ContentEncoding]; }
+            get { return this.response.Headers[HttpRequestHeader.ContentEncoding] ?? string.Empty; }
         }
 
         /// <summary>
