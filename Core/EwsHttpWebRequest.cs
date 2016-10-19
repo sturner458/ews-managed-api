@@ -125,9 +125,16 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.IO.Stream"/> to use to write request data.
         /// </returns>
-        Task<Stream> IEwsHttpWebRequest.GetRequestStream()
+        Stream IEwsHttpWebRequest.GetRequestStream()
         {
-            return this.request.GetRequestStreamAsync();
+            try
+            {
+                return this.request.GetRequestStreamAsync().Result;
+            }
+            catch(AggregateException exception)
+            {
+                throw exception.InnerException;
+            }
         }
 
         /// <summary>
@@ -136,9 +143,16 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.Net.HttpWebResponse"/> that contains the response from the Internet resource.
         /// </returns>
-        async Task<IEwsHttpWebResponse> IEwsHttpWebRequest.GetResponse()
+        IEwsHttpWebResponse IEwsHttpWebRequest.GetResponse()
         {
-            return new EwsHttpWebResponse(await this.request.GetResponseAsync() as HttpWebResponse);
+            try
+            {
+                return new EwsHttpWebResponse(this.request.GetResponseAsync().Result as HttpWebResponse);
+            }
+            catch (AggregateException exception)
+            {
+                throw exception.InnerException;
+            }
         }
 
         /// <summary>

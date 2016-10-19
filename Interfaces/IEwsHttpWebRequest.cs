@@ -85,7 +85,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.IO.Stream"/> to use to write request data.
         /// </returns>
-        Task<Stream> GetRequestStream();
+        Stream GetRequestStream();
 
         /// <summary>
         /// Returns a response from an Internet resource.
@@ -93,7 +93,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.Net.HttpWebResponse"/> that contains the response from the Internet resource.
         /// </returns>
-        Task<IEwsHttpWebResponse> GetResponse();
+        IEwsHttpWebResponse GetResponse();
 
         /// <summary>
         /// Gets or sets the value of the Accept HTTP header.

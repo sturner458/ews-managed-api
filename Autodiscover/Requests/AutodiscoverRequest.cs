@@ -77,7 +77,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// Executes this instance.
         /// </summary>
         /// <returns></returns>
-        internal async Task<AutodiscoverResponse> InternalExecute()
+        internal AutodiscoverResponse InternalExecute()
         {
             this.Validate();
 
@@ -90,7 +90,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 bool needSignature = this.Service.Credentials != null && this.Service.Credentials.NeedSignature;
                 bool needTrace = this.Service.IsTraceEnabledFor(TraceFlags.AutodiscoverRequest);
 
-                using (Stream requestStream = await request.GetRequestStream().ConfigureAwait(false))
+                using (Stream requestStream = request.GetRequestStream())
                 {
                     using (MemoryStream memoryStream = new MemoryStream())
                     {
@@ -117,7 +117,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     }
                 }
 
-                using (IEwsHttpWebResponse webResponse = await request.GetResponse().ConfigureAwait(false))
+                using (IEwsHttpWebResponse webResponse = request.GetResponse())
                 {
                     if (AutodiscoverRequest.IsRedirectionResponse(webResponse))
                     {

@@ -90,9 +90,9 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// Executes this instance.
         /// </summary>
         /// <returns></returns>
-        internal async Task<GetDomainSettingsResponseCollection> Execute()
+        internal GetDomainSettingsResponseCollection Execute()
         {
-            GetDomainSettingsResponseCollection responses = (GetDomainSettingsResponseCollection)await this.InternalExecute().ConfigureAwait(false);
+            GetDomainSettingsResponseCollection responses = (GetDomainSettingsResponseCollection)this.InternalExecute();
             if (responses.ErrorCode == AutodiscoverErrorCode.NoError)
             {
                 this.PostProcessResponses(responses);

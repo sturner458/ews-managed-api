@@ -637,7 +637,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             try
             {
-                response = this.GetEwsHttpWebResponse(request).Result;
+                response = this.GetEwsHttpWebResponse(request);
             }
             finally
             {
@@ -733,7 +733,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="request">The specified IEwsHttpWebRequest</param>
         /// <returns>An IEwsHttpWebResponse instance</returns>
-        protected Task<IEwsHttpWebResponse> GetEwsHttpWebResponse(IEwsHttpWebRequest request)
+        protected IEwsHttpWebResponse GetEwsHttpWebResponse(IEwsHttpWebRequest request)
         {
             try
             {

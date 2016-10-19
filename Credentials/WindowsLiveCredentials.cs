@@ -175,7 +175,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="uriForTokenEndpointReference">The Uri to use for the endpoint reference for our token</param>
         /// <returns>Response to token request.</returns>
-        private async Task<HttpWebResponse> EmitTokenRequest(Uri uriForTokenEndpointReference)
+        private HttpWebResponse EmitTokenRequest(Uri uriForTokenEndpointReference)
         {
             const string TokenRequest =
                 "<?xml version='1.0' encoding='UTF-8'?>" +
@@ -256,12 +256,12 @@ namespace Microsoft.Exchange.WebServices.Data
 
             // NOTE: We're not tracing the request to Windows Live here because it has the user name and
             // password in it.
-            using (Stream requestStream = await webRequest.GetRequestStreamAsync())
+            using (Stream requestStream = webRequest.GetRequestStreamAsync().Result)
             {
                 requestStream.Write(requestBytes, 0, requestBytes.Length);
             }
             
-            return (HttpWebResponse)await webRequest.GetResponseAsync();
+            return (HttpWebResponse)webRequest.GetResponseAsync().Result;
         }
 
         /// <summary>
@@ -343,7 +343,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             try
             {
-                response = this.EmitTokenRequest(uriForTokenEndpointReference).Result;
+                response = this.EmitTokenRequest(uriForTokenEndpointReference);
             }
             catch (WebException e)
             {
