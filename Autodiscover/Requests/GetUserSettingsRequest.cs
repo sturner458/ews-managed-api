@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
     using System;
     using System.Collections.Generic;
     using Microsoft.Exchange.WebServices.Data;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetUserSettings request.
@@ -105,9 +106,9 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// Executes this instance.
         /// </summary>
         /// <returns></returns>
-        internal GetUserSettingsResponseCollection Execute()
+        internal async Task<GetUserSettingsResponseCollection> Execute()
         {
-            GetUserSettingsResponseCollection responses = (GetUserSettingsResponseCollection)this.InternalExecute();
+            GetUserSettingsResponseCollection responses = (GetUserSettingsResponseCollection)await this.InternalExecute().ConfigureAwait(false);
             if (responses.ErrorCode == AutodiscoverErrorCode.NoError)
             {
                 this.PostProcessResponses(responses);

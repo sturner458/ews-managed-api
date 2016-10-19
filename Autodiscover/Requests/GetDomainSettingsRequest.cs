@@ -31,6 +31,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
     using System.Text;
     using System.Xml;
     using Microsoft.Exchange.WebServices.Data;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetDomainSettings request.
@@ -89,9 +90,9 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// Executes this instance.
         /// </summary>
         /// <returns></returns>
-        internal GetDomainSettingsResponseCollection Execute()
+        internal async Task<GetDomainSettingsResponseCollection> Execute()
         {
-            GetDomainSettingsResponseCollection responses = (GetDomainSettingsResponseCollection)this.InternalExecute();
+            GetDomainSettingsResponseCollection responses = (GetDomainSettingsResponseCollection)await this.InternalExecute().ConfigureAwait(false);
             if (responses.ErrorCode == AutodiscoverErrorCode.NoError)
             {
                 this.PostProcessResponses(responses);

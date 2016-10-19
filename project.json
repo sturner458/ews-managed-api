@@ -15,8 +15,7 @@
     "compile": {
       "exclude": [
         "Credentials/BasicAuthModuleForUTF8.cs",
-        "Autodiscover/**/*.cs",
-        "Exceptions/AutodiscoverRemoteException.cs",
+        "Autodiscover/DirectoryHelper.cs",
         "Security/SafeXmlSchema.cs",
         "Credentials/PartnerTokenCredentials.cs",
         "Credentials/X509CertificateCredentials.cs",

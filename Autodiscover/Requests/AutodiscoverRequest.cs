@@ -31,6 +31,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
     using System.Net;
     using System.Xml;
     using Microsoft.Exchange.WebServices.Data;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents the base class for all requested made to the Autodiscover service.
@@ -76,7 +77,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// Executes this instance.
         /// </summary>
         /// <returns></returns>
-        internal AutodiscoverResponse InternalExecute()
+        internal async Task<AutodiscoverResponse> InternalExecute()
         {
             this.Validate();
 
@@ -89,7 +90,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 bool needSignature = this.Service.Credentials != null && this.Service.Credentials.NeedSignature;
                 bool needTrace = this.Service.IsTraceEnabledFor(TraceFlags.AutodiscoverRequest);
 
-                using (Stream requestStream = request.GetRequestStream())
+                using (Stream requestStream = await request.GetRequestStream().ConfigureAwait(false))
                 {
                     using (MemoryStream memoryStream = new MemoryStream())
                     {
@@ -116,7 +117,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     }
                 }
 
-                using (IEwsHttpWebResponse webResponse = request.GetResponse())
+                using (IEwsHttpWebResponse webResponse = await request.GetResponse().ConfigureAwait(false))
                 {
                     if (AutodiscoverRequest.IsRedirectionResponse(webResponse))
                     {
@@ -285,7 +286,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 try
                 {
                     Uri redirectionUri = new Uri(this.Url, location);
-                    if ((redirectionUri.Scheme == Uri.UriSchemeHttp) || (redirectionUri.Scheme == Uri.UriSchemeHttps))
+                    if ((redirectionUri.Scheme == "http") || (redirectionUri.Scheme == "https"))
                     {
                         AutodiscoverResponse response = this.CreateServiceResponse();
                         response.ErrorCode = AutodiscoverErrorCode.RedirectUrl;
