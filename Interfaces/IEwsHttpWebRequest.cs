@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.IO;
     using System.Net;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// HttpWebRequest proxy interface.
@@ -84,7 +85,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.IO.Stream"/> to use to write request data.
         /// </returns>
-        Stream GetRequestStream();
+        Task<Stream> GetRequestStream();
 
         /// <summary>
         /// Returns a response from an Internet resource.
@@ -92,7 +93,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.Net.HttpWebResponse"/> that contains the response from the Internet resource.
         /// </returns>
-        IEwsHttpWebResponse GetResponse();
+        Task<IEwsHttpWebResponse> GetResponse();
 
         /// <summary>
         /// Gets or sets the value of the Accept HTTP header.

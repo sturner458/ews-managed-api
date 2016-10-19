@@ -82,7 +82,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 var boolConverter = new MapiTypeConverterMapEntry(typeof(bool))
                     {
                         Parse = (s) => Convert.ChangeType(s, typeof(bool), CultureInfo.InvariantCulture),
-                        ConvertToString = (o) => ((bool)o).ToString(CultureInfo.InvariantCulture).ToLower(),
+                        ConvertToString = (o) => ((bool)o).ToString().ToLower(),
                     };
 
                 map.Add(

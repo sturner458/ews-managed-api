@@ -31,7 +31,6 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Net;
     using System.Text;
     using System.Threading;
-    using System.Web;
     using System.Xml;
 
     /// <summary>
@@ -217,7 +216,7 @@ namespace Microsoft.Exchange.WebServices.Data
                                 }
 
                                 // reset the stream collector.
-                                responseCopy.Close();
+                                responseCopy.Dispose();
                                 responseCopy = new MemoryStream();
                                 tracingStream.SetResponseCopy(responseCopy);
                             }
@@ -242,12 +241,14 @@ namespace Microsoft.Exchange.WebServices.Data
                     this.Disconnect(HangingRequestDisconnectReason.Exception, ex);
                     return;
                 }
+                /*
                 catch (HttpException ex)
                 {
                     // Stream is closed, so disconnect.
                     this.Disconnect(HangingRequestDisconnectReason.Exception, ex);
                     return;
                 }
+                */
                 catch (WebException ex)
                 {
                     // Stream is closed, so disconnect.
@@ -339,8 +340,7 @@ namespace Microsoft.Exchange.WebServices.Data
                     TraceFlags.EwsResponseHttpHeaders,
                     this.response);
 
-                ThreadPool.QueueUserWorkItem(
-                    new WaitCallback(this.ParseResponses));
+                System.Threading.Tasks.Task.Run(() => this.ParseResponses(null));
             }
         }
 

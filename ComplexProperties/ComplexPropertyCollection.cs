@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Reflection;
     using System.Text;
 
     /// <summary>
@@ -164,7 +165,7 @@ namespace Microsoft.Exchange.WebServices.Data
                         TComplexProperty complexProperty = this.CreateComplexProperty(reader.LocalName);
                         TComplexProperty actualComplexProperty = this[index++];
 
-                        if (complexProperty == null || !complexProperty.GetType().IsInstanceOfType(actualComplexProperty))
+                        if (complexProperty == null || !complexProperty.GetType().GetTypeInfo().IsAssignableFrom(actualComplexProperty.GetType().GetTypeInfo()))
                         {
                             throw new ServiceLocalException(Strings.PropertyTypeIncompatibleWhenUpdatingCollection);
                         }

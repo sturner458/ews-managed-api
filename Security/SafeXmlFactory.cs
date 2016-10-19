@@ -40,8 +40,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         private static XmlReaderSettings defaultSettings = new XmlReaderSettings()
         {
-            ProhibitDtd = true,
-            XmlResolver = null
+            DtdProcessing = DtdProcessing.Prohibit,
         };
         #endregion
 
@@ -51,11 +50,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="stream">The stream containing the XML data to read.</param>
         /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(Stream stream)
+        public static XmlReader CreateSafeXmlTextReader(Stream stream)
         {
-            XmlTextReader xtr = new XmlTextReader(stream);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
+            XmlReader xtr = XmlReader.Create(stream, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
 
@@ -64,11 +61,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="url">The URL for the file containing the XML data. The BaseURI is set to this value.</param>
         /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(string url)
+        public static XmlReader CreateSafeXmlTextReader(string url)
         {
-            XmlTextReader xtr = new XmlTextReader(url);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
+            XmlReader xtr = XmlReader.Create(url, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
 
@@ -77,11 +72,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="input">The TextReader containing the XML data to read.</param>
         /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(TextReader input)
+        public static XmlReader CreateSafeXmlTextReader(TextReader input)
         {
-            XmlTextReader xtr = new XmlTextReader(input);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
+            XmlReader xtr = XmlReader.Create(input, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
 
@@ -91,39 +84,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="input">The stream containing the XML data to read.</param>
         /// <param name="nt">The XmlNameTable to use.</param>
         /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(Stream input, XmlNameTable nt)
+        public static XmlReader CreateSafeXmlTextReader(Stream input, XmlNameTable nt)
         {
-            XmlTextReader xtr = new XmlTextReader(input, nt);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
-            return xtr;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the XmlTextReader class with the specified URL and stream.
-        /// </summary>
-        /// <param name="url">The URL to use for resolving external resources. The BaseURI is set to this value.</param>
-        /// <param name="input">The stream containing the XML data to read.</param>
-        /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(string url, Stream input)
-        {
-            XmlTextReader xtr = new XmlTextReader(url, input);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
-            return xtr;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the XmlTextReader class with the specified TextReader.
-        /// </summary>
-        /// <param name="url">The URL to use for resolving external resources. The BaseURI is set to this value.</param>
-        /// <param name="input">The TextReader containing the XML data to read.</param>
-        /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(string url, TextReader input)
-        {
-            XmlTextReader xtr = new XmlTextReader(url, input);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
+            XmlReader xtr = XmlReader.Create(input, new XmlReaderSettings() { NameTable = nt, DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
 
@@ -133,11 +96,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="url">The URL for the file containing the XML data to read.</param>
         /// <param name="nt">The XmlNameTable to use.</param>
         /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(string url, XmlNameTable nt)
+        public static XmlReader CreateSafeXmlTextReader(string url, XmlNameTable nt)
         {
-            XmlTextReader xtr = new XmlTextReader(url, nt);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
+            XmlReader xtr = XmlReader.Create(url, new XmlReaderSettings() { NameTable = nt, DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
 
@@ -147,71 +108,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="input">The TextReader containing the XML data to read.</param>
         /// <param name="nt">The XmlNameTable to use.</param>
         /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(TextReader input, XmlNameTable nt)
+        public static XmlReader CreateSafeXmlTextReader(TextReader input, XmlNameTable nt)
         {
-            XmlTextReader xtr = new XmlTextReader(input, nt);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
-            return xtr;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the XmlTextReader class with the specified stream, XmlNodeType, and XmlParserContext.
-        /// </summary>
-        /// <param name="xmlFragment">The stream containing the XML fragment to parse.</param>
-        /// <param name="fragType">The XmlNodeType of the XML fragment. This also determines what the fragment can contain.</param>
-        /// <param name="context">The XmlParserContext in which the xmlFragment is to be parsed.</param>
-        /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(Stream xmlFragment, XmlNodeType fragType, XmlParserContext context)
-        {
-            XmlTextReader xtr = new XmlTextReader(xmlFragment, fragType, context);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
-            return xtr;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the XmlTextReader class with the specified URL, stream and XmlNameTable.
-        /// </summary>
-        /// <param name="url">The URL to use for resolving external resources. The BaseURI is set to this value. If url is null, BaseURI is set to String.Empty.</param>
-        /// <param name="input">The stream containing the XML data to read.</param>
-        /// <param name="nt">The XmlNameTable to use.</param>
-        /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(string url, Stream input, XmlNameTable nt)
-        {
-            XmlTextReader xtr = new XmlTextReader(url, input, nt);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
-            return xtr;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the XmlTextReader class with the specified URL, TextReader and XmlNameTable.
-        /// </summary>
-        /// <param name="url">The URL to use for resolving external resources. The BaseURI is set to this value. If url is null, BaseURI is set to String.Empty.</param>
-        /// <param name="input">The TextReader containing the XML data to read.</param>
-        /// <param name="nt">The XmlNameTable to use.</param>
-        /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(string url, TextReader input, XmlNameTable nt)
-        {
-            XmlTextReader xtr = new XmlTextReader(url, input, nt);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
-            return xtr;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the XmlTextReader class with the specified string, XmlNodeType, and XmlParserContext.
-        /// </summary>
-        /// <param name="xmlFragment">The string containing the XML fragment to parse.</param>
-        /// <param name="fragType">The XmlNodeType of the XML fragment. This also determines what the fragment string can contain.</param>
-        /// <param name="context">The XmlParserContext in which the xmlFragment is to be parsed.</param>
-        /// <returns>A new instance of the XmlTextReader class.</returns>
-        public static XmlTextReader CreateSafeXmlTextReader(string xmlFragment, XmlNodeType fragType, XmlParserContext context)
-        {
-            XmlTextReader xtr = new XmlTextReader(xmlFragment, fragType, context);
-            xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
+            XmlReader xtr = XmlReader.Create(input, new XmlReaderSettings() { NameTable = nt, DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
         #endregion
@@ -266,7 +165,7 @@ namespace Microsoft.Exchange.WebServices.Data
             // we need to check to see if the reader is configured properly
             if (reader.Settings != null)
             {
-                if (reader.Settings.ProhibitDtd != true)
+                if (reader.Settings.DtdProcessing != DtdProcessing.Prohibit)
                 {
                     throw new XmlDtdException();
                 }
@@ -300,7 +199,7 @@ namespace Microsoft.Exchange.WebServices.Data
             // we need to check to see if the reader is configured properly
             if (reader.Settings != null)
             {
-                if (reader.Settings.ProhibitDtd != true)
+                if (reader.Settings.DtdProcessing != DtdProcessing.Prohibit)
                 {
                     throw new XmlDtdException();
                 }

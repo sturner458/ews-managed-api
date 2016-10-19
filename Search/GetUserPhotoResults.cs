@@ -27,7 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Collections.ObjectModel;
-    using System.Drawing;
+    // using System.Drawing;
     using System.IO;
     using Microsoft.Exchange.WebServices.Data.Enumerations;
 
@@ -72,6 +72,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Creates an image from the photo data
         /// </summary>
         /// <returns>The photo data as an Image</returns>
+        /*
         public Image AsImage()
         {
             if (this.Photo == null || this.Photo.Length == 0)
@@ -87,5 +88,6 @@ namespace Microsoft.Exchange.WebServices.Data
 
             return img;
         }
+        */
     }
 }

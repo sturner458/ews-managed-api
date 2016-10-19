@@ -159,7 +159,7 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 result = TimeZoneInfo.FindSystemTimeZoneById(this.Name);
             }
-            catch (TimeZoneNotFoundException)
+            catch (InvalidTimeZoneException)
             {
                 // Could not find a time zone with that Id on the local system.
             }

@@ -25,6 +25,7 @@
 
 namespace Microsoft.Exchange.WebServices.Data
 {
+    using Misc;
     using System;
     using System.Collections.Generic;
     using System.Text;
@@ -116,7 +117,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="adjustmentRule">The adjustment rule to initialize from.</param>
         /// <param name="standardPeriod">A reference to the pre-created standard period.</param>
-        internal virtual void InitializeFromAdjustmentRule(TimeZoneInfo.AdjustmentRule adjustmentRule, TimeZonePeriod standardPeriod)
+        internal virtual void InitializeFromAdjustmentRule(AdjustmentRule adjustmentRule, TimeZonePeriod standardPeriod)
         {
             TimeZonePeriod daylightPeriod = new TimeZonePeriod();
 
@@ -358,7 +359,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="startDate">The start date of the adjustment rule.</param>
         /// <param name="endDate">The end date of the adjustment rule.</param>
         /// <returns>An TimeZoneInfo.AdjustmentRule.</returns>
-        internal TimeZoneInfo.AdjustmentRule CreateAdjustmentRule(DateTime startDate, DateTime endDate)
+        internal AdjustmentRule CreateAdjustmentRule(DateTime startDate, DateTime endDate)
         {
             // If there is only one transition, we can't create an adjustment rule. We have to assume
             // that the base offset to UTC is unchanged.
@@ -367,7 +368,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 return null;
             }
 
-            return TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
+            return AdjustmentRule.CreateAdjustmentRule(
                 startDate.Date,
                 endDate.Date,
                 this.GetDaylightDelta(),

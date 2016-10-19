@@ -70,16 +70,13 @@ namespace Microsoft.Exchange.WebServices.Data
             XmlReaderSettings settings = new XmlReaderSettings()
             {
                 ConformanceLevel = ConformanceLevel.Auto,
-                ProhibitDtd = true,
+                DtdProcessing = DtdProcessing.Prohibit,
                 IgnoreComments = true,
                 IgnoreProcessingInstructions = true,
-                IgnoreWhitespace = true,
-                XmlResolver = null
+                IgnoreWhitespace = true
             };
 
-            XmlTextReader xmlTextReader = SafeXmlFactory.CreateSafeXmlTextReader(stream);
-            xmlTextReader.Normalization = false;
-
+            XmlReader xmlTextReader = SafeXmlFactory.CreateSafeXmlTextReader(stream);
             return XmlReader.Create(xmlTextReader, settings);
         }
 
@@ -353,13 +350,49 @@ namespace Microsoft.Exchange.WebServices.Data
             return value;
         }
 
+        private static bool IsTextualNode(XmlNodeType nodeType)
+        {
+            uint IsTextualNodeBitmap = 0x6018; // 00 0110 0000 0001 1000
+            return 0 != (IsTextualNodeBitmap & (1 << (int)nodeType));
+        }
+
         /// <summary>
         /// Reads the value.
         /// </summary>
         /// <returns>Value</returns>
         public string ReadValue()
         {
-            return this.xmlReader.ReadString();
+            if (this.xmlReader.ReadState != ReadState.Interactive)
+            {
+                return string.Empty;
+            }
+            this.xmlReader.MoveToElement();
+            if (this.NodeType == XmlNodeType.Element)
+            {
+                if (this.IsEmptyElement)
+                {
+                    return string.Empty;
+                }
+                else if (!this.xmlReader.Read())
+                {
+                    throw new InvalidOperationException("Can't read value");
+                }
+                if (this.NodeType == XmlNodeType.EndElement)
+                {
+                    return string.Empty;
+                }
+            }
+            string result = string.Empty;
+            
+            while (IsTextualNode(this.NodeType))
+            {
+                result += this.xmlReader.Value;
+                if (!this.xmlReader.Read())
+                {
+                    break;
+                }
+            }
+            return result;
         }
 
         /// <summary>
@@ -425,7 +458,7 @@ namespace Microsoft.Exchange.WebServices.Data
                
                 // Can use MemoryStream.GetBuffer() if the buffer's capacity and the number of bytes read
                 // are identical. Otherwise need to convert to byte array that's the size of the number of bytes read.
-                return (memoryStream.Length == memoryStream.Capacity) ? memoryStream.GetBuffer() : memoryStream.ToArray();
+                return memoryStream.ToArray();
             }
         }
 

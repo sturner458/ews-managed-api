@@ -25,6 +25,7 @@
 
 namespace Microsoft.Exchange.WebServices.Data
 {
+    using Misc;
     using System;
     using System.Collections.Generic;
     using System.Text;
@@ -61,7 +62,7 @@ namespace Microsoft.Exchange.WebServices.Data
             // time, the other to Daylight time. TimeZoneInfo holds a list of adjustment rules that represent
             // the different rules that govern time changes over the years. We need to grab one of those rules
             // to initialize this instance.
-            TimeZoneInfo.AdjustmentRule[] adjustmentRules = timeZoneInfo.GetAdjustmentRules();
+            AdjustmentRule[] adjustmentRules = timeZoneInfo.GetAdjustmentRules();
 
             if (adjustmentRules.Length == 0)
             {
@@ -89,7 +90,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 // When there is at least one adjustment rule, we need to grab the last one which is the
                 // one that currently applies (TimeZoneInfo stores adjustment rules sorted from oldest to
                 // most recent).
-                TimeZoneInfo.AdjustmentRule currentRule = adjustmentRules[adjustmentRules.Length - 1];
+                AdjustmentRule currentRule = adjustmentRules[adjustmentRules.Length - 1];
 
                 this.standardTime = new LegacyAvailabilityTimeZoneTime(currentRule.DaylightTransitionEnd, TimeSpan.Zero);
 
@@ -103,25 +104,25 @@ namespace Microsoft.Exchange.WebServices.Data
             if (this.daylightTime.HasTransitionTime &&
                 this.standardTime.HasTransitionTime)
             {
-                TimeZoneInfo.AdjustmentRule adjustmentRule = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
+                AdjustmentRule adjustmentRule = AdjustmentRule.CreateAdjustmentRule(
                     DateTime.MinValue.Date,
                     DateTime.MaxValue.Date,
                     -this.daylightTime.Delta,
                     this.daylightTime.ToTransitionTime(),
                     this.standardTime.ToTransitionTime());
 
-                return TimeZoneInfo.CreateCustomTimeZone(
+                return TimeZoneExtensions.CreateCustomTimeZone(
                     Guid.NewGuid().ToString(),
                     -this.bias,
                     "Custom time zone",
                     "Standard time",
                     "Daylight time",
-                    new TimeZoneInfo.AdjustmentRule[] { adjustmentRule });
+                    new AdjustmentRule[] { adjustmentRule });
             }
             else
             {
                 // Create no DST time zone
-                return TimeZoneInfo.CreateCustomTimeZone(
+                return TimeZoneExtensions.CreateCustomTimeZone(
                     Guid.NewGuid().ToString(),
                     -this.bias,
                     "Custom time zone",

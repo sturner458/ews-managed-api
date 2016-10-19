@@ -182,7 +182,7 @@ namespace Microsoft.Exchange.WebServices.Data
         public ItemAttachment<TItem> AddItemAttachment<TItem>()
             where TItem : Item
         {
-            if (typeof(TItem).GetCustomAttributes(typeof(AttachableAttribute), false).Length == 0)
+            if (typeof(TItem).GetTypeInfo().GetCustomAttributes(typeof(AttachableAttribute), false).ToArray().Length == 0)
             {
                 throw new InvalidOperationException(
                     string.Format(

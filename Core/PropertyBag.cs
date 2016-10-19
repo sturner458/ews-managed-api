@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Collections.Generic;
+    using System.Reflection;
     using System.Xml;
 
     /// <summary>
@@ -205,7 +206,7 @@ namespace Microsoft.Exchange.WebServices.Data
         internal bool TryGetProperty<T>(PropertyDefinition propertyDefinition, out T propertyValue)
         {
             // Verify that the type parameter and property definition's type are compatible.
-            if (!typeof(T).IsAssignableFrom(propertyDefinition.Type))
+            if (!typeof(T).GetTypeInfo().IsAssignableFrom(propertyDefinition.Type.GetTypeInfo()))
             {
                 string errorMessage = string.Format(
                     Strings.PropertyDefinitionTypeMismatch,

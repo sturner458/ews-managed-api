@@ -25,6 +25,7 @@
 
 namespace Microsoft.Exchange.WebServices.Data
 {
+    using Misc;
     using System;
     using System.Collections.Generic;
     using System.Text;
@@ -49,9 +50,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Creates a timw zone transition time.
         /// </summary>
         /// <returns>A TimeZoneInfo.TransitionTime.</returns>
-        internal override TimeZoneInfo.TransitionTime CreateTransitionTime()
+        internal override TransitionTime CreateTransitionTime()
         {
-            return TimeZoneInfo.TransitionTime.CreateFixedDateRule(
+            return TransitionTime.CreateFixedDateRule(
                 new DateTime(this.TimeOffset.Ticks),
                 this.Month,
                 this.DayOfMonth);
@@ -61,7 +62,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Initializes this transition based on the specified transition time.
         /// </summary>
         /// <param name="transitionTime">The transition time to initialize from.</param>
-        internal override void InitializeFromTransitionTime(TimeZoneInfo.TransitionTime transitionTime)
+        internal override void InitializeFromTransitionTime(TransitionTime transitionTime)
         {
             base.InitializeFromTransitionTime(transitionTime);
 

@@ -120,8 +120,8 @@ namespace Microsoft.Exchange.WebServices.Data
 
             if (this.token != null)
             {
-                request.Headers.Remove(HttpRequestHeader.Authorization);
-                request.Headers.Add(HttpRequestHeader.Authorization, this.token);
+                request.Headers.Remove(HttpRequestHeader.Authorization.ToString());
+                request.Headers[HttpRequestHeader.Authorization] = this.token;
             }
             else
             {

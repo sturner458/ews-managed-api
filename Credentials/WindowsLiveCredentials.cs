@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.IO;
     using System.Net;
     using System.Text;
+    using System.Threading.Tasks;
     using System.Xml;
 
     /// <summary>
@@ -174,7 +175,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="uriForTokenEndpointReference">The Uri to use for the endpoint reference for our token</param>
         /// <returns>Response to token request.</returns>
-        private HttpWebResponse EmitTokenRequest(Uri uriForTokenEndpointReference)
+        private async Task<HttpWebResponse> EmitTokenRequest(Uri uriForTokenEndpointReference)
         {
             const string TokenRequest =
                 "<?xml version='1.0' encoding='UTF-8'?>" +
@@ -251,16 +252,16 @@ namespace Microsoft.Exchange.WebServices.Data
             webRequest.Method = "POST";
             webRequest.ContentType = "text/xml; charset=utf-8";
             byte[] requestBytes = Encoding.UTF8.GetBytes(requestToSend);
-            webRequest.ContentLength = requestBytes.Length;
+            // webRequest.ContentLength = requestBytes.Length;
 
             // NOTE: We're not tracing the request to Windows Live here because it has the user name and
             // password in it.
-            using (Stream requestStream = webRequest.GetRequestStream())
+            using (Stream requestStream = await webRequest.GetRequestStreamAsync())
             {
                 requestStream.Write(requestBytes, 0, requestBytes.Length);
             }
             
-            return (HttpWebResponse)webRequest.GetResponse();
+            return (HttpWebResponse)await webRequest.GetResponseAsync();
         }
 
         /// <summary>
@@ -342,7 +343,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             try
             {
-                response = this.EmitTokenRequest(uriForTokenEndpointReference);
+                response = this.EmitTokenRequest(uriForTokenEndpointReference).Result;
             }
             catch (WebException e)
             {

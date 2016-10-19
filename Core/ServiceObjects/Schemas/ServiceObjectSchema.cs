@@ -78,8 +78,8 @@ namespace Microsoft.Exchange.WebServices.Data
 
 #if DEBUG
                 // Verify that all Schema types in the Managed API assembly have been included.
-                var missingTypes = from type in Assembly.GetExecutingAssembly().GetTypes() 
-                                   where type.IsSubclassOf(typeof(ServiceObjectSchema)) && !typeList.Contains(type)
+                var missingTypes = from type in typeof(ServiceObjectSchema).GetTypeInfo().Assembly.ExportedTypes
+                                   where type.GetTypeInfo().IsSubclassOf(typeof(ServiceObjectSchema)) && !typeList.Contains(type)
                                    select type;
                 if (missingTypes.Count() > 0)
                 {
@@ -118,11 +118,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="propFieldDelegate">The property field delegate.</param>
         internal static void ForeachPublicStaticPropertyFieldInType(Type type, PropertyFieldInfoDelegate propFieldDelegate)
         {
-            FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly);
+            FieldInfo[] fieldInfos = type.GetRuntimeFields().ToArray();
 
             foreach (FieldInfo fieldInfo in fieldInfos)
             {
-                if (fieldInfo.FieldType == typeof(PropertyDefinition) || fieldInfo.FieldType.IsSubclassOf(typeof(PropertyDefinition)))
+                if (fieldInfo.FieldType == typeof(PropertyDefinition) || fieldInfo.FieldType.GetTypeInfo().IsSubclassOf(typeof(PropertyDefinition)))
                 {
                     PropertyDefinition propertyDefinition = (PropertyDefinition)fieldInfo.GetValue(null);
                     propFieldDelegate(propertyDefinition, fieldInfo);

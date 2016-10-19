@@ -4917,6 +4917,7 @@ namespace Microsoft.Exchange.WebServices.Data
         #endregion
 
         #region Autodiscover
+        /*
 
         /// <summary>
         /// Default implementation of AutodiscoverRedirectionUrlValidationCallback.
@@ -4989,6 +4990,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             this.Url = this.AdjustServiceUriFromCredentials(exchangeServiceUrl);
         }
+        */
 
         /// <summary>
         /// Adjusts the service URI based on the current type of credentials.
@@ -5006,6 +5008,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 : uri;
         }
 
+        /*
         /// <summary>
         /// Gets the EWS URL from Autodiscover.
         /// </summary>
@@ -5081,6 +5084,7 @@ namespace Microsoft.Exchange.WebServices.Data
             throw new AutodiscoverLocalException(Strings.AutodiscoverDidNotReturnEwsUrl);
         }
 
+    */
         #endregion
 
         #region ClientAccessTokens
@@ -5663,7 +5667,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             if (!String.IsNullOrEmpty(this.TargetServerVersion))
             {
-                request.Headers.Set(ExchangeService.TargetServerVersionHeaderName, this.TargetServerVersion);
+                request.Headers[ExchangeService.TargetServerVersionHeaderName] = this.TargetServerVersion;
             }
 
             return request;

@@ -25,6 +25,7 @@
 
 namespace Microsoft.Exchange.WebServices.Data
 {
+    using Misc;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -100,7 +101,7 @@ namespace Microsoft.Exchange.WebServices.Data
             standardPeriod.Name = TimeZonePeriod.StandardPeriodName;
             standardPeriod.Bias = -timeZoneInfo.BaseUtcOffset;
             
-            TimeZoneInfo.AdjustmentRule[] adjustmentRules = timeZoneInfo.GetAdjustmentRules();
+            AdjustmentRule[] adjustmentRules = timeZoneInfo.GetAdjustmentRules();
 
             TimeZoneTransition transitionToStandardPeriod = new TimeZoneTransition(this, standardPeriod);
 
@@ -440,7 +441,7 @@ namespace Microsoft.Exchange.WebServices.Data
             TimeZoneTransitionGroup.CustomTimeZoneCreateParams creationParams =
                 this.transitions[this.transitions.Count - 1].TargetGroup.GetCustomTimeZoneCreationParams();
 
-            List<TimeZoneInfo.AdjustmentRule> adjustmentRules = new List<TimeZoneInfo.AdjustmentRule>();
+            List<AdjustmentRule> adjustmentRules = new List<AdjustmentRule>();
 
             DateTime startDate = DateTime.MinValue;
             DateTime endDate;
@@ -463,7 +464,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 // startDate may not always come before the effectiveEndDate
                 if (startDate < effectiveEndDate)
                 {
-                    TimeZoneInfo.AdjustmentRule adjustmentRule = this.transitions[i].TargetGroup.CreateAdjustmentRule(startDate, effectiveEndDate);
+                    AdjustmentRule adjustmentRule = this.transitions[i].TargetGroup.CreateAdjustmentRule(startDate, effectiveEndDate);
 
                     if (adjustmentRule != null)
                     {
@@ -487,7 +488,7 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 // If there are no adjustment rule, the time zone does not support Daylight
                 // saving time.
-                result = TimeZoneInfo.CreateCustomTimeZone(
+                result = TimeZoneExtensions.CreateCustomTimeZone(
                     this.Id,
                     creationParams.BaseOffsetToUtc,
                     this.Name,
@@ -495,7 +496,7 @@ namespace Microsoft.Exchange.WebServices.Data
             }
             else
             {
-                result = TimeZoneInfo.CreateCustomTimeZone(
+                result = TimeZoneExtensions.CreateCustomTimeZone(
                     this.Id,
                     creationParams.BaseOffsetToUtc,
                     this.Name,

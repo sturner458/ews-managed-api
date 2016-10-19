@@ -46,7 +46,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="content">The content.</param>
         public MimeContentUTF8(byte[] content)
         {
-            this.CharacterSet = Encoding.UTF8.BodyName;
+            this.CharacterSet = Encoding.UTF8.WebName;
             this.Content = content;
         }
 

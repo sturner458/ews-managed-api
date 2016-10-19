@@ -31,6 +31,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.IO.Compression;
     using System.Net;
     using System.Text;
+    using System.Threading.Tasks;
     using System.Xml;
 
     /// <summary>
@@ -222,8 +223,8 @@ namespace Microsoft.Exchange.WebServices.Data
         {
             if (!string.IsNullOrEmpty(this.AnchorMailbox))
             {
-                webHeaderCollection.Set(AnchorMailboxHeaderName, this.AnchorMailbox);
-                webHeaderCollection.Set(ExplicitLogonUserHeaderName, this.AnchorMailbox);
+                webHeaderCollection[AnchorMailboxHeaderName] = this.AnchorMailbox;
+                webHeaderCollection[ExplicitLogonUserHeaderName] = this.AnchorMailbox;
             }
         }
 
@@ -625,9 +626,8 @@ namespace Microsoft.Exchange.WebServices.Data
                     }
                     else
                     {
-                        request.Headers.Add(
-                            ClientStatisticsRequestHeader,
-                            clientStatisticsToAdd);
+                        request.Headers[
+                            ClientStatisticsRequestHeader] = clientStatisticsToAdd;
                     }
                 }
             }
@@ -637,7 +637,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             try
             {
-                response = this.GetEwsHttpWebResponse(request);
+                response = this.GetEwsHttpWebResponse(request).Result;
             }
             finally
             {
@@ -651,7 +651,7 @@ namespace Microsoft.Exchange.WebServices.Data
                     {
                         foreach (string requestIdHeader in ServiceRequestBase.RequestIdResponseHeaders)
                         {
-                            string requestIdValue = response.Headers.Get(requestIdHeader);
+                            string requestIdValue = response.Headers[requestIdHeader];
                             if (!string.IsNullOrEmpty(requestIdValue))
                             {
                                 requestId = requestIdValue;
@@ -733,7 +733,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="request">The specified IEwsHttpWebRequest</param>
         /// <returns>An IEwsHttpWebResponse instance</returns>
-        protected IEwsHttpWebResponse GetEwsHttpWebResponse(IEwsHttpWebRequest request)
+        protected Task<IEwsHttpWebResponse> GetEwsHttpWebResponse(IEwsHttpWebRequest request)
         {
             try
             {

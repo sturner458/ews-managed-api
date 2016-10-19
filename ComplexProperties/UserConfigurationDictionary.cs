@@ -30,6 +30,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Xml;
@@ -228,47 +229,52 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="valueAsString">The value as string.</param>
         private static void GetTypeCode(ExchangeServiceBase service, object dictionaryObject, ref UserConfigurationDictionaryObjectType dictionaryObjectType, ref string valueAsString)
         {
-            // Handle all other types by TypeCode
-            switch (Type.GetTypeCode(dictionaryObject.GetType()))
+            if ( dictionaryObject is Boolean)
             {
-                case TypeCode.Boolean:
-                    dictionaryObjectType = UserConfigurationDictionaryObjectType.Boolean;
-                    valueAsString = EwsUtilities.BoolToXSBool((bool)dictionaryObject);
-                    break;
-                case TypeCode.Byte:
-                    dictionaryObjectType = UserConfigurationDictionaryObjectType.Byte;
-                    valueAsString = ((byte)dictionaryObject).ToString();
-                    break;
-                case TypeCode.DateTime:
-                    dictionaryObjectType = UserConfigurationDictionaryObjectType.DateTime;
-                    valueAsString = service.ConvertDateTimeToUniversalDateTimeString((DateTime)dictionaryObject);
-                    break;
-                case TypeCode.Int32:
-                    dictionaryObjectType = UserConfigurationDictionaryObjectType.Integer32;
-                    valueAsString = ((int)dictionaryObject).ToString();
-                    break;
-                case TypeCode.Int64:
-                    dictionaryObjectType = UserConfigurationDictionaryObjectType.Integer64;
-                    valueAsString = ((long)dictionaryObject).ToString();
-                    break;
-                case TypeCode.String:
-                    dictionaryObjectType = UserConfigurationDictionaryObjectType.String;
-                    valueAsString = (string)dictionaryObject;
-                    break;
-                case TypeCode.UInt32:
-                    dictionaryObjectType = UserConfigurationDictionaryObjectType.UnsignedInteger32;
-                    valueAsString = ((uint)dictionaryObject).ToString();
-                    break;
-                case TypeCode.UInt64:
-                    dictionaryObjectType = UserConfigurationDictionaryObjectType.UnsignedInteger64;
-                    valueAsString = ((ulong)dictionaryObject).ToString();
-                    break;
-                default:
-                    EwsUtilities.Assert(
-                        false,
-                        "UserConfigurationDictionary.WriteObjectValueToXml",
-                        "Unsupported type: " + dictionaryObject.GetType().ToString());
-                    break;
+                dictionaryObjectType = UserConfigurationDictionaryObjectType.Boolean;
+                valueAsString = EwsUtilities.BoolToXSBool((bool)dictionaryObject);
+            }
+            else if (dictionaryObject is Byte)
+            {
+                dictionaryObjectType = UserConfigurationDictionaryObjectType.Byte;
+                valueAsString = ((byte)dictionaryObject).ToString();
+            }
+            else if (dictionaryObject is DateTime)
+            {
+                dictionaryObjectType = UserConfigurationDictionaryObjectType.DateTime;
+                valueAsString = service.ConvertDateTimeToUniversalDateTimeString((DateTime)dictionaryObject);
+            }
+            else if (dictionaryObject is Int32)
+            {
+                dictionaryObjectType = UserConfigurationDictionaryObjectType.Integer32;
+                valueAsString = ((int)dictionaryObject).ToString();
+            }
+            else if (dictionaryObject is Int64)
+            {
+                dictionaryObjectType = UserConfigurationDictionaryObjectType.Integer64;
+                valueAsString = ((long)dictionaryObject).ToString();
+            }
+            else if (dictionaryObject is String)
+            {
+                dictionaryObjectType = UserConfigurationDictionaryObjectType.String;
+                valueAsString = (string)dictionaryObject;
+            }
+            else if (dictionaryObject is UInt32)
+            {
+                dictionaryObjectType = UserConfigurationDictionaryObjectType.UnsignedInteger32;
+                valueAsString = ((uint)dictionaryObject).ToString();
+            }
+            else if (dictionaryObject is UInt64)
+            {
+                dictionaryObjectType = UserConfigurationDictionaryObjectType.UnsignedInteger64;
+                valueAsString = ((ulong)dictionaryObject).ToString();
+            }
+            else
+            {
+                EwsUtilities.Assert(
+                    false,
+                    "UserConfigurationDictionary.WriteObjectValueToXml",
+                    "Unsupported type: " + dictionaryObject.GetType().ToString());
             }
         }
 
@@ -746,6 +752,8 @@ namespace Microsoft.Exchange.WebServices.Data
             }
         }
 
+        static readonly Type[] ValidTypes = new Type[] { typeof(Boolean), typeof(Byte), typeof(DateTime), typeof(Int32), typeof(Int64), typeof(String), typeof(UInt32), typeof(UInt64) };
+
         /// <summary>
         /// Validates the dictionary object type.
         /// </summary>
@@ -755,20 +763,8 @@ namespace Microsoft.Exchange.WebServices.Data
             // This logic is based on Microsoft.Exchange.Data.Storage.ConfigurationDictionary.CheckElementSupportedType().
             bool isValidType = false;
 
-            switch (Type.GetTypeCode(type))
-            {
-                case TypeCode.Boolean:
-                case TypeCode.Byte:
-                case TypeCode.DateTime:
-                case TypeCode.Int32:
-                case TypeCode.Int64:
-                case TypeCode.String:
-                case TypeCode.UInt32:
-                case TypeCode.UInt64:
-                    isValidType = true;
-                    break;
-            }
-
+            if (ValidTypes.Contains(type))
+                isValidType = true;
             if (! isValidType)
             {
                 throw new ServiceLocalException(string.Format(Strings.ObjectTypeNotSupported, type));

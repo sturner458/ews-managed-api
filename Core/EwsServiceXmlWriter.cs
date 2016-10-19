@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Globalization;
     using System.IO;
+    using System.Reflection;
     using System.Text;
     using System.Xml;
 
@@ -86,7 +87,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 // All value types should implement IConvertible. There are a couple of special cases 
                 // that need to be handled directly. Otherwise use IConvertible.ToString()
                 IConvertible convertible = value as IConvertible;
-                if (value.GetType().IsEnum)
+                if (value.GetType().GetTypeInfo().IsEnum)
                 {
                     strValue = EwsUtilities.SerializeEnum((Enum)value);
                 }
@@ -149,7 +150,7 @@ namespace Microsoft.Exchange.WebServices.Data
         {
             if (!this.isDisposed)
             {
-                this.xmlWriter.Close();
+                this.xmlWriter.Dispose();
 
                 this.isDisposed = true;
             }

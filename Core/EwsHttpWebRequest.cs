@@ -30,12 +30,21 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Net;
     using System.Net.Security;
     using System.Security.Cryptography.X509Certificates;
+    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents an implementation of the IEwsHttpWebRequest interface that uses HttpWebRequest.
     /// </summary>
     internal class EwsHttpWebRequest : IEwsHttpWebRequest
     {
+        bool _allowAutoRedirect;
+        bool _preAuthenticate;
+        int _timeout;
+        bool _keepAlive;
+        string _connectionGroupName;
+        X509CertificateCollection _clientCertificates;
+
         /// <summary>
         /// Underlying HttpWebRequest.
         /// </summary>
@@ -116,9 +125,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.IO.Stream"/> to use to write request data.
         /// </returns>
-        Stream IEwsHttpWebRequest.GetRequestStream()
+        Task<Stream> IEwsHttpWebRequest.GetRequestStream()
         {
-            return this.request.GetRequestStream();
+            return this.request.GetRequestStreamAsync();
         }
 
         /// <summary>
@@ -127,9 +136,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.Net.HttpWebResponse"/> that contains the response from the Internet resource.
         /// </returns>
-        IEwsHttpWebResponse IEwsHttpWebRequest.GetResponse()
+        async Task<IEwsHttpWebResponse> IEwsHttpWebRequest.GetResponse()
         {
-            return new EwsHttpWebResponse(this.request.GetResponse() as HttpWebResponse);
+            return new EwsHttpWebResponse(await this.request.GetResponseAsync() as HttpWebResponse);
         }
 
         /// <summary>
@@ -151,8 +160,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </returns>
         bool IEwsHttpWebRequest.AllowAutoRedirect
         {
-            get { return this.request.AllowAutoRedirect; }
-            set { this.request.AllowAutoRedirect = value; }
+            get { return _allowAutoRedirect; }
+            set { _allowAutoRedirect = value; }
         }
 
         /// <summary>
@@ -162,8 +171,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>The collection of X509 client certificates.</returns>
         X509CertificateCollection IEwsHttpWebRequest.ClientCertificates
         {
-            get { return this.request.ClientCertificates; }
-            set { this.request.ClientCertificates = value; }
+            get { return _clientCertificates; }
+            set { _clientCertificates = value; }
         }
 
         /// <summary>
@@ -232,8 +241,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>true to send a WWW-authenticate HTTP header with requests after authentication has taken place; otherwise, false. The default is false.</returns>
         bool IEwsHttpWebRequest.PreAuthenticate
         {
-            get { return this.request.PreAuthenticate; }
-            set { this.request.PreAuthenticate = value; }
+            get { return _preAuthenticate; }
+            set { _preAuthenticate = value; }
         }
 
         /// <summary>
@@ -251,8 +260,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>The number of milliseconds to wait before the request times out. The default is 100,000 milliseconds (100 seconds).</returns>
         int IEwsHttpWebRequest.Timeout
         {
-            get { return this.request.Timeout; }
-            set { this.request.Timeout = value; }
+            get { return _timeout; }
+            set { _timeout = value; }
         }
 
         /// <summary>
@@ -271,8 +280,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>The value of the User-agent HTTP header. The default value is null.The value for this property is stored in <see cref="T:System.Net.WebHeaderCollection"/>. If WebHeaderCollection is set, the property value is lost.</returns>
         string IEwsHttpWebRequest.UserAgent
         {
-            get { return this.request.UserAgent; }
-            set { this.request.UserAgent = value; }
+            get { return request.Headers[HttpRequestHeader.UserAgent]; }
+            set { request.Headers[HttpRequestHeader.UserAgent] = value; }
         }
 
         /// <summary>
@@ -280,8 +289,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         public bool KeepAlive
         {
-            get { return this.request.KeepAlive; }
-            set { this.request.KeepAlive = value; }
+            get { return _keepAlive; }
+            set { _keepAlive = value; }
         }
 
         /// <summary>
@@ -289,8 +298,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         public string ConnectionGroupName
         {
-            get { return this.request.ConnectionGroupName; }
-            set { this.request.ConnectionGroupName = value; }
+            get { return _connectionGroupName; }
+            set { _connectionGroupName = value; }
         }
 
         #endregion

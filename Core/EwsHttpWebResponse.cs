@@ -55,7 +55,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         void IEwsHttpWebResponse.Close()
         {
-            this.response.Close();
+            this.response.Dispose();
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A string that describes the method that is used to encode the body of the response.</returns>
         string IEwsHttpWebResponse.ContentEncoding
         {
-            get { return this.response.ContentEncoding; }
+            get { return this.response.Headers[HttpRequestHeader.ContentEncoding]; }
         }
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>System.Version that contains the HTTP protocol version of the response.</returns>
         Version IEwsHttpWebResponse.ProtocolVersion
         {
-            get { return this.response.ProtocolVersion; }
+            get { return new Version("1.1"); }
         }
         #endregion
 
@@ -141,7 +141,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         void IDisposable.Dispose()
         {
-            this.response.Close();
+            this.response.Dispose();
         }
 
         #endregion

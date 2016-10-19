@@ -63,8 +63,9 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 try
                 {
-                    FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
-                    return fileInfo.FileVersion;
+                    return "15.0.913.15";
+                    //var fileInfo = typeof(EwsUtilities).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
+                    //return fileInfo.Version;
                 }
                 catch
                 {
@@ -425,10 +426,8 @@ namespace Microsoft.Exchange.WebServices.Data
             StringBuilder sb = new StringBuilder();
             using (StringWriter writer = new StringWriter(sb))
             {
-                using (XmlTextWriter xmlWriter = new XmlTextWriter(writer))
+                using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings() { Indent = true }))
                 {
-                    xmlWriter.Formatting = Formatting.Indented;
-
                     EwsUtilities.WriteTraceStartElement(xmlWriter, entryKind, false);
 
                     xmlWriter.WriteWhitespace(Environment.NewLine);
@@ -449,7 +448,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="headers">The HTTP headers.</param>
         private static void FormatHttpHeaders(StringBuilder sb, WebHeaderCollection headers)
         {
-            foreach (string key in headers.Keys)
+            foreach (string key in headers.AllKeys)
             {
                 sb.Append(
                     string.Format(
@@ -504,7 +503,7 @@ namespace Microsoft.Exchange.WebServices.Data
                     "{0} {1} HTTP/{2}\n",
                     request.Method.ToUpperInvariant(),
                     request.RequestUri.AbsolutePath,
-                    request.ProtocolVersion));
+                    "1.1"));
 
             sb.Append(EwsUtilities.FormatHttpHeaders(request.Headers));
             sb.Append("\n");
@@ -519,7 +518,7 @@ namespace Microsoft.Exchange.WebServices.Data
         private static string FormatHttpHeaders(WebHeaderCollection headers)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (string key in headers.Keys)
+            foreach (string key in headers.AllKeys)
             {
                 sb.Append(
                     string.Format(
@@ -545,6 +544,7 @@ namespace Microsoft.Exchange.WebServices.Data
             settings.IgnoreWhitespace = true;
             settings.CloseInput = false;
 
+            
             // Remember the current location in the MemoryStream.
             long lastPosition = memoryStream.Position;
 
@@ -555,12 +555,15 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 using (XmlReader reader = XmlReader.Create(memoryStream, settings))
                 {
+                    reader.Read();
+                    if (reader.NodeType == XmlNodeType.XmlDeclaration)
+                    {
+                        reader.Read();
+                    }
                     using (StringWriter writer = new StringWriter(sb))
                     {
-                        using (XmlTextWriter xmlWriter = new XmlTextWriter(writer))
+                        using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings() { Indent = true }))
                         {
-                            xmlWriter.Formatting = Formatting.Indented;
-
                             EwsUtilities.WriteTraceStartElement(xmlWriter, entryKind, true);
 
                             while (!reader.EOF)
@@ -580,7 +583,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 // not well-formed XML or isn't XML at all. Fallback and treat it as plain text.
                 sb.Length = 0;
                 memoryStream.Position = 0;
-                sb.Append(Encoding.UTF8.GetString(memoryStream.GetBuffer(), 0, (int)memoryStream.Length));
+                sb.Append(memoryStream.ToString());
             }
 
             // Restore Position in the stream.
@@ -657,7 +660,7 @@ namespace Microsoft.Exchange.WebServices.Data
             where T : struct
         {
             EwsUtilities.Assert(
-                typeof(T).IsEnum,
+                typeof(T).GetTypeInfo().IsEnum,
                 "EwsUtilities.ParseEnumValueList",
                 "T is not an enum type.");
 
@@ -702,7 +705,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>Value of type T.</returns>
         internal static T Parse<T>(string value)
         {
-            if (typeof(T).IsEnum)
+            if (typeof(T).GetTypeInfo().IsEnum)
             {
                 Dictionary<string, Enum> stringToEnumDict;
                 Enum enumValue;
@@ -816,7 +819,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </returns>
         internal static bool IsLocalTimeZone(TimeZoneInfo timeZone)
         {
-            return (TimeZoneInfo.Local == timeZone) || (TimeZoneInfo.Local.Id == timeZone.Id && TimeZoneInfo.Local.HasSameRules(timeZone));
+            return (TimeZoneInfo.Local == timeZone) || (TimeZoneInfo.Local.Id == timeZone.Id /* && TimeZoneInfo.Local.HasSameRules(timeZone)*/);
         }
 
         /// <summary>
@@ -1071,14 +1074,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>Printable name.</returns>
         public static string GetPrintableTypeName(Type type)
         {
-            if (type.IsGenericType)
+            if (type.GetTypeInfo().IsGenericType)
             {
                 // Convert generic type to printable form (e.g. List<Item>)
                 string genericPrefix = type.Name.Substring(0, type.Name.IndexOf('`'));
                 StringBuilder nameBuilder = new StringBuilder(genericPrefix);
 
                 // Note: building array of generic parameters is done recursively. Each parameter could be any type.
-                string[] genericArgs = type.GetGenericArguments().ToList<Type>().ConvertAll<string>(t => GetPrintableTypeName(t)).ToArray<string>();
+                string[] genericArgs = type.GetGenericArguments().ToList<Type>().Select(t => GetPrintableTypeName(t)).ToArray<string>();
 
                 nameBuilder.Append("<");
                 nameBuilder.Append(string.Join(",", genericArgs));
@@ -1404,7 +1407,7 @@ namespace Microsoft.Exchange.WebServices.Data
                                 "EwsUtilities.GetEnumVersion",
                                 "Enum member " + enumName + " not found in " + enumType);
 
-            object[] attrs = memberInfo[0].GetCustomAttributes(typeof(RequiredServerVersionAttribute), false);
+            object[] attrs = memberInfo[0].GetCustomAttributes<RequiredServerVersionAttribute>(false).ToArray();
             if (attrs != null && attrs.Length > 0)
             {
                 return ((RequiredServerVersionAttribute)attrs[0]).Version;
@@ -1447,7 +1450,7 @@ namespace Microsoft.Exchange.WebServices.Data
                                 "EwsUtilities.GetEnumSchemaName",
                                 "Enum member " + enumName + " not found in " + enumType);
 
-            object[] attrs = memberInfo[0].GetCustomAttributes(typeof(EwsEnumAttribute), false);
+            object[] attrs = memberInfo[0].GetCustomAttributes<EwsEnumAttribute>(false).ToArray();
             if (attrs != null && attrs.Length > 0)
             {
                 return ((EwsEnumAttribute)attrs[0]).SchemaName;

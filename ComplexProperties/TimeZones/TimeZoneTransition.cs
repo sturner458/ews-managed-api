@@ -25,6 +25,7 @@
 
 namespace Microsoft.Exchange.WebServices.Data
 {
+    using Misc;
     using System;
     using System.Collections.Generic;
     using System.Text;
@@ -77,7 +78,7 @@ namespace Microsoft.Exchange.WebServices.Data
         internal static TimeZoneTransition CreateTimeZoneTransition(
             TimeZoneDefinition timeZoneDefinition,
             TimeZonePeriod targetPeriod,
-            TimeZoneInfo.TransitionTime transitionTime)
+            TransitionTime transitionTime)
         {
             TimeZoneTransition transition;
 
@@ -108,7 +109,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Creates a time zone transition time.
         /// </summary>
         /// <returns>A TimeZoneInfo.TransitionTime.</returns>
-        internal virtual TimeZoneInfo.TransitionTime CreateTransitionTime()
+        internal virtual TransitionTime CreateTransitionTime()
         {
             throw new ServiceLocalException(Strings.InvalidOrUnsupportedTimeZoneDefinition);
         }
@@ -117,7 +118,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Initializes this transition based on the specified transition time.
         /// </summary>
         /// <param name="transitionTime">The transition time to initialize from.</param>
-        internal virtual void InitializeFromTransitionTime(TimeZoneInfo.TransitionTime transitionTime)
+        internal virtual void InitializeFromTransitionTime(TransitionTime transitionTime)
         {
         }
 

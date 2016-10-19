@@ -131,7 +131,7 @@ namespace Microsoft.Exchange.WebServices.Data
             bool allowAutoRedirect)
         {
             // Verify that the protocol is something that we can handle
-            if ((url.Scheme != Uri.UriSchemeHttp) && (url.Scheme != Uri.UriSchemeHttps))
+            if ((url.Scheme != "http") && (url.Scheme != "https"))
             {
                 throw new ServiceLocalException(string.Format(Strings.UnsupportedWebProtocol, url.Scheme));
             }
@@ -150,15 +150,15 @@ namespace Microsoft.Exchange.WebServices.Data
 
             if (acceptGzipEncoding)
             {
-                request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip,deflate");
+                request.Headers[HttpRequestHeader.AcceptEncoding] = "gzip,deflate";
             }
 
             if (!string.IsNullOrEmpty(this.clientRequestId))
             {
-                request.Headers.Add("client-request-id", this.clientRequestId);
+                request.Headers["client-request-id"] = this.clientRequestId;
                 if (this.returnClientRequestId)
                 {
-                    request.Headers.Add("return-client-request-id", "true");
+                    request.Headers["return-client-request-id"] = "true";
                 }
             }
 
@@ -169,7 +169,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             if (this.HttpHeaders.Count > 0)
             {
-                this.HttpHeaders.ForEach((kv) => request.Headers.Add(kv.Key, kv.Value));
+                this.HttpHeaders.ForEach((kv) => request.Headers[kv.Key] = kv.Value);
             }
 
             request.UseDefaultCredentials = this.UseDefaultCredentials;
@@ -472,7 +472,7 @@ namespace Microsoft.Exchange.WebServices.Data
         {
             if (this.RequestedServerVersion >= ExchangeVersion.Exchange2013_SP1)
             {
-                BasicAuthModuleForUTF8.InstantiateIfNeeded();
+                //BasicAuthModuleForUTF8.InstantiateIfNeeded();
             }
         }
 
@@ -886,7 +886,7 @@ namespace Microsoft.Exchange.WebServices.Data
                     {
                         RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
                         ExchangeServiceBase.binarySecret = new byte[256 / 8];
-                        randomNumberGenerator.GetNonZeroBytes(binarySecret);
+                        randomNumberGenerator.GetBytes(binarySecret);
                     }
 
                     return ExchangeServiceBase.binarySecret;

@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Reflection;
 
     /// <summary>
     /// Represents a collection of extended properties.
@@ -154,7 +155,7 @@ namespace Microsoft.Exchange.WebServices.Data
             if (this.TryGetProperty(propertyDefinition, out extendedProperty))
             {
                 // Verify that the type parameter and property definition's type are compatible.
-                if (!typeof(T).IsAssignableFrom(propertyDefinition.Type))
+                if (!typeof(T).GetTypeInfo().IsAssignableFrom(propertyDefinition.Type.GetTypeInfo()))
                 {
                     string errorMessage = string.Format(
                         Strings.PropertyDefinitionTypeMismatch,

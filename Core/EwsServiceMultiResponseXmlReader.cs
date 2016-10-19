@@ -86,11 +86,10 @@ namespace Microsoft.Exchange.WebServices.Data
             XmlReaderSettings settings = new XmlReaderSettings()
             {
                 ConformanceLevel = ConformanceLevel.Auto,
-                ProhibitDtd = true,
+                DtdProcessing = DtdProcessing.Prohibit,
                 IgnoreComments = true,
                 IgnoreProcessingInstructions = true,
-                IgnoreWhitespace = true,
-                XmlResolver = null
+                IgnoreWhitespace = true
             };
 
             return XmlReader.Create(stream, settings);

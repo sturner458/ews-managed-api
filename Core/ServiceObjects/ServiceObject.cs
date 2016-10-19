@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Collections.ObjectModel;
+    using System.Reflection;
 
     /// <summary>
     /// Represents the base abstract class for all item and folder types.
@@ -105,7 +106,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 {
                     lock (this.lockObject)
                     {
-                        foreach (Attribute attribute in this.GetType().GetCustomAttributes(false))
+                        foreach (Attribute attribute in this.GetType().GetTypeInfo().GetCustomAttributes(false))
                         {
                             ServiceObjectDefinitionAttribute definitionAttribute = attribute as ServiceObjectDefinitionAttribute;
 
