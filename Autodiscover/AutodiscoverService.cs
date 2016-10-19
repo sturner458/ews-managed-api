@@ -472,7 +472,14 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 try
                 {
                     //todo: make asynchronous
-                    settings = this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, autodiscoverUrl).Result;
+                    try
+                    {
+                        settings = this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, autodiscoverUrl).Result;
+                    }
+                    catch(AggregateException aggregateException)
+                    {
+                        throw aggregateException.InnerException;
+                    }
 
                     switch (settings.ResponseType)
                     {
@@ -608,7 +615,15 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             // redirection URL to get the configuration settings for this email address. (This will be a common scenario for 
             // DataCenter deployments).
             //todo: make asynchronous
-            Uri redirectionUrl = this.GetRedirectUrl(domainName).Result;
+            Uri redirectionUrl;
+            try
+            {
+                redirectionUrl = this.GetRedirectUrl(domainName).Result;
+            }
+            catch (AggregateException aggregateException)
+            {
+                throw aggregateException.InnerException;
+            }
             if ((redirectionUrl != null) &&
                 this.TryLastChanceHostRedirection<TSettings>(
                     emailAddress,
@@ -698,7 +713,14 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     try
                     {
                         //todo: make asynchronous
-                        settings = this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, redirectionUrl).Result;
+                        try
+                        { 
+                            settings = this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, redirectionUrl).Result;
+                        }
+                        catch (AggregateException aggregateException)
+                        {
+                            throw aggregateException.InnerException;
+                        }
 
                         switch (settings.ResponseType)
                         {
@@ -1082,7 +1104,15 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 request.SmtpAddresses = smtpAddresses;
                 request.Settings = settings;
                 //todo: make asynchronous
-                GetUserSettingsResponseCollection response = request.Execute().Result;
+                GetUserSettingsResponseCollection response;
+                try
+                { 
+                    response = request.Execute().Result;
+                }
+                catch (AggregateException aggregateException)
+                {
+                    throw aggregateException.InnerException;
+                }
 
                 // Did we get redirected?
                 if (response.ErrorCode == AutodiscoverErrorCode.RedirectUrl && response.RedirectionUrl != null)
@@ -1154,7 +1184,15 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 request.Settings = settings;
                 request.RequestedVersion = requestedVersion;
                 //todo: make asynchronous
-                GetDomainSettingsResponseCollection response = request.Execute().Result;
+                GetDomainSettingsResponseCollection response;
+                try
+                {
+                     response = request.Execute().Result;
+                }
+                catch (AggregateException aggregateException)
+                {
+                    throw aggregateException.InnerException;
+                }
 
                 // Did we get redirected?
                 if (response.ErrorCode == AutodiscoverErrorCode.RedirectUrl && response.RedirectionUrl != null)
@@ -1384,7 +1422,14 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 try
                 {
                     //todo: make asynchronous
-                    response = request.GetResponse().Result;
+                    try
+                    {
+                        response = request.GetResponse().Result;
+                    }
+                    catch (AggregateException aggregateException)
+                    {
+                        throw aggregateException.InnerException;
+                    }
                 }
                 catch (WebException ex)
                 {
