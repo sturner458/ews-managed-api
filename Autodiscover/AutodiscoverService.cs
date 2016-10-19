@@ -1234,7 +1234,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     }
                 }
                 //todo: implement PartnerTokenCredentials and X509CertificateCredentials
-                /*
+#if !NETSTANDARD1_3
                 else if (this.Credentials is PartnerTokenCredentials)
                 {
                     if ((endpoints & AutodiscoverEndpoints.WSSecuritySymmetricKey) != AutodiscoverEndpoints.WSSecuritySymmetricKey)
@@ -1265,7 +1265,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                         url = new Uri(string.Format(AutodiscoverSoapWsSecurityX509CertHttpsUrl, host));
                     }
                 }
-                */
+#endif
                 else if (this.Credentials is OAuthCredentials)
                 {
                     // If the credential is OAuthCredentials, no matter whether we have
@@ -1292,12 +1292,13 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <returns></returns>
         private ICollection<string> DefaultGetScpUrlsForDomain(string domainName)
         {
+#if NETSTANDARD1_3
             //todo: implement ldap autodiscover
-            /*
+            throw new NotImplementedException();
+#else
             DirectoryHelper helper = new DirectoryHelper(this);
             return helper.GetAutodiscoverScpUrlsForDomain(domainName);
-            */
-            return new List<string>();
+#endif
         }
 
         /// <summary>
@@ -1755,13 +1756,15 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="partnerAccessCredentials">The partner access credentials.</param>
         /// <param name="targetTenantAutodiscoverUrl">The autodiscover url for the given tenant.</param>
         /// <returns>True if the partner access information was retrieved, false otherwise.</returns>
-        //todo: implement PartnerTokenCredentials
-        /*
         public bool TryGetPartnerAccess(
             string targetTenantDomain,
             out ExchangeCredentials partnerAccessCredentials,
             out Uri targetTenantAutodiscoverUrl)
         {
+#if NETSTANDARD1_3
+            //todo: implement PartnerTokenCredentials
+            throw new NotImplementedException();
+#else
             EwsUtilities.ValidateNonBlankStringParam(targetTenantDomain, "targetTenantDomain");
 
             // the user should set the url to its own tenant's autodiscover url.
@@ -1841,8 +1844,8 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 targetTenantAutodiscoverUrl);
 
             return true;
+#endif
         }
-        */
         #endregion
 
         #region Properties

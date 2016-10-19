@@ -101,7 +101,7 @@ namespace Microsoft.Exchange.WebServices.Data
             standardPeriod.Name = TimeZonePeriod.StandardPeriodName;
             standardPeriod.Bias = -timeZoneInfo.BaseUtcOffset;
             
-            AdjustmentRule[] adjustmentRules = timeZoneInfo.GetAdjustmentRules();
+            AdjustmentRule[] adjustmentRules = timeZoneInfo.GetAdjustmentRulesEx();
 
             TimeZoneTransition transitionToStandardPeriod = new TimeZoneTransition(this, standardPeriod);
 

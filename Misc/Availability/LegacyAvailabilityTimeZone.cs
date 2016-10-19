@@ -62,7 +62,7 @@ namespace Microsoft.Exchange.WebServices.Data
             // time, the other to Daylight time. TimeZoneInfo holds a list of adjustment rules that represent
             // the different rules that govern time changes over the years. We need to grab one of those rules
             // to initialize this instance.
-            AdjustmentRule[] adjustmentRules = timeZoneInfo.GetAdjustmentRules();
+            AdjustmentRule[] adjustmentRules = timeZoneInfo.GetAdjustmentRulesEx();
 
             if (adjustmentRules.Length == 0)
             {
