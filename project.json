@@ -31,7 +31,8 @@
       "frameworkAssemblies": {
         "System.Xml": "4.0.0.0",
         "System.Security": "4.0.0.0",
-        "System.DirectoryServices":"4.0.0.0" 
+        "System.DirectoryServices": "4.0.0.0",
+        "System.Net.Http":"4.0.0.0" 
       }
     }
   }

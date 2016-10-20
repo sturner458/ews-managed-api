@@ -1,51 +1,34 @@
-/*
- * Exchange Web Services Managed API
- *
- * Copyright (c) Microsoft Corporation
- * All rights reserved.
- *
- * MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the "Software"), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
- * to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
- * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- */
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 
-namespace Microsoft.Exchange.WebServices.Data
+namespace Microsoft.Exchange.WebServices.Data.Core
 {
-    using System;
-    using System.IO;
-    using System.Net;
-
-    /// <summary>
-    /// Represents an implementation of the IEwsHttpWebResponse interface using HttpWebResponse.
-    /// </summary>
-    internal class EwsHttpWebResponse : IEwsHttpWebResponse
+    public class EwsHttpResponse : IEwsHttpWebResponse
     {
         /// <summary>
-        /// Underlying HttpWebRequest.
+        /// Underlying HttpResponseMessage.
         /// </summary>
-        private HttpWebResponse response;
+        readonly HttpResponseMessage response;
+
+        /// <summary>
+        /// Converter response headers
+        /// </summary>
+        readonly WebHeaderCollection headers;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EwsHttpWebResponse"/> class.
         /// </summary>
         /// <param name="response">The response.</param>
-        internal EwsHttpWebResponse(HttpWebResponse response)
+        internal EwsHttpResponse(HttpResponseMessage response)
         {
             this.response = response;
+            headers = new WebHeaderCollection();
+            foreach( var header in response.Headers)
+                headers[header.Key] = header.Value.FirstOrDefault();
         }
 
         #region IEwsHttpWebResponse Members
@@ -66,7 +49,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </returns>
         Stream IEwsHttpWebResponse.GetResponseStream()
         {
-            return this.response.GetResponseStream();
+            return response.Content.ReadAsStreamAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -75,7 +58,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A string that describes the method that is used to encode the body of the response.</returns>
         string IEwsHttpWebResponse.ContentEncoding
         {
-            get { return this.response.Headers[HttpResponseHeader.ContentEncoding] ?? string.Empty; }
+            get { return this.response.Content.Headers.ContentEncoding.FirstOrDefault(); }
         }
 
         /// <summary>
@@ -84,8 +67,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A string that contains the content type of the response.</returns>
         string IEwsHttpWebResponse.ContentType
         {
-            get { return this.response.ContentType; }
-        }
+            get { return this.response.Content.Headers.ContentType?.ToString(); }
+        }  
 
         /// <summary>
         /// Gets the headers that are associated with this response from the server.
@@ -93,7 +76,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A <see cref="T:System.Net.WebHeaderCollection"/> that contains the header information returned with the response.</returns>
         WebHeaderCollection IEwsHttpWebResponse.Headers
         {
-            get { return this.response.Headers; }
+            get { return headers; }
         }
 
         /// <summary>
@@ -102,7 +85,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A <see cref="T:System.Uri"/> that contains the URI of the Internet resource that responded to the request.</returns>
         Uri IEwsHttpWebResponse.ResponseUri
         {
-            get { return this.response.ResponseUri; }
+            get { return this.response.RequestMessage.RequestUri; }
         }
 
         /// <summary>
@@ -120,7 +103,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A string that describes the status of the response.</returns>
         string IEwsHttpWebResponse.StatusDescription
         {
-            get { return this.response.StatusDescription; }
+            get { return this.response.ReasonPhrase; }
         }
 
         /// <summary>
@@ -130,11 +113,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>System.Version that contains the HTTP protocol version of the response.</returns>
         Version IEwsHttpWebResponse.ProtocolVersion
         {
-#if NETSTANDARD1_3
-            get { return new Version("1.1"); }
-#else
-            get { return this.response.ProtocolVersion; }
-#endif
+            get { return this.response.Version; }
         }
         #endregion
 

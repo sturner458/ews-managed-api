@@ -55,7 +55,7 @@ namespace Microsoft.Exchange.WebServices.Dns
         {
             base.Load(header, dataPointer);
 
-            Win32DnsSrvRecord record = (Win32DnsSrvRecord)Marshal.PtrToStructure(dataPointer, typeof(Win32DnsSrvRecord));
+            Win32DnsSrvRecord record = Marshal.PtrToStructure<Win32DnsSrvRecord>(dataPointer);
             this.target = record.NameTarget;
             this.priority = record.Priority;
             this.weight = record.Weight;

@@ -34,6 +34,8 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
     using System.Xml;
     using Microsoft.Exchange.WebServices.Data;
     using System.Threading.Tasks;
+    using System.Net.Http;
+    using Data.Core;
 
     /// <summary>
     /// Defines a delegate that is used by the AutodiscoverService to ask whether a redirectionUrl can be used.
@@ -291,33 +293,17 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 TraceFlags.AutodiscoverConfiguration,
                 string.Format("Trying to get Autodiscover redirection URL from {0}.", url));
 
-            IEwsHttpWebRequest request = this.HttpWebRequestFactory.CreateRequest(new Uri(url));
-
-            request.Method = "GET";
-            request.AllowAutoRedirect = false;
-            request.PreAuthenticate = false;
-
             IEwsHttpWebResponse response = null;
 
             try
             {
-                response = request.GetResponse();
-            }
-            catch (WebException ex)
-            {
-                this.TraceMessage(
-                    TraceFlags.AutodiscoverConfiguration,
-                    string.Format("Request error: {0}", ex.Message));
-
-                // The exception response factory requires a valid HttpWebResponse, 
-                // but there will be no web response if the web request couldn't be
-                // actually be issued (e.g. due to DNS error).
-                if (ex.Response != null)
+                using (var client = new HttpClient(new HttpClientHandler(){ AllowAutoRedirect = false }))
                 {
-                    response = this.HttpWebRequestFactory.CreateExceptionResponse(ex);
+                    var httpResponse = client.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+                    response = new EwsHttpResponse(httpResponse);
                 }
             }
-            catch (IOException ex)
+            catch (Exception ex)
             {
                 this.TraceMessage(
                     TraceFlags.AutodiscoverConfiguration,
@@ -1294,7 +1280,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         {
 #if NETSTANDARD1_3
             //todo: implement ldap autodiscover
-            throw new NotImplementedException();
+            return new string[0];
 #else
             DirectoryHelper helper = new DirectoryHelper(this);
             return helper.GetAutodiscoverScpUrlsForDomain(domainName);
@@ -1368,34 +1354,18 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
 
                 endpoints = AutodiscoverEndpoints.None;
 
-                IEwsHttpWebRequest request = this.HttpWebRequestFactory.CreateRequest(autoDiscoverUrl);
-
-                request.Method = "GET";
-                request.AllowAutoRedirect = false;
-                request.PreAuthenticate = false;
-                request.UseDefaultCredentials = false;
 
                 IEwsHttpWebResponse response = null;
 
                 try
                 {
-                    response = request.GetResponse();
-                }
-                catch (WebException ex)
-                {
-                    this.TraceMessage(
-                        TraceFlags.AutodiscoverConfiguration,
-                        string.Format("Request error: {0}", ex.Message));
-
-                    // The exception response factory requires a valid HttpWebResponse, 
-                    // but there will be no web response if the web request couldn't be
-                    // actually be issued (e.g. due to DNS error).
-                    if (ex.Response != null)
+                    using (var client = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false }))
                     {
-                        response = this.HttpWebRequestFactory.CreateExceptionResponse(ex);
+                        var httpResponse = client.GetAsync(autoDiscoverUrl).ConfigureAwait(false).GetAwaiter().GetResult();
+                        response = new EwsHttpResponse(httpResponse);
                     }
                 }
-                catch (IOException ex)
+                catch (Exception ex)
                 {
                     this.TraceMessage(
                         TraceFlags.AutodiscoverConfiguration,

@@ -84,7 +84,7 @@ namespace Microsoft.Exchange.WebServices.Dns
                     // Interate through linked list of query result records.
                     for (IntPtr recordPtr = queryResultsPtr; !recordPtr.Equals(IntPtr.Zero); recordPtr = dnsRecordHeader.NextRecord)
                     {
-                        dnsRecordHeader = (DnsRecordHeader)Marshal.PtrToStructure(recordPtr, typeof(DnsRecordHeader));
+                        dnsRecordHeader = Marshal.PtrToStructure<DnsRecordHeader>(recordPtr);
 
                         T dnsRecord = new T();
                         if (dnsRecordHeader.RecordType == dnsRecord.RecordType)
