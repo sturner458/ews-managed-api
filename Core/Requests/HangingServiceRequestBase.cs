@@ -189,7 +189,10 @@ namespace Microsoft.Exchange.WebServices.Data
 
                     using (Stream responseStream = this.response.GetResponseStream())
                     {
+#if !NETSTANDARD1_4
+                        //TODO: Implement heartbeat timeout 
                         responseStream.ReadTimeout = 2 * this.heartbeatFrequencyMilliseconds;
+#endif
                         tracingStream = new HangingTraceStream(responseStream, this.Service);
 
                         // EwsServiceMultiResponseXmlReader.Create causes a read.
