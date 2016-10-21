@@ -30,6 +30,8 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Globalization;
     using System.IO;
     using System.Net;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Security.Cryptography;
     using System.Xml;
 
@@ -192,6 +194,61 @@ namespace Microsoft.Exchange.WebServices.Data
 
             return request;
         }        
+
+        /// <summary>
+        /// Creates an HttpWebRequest instance and initializes it with the appropriate parameters,
+        /// based on the configuration of this service object.
+        /// </summary>
+        /// <param name="url">The URL that the HttpWebRequest should target.</param>
+        /// <returns>A initialized instance of HttpWebRequest.</returns>
+        internal HttpRequestMessage PrepareHttpRequestMessageForUrl(Uri url)
+        {
+            // Verify that the protocol is something that we can handle
+            if ((url.Scheme != "http") && (url.Scheme != "https"))
+            {
+                throw new ServiceLocalException(string.Format(Strings.UnsupportedWebProtocol, url.Scheme));
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+            //request.Timeout = this.Timeout;
+            request.Headers.Accept.ParseAdd("text/xml");
+            request.Headers.TryAddWithoutValidation("User-Agent", this.UserAgent);
+            //request.KeepAlive = this.keepAlive;
+            //request.ConnectionGroupName = this.connectionGroupName;
+
+            if (!string.IsNullOrEmpty(this.clientRequestId))
+            {
+                request.Headers.Add("client-request-id", this.clientRequestId);
+                if (this.returnClientRequestId)
+                {
+                    request.Headers.Add("return-client-request-id", "true");
+                }
+            }
+
+            if (this.HttpHeaders.Count > 0)
+                this.HttpHeaders.ForEach((kv) => request.Headers.Add(kv.Key, kv.Value));
+            this.httpResponseHeaders.Clear();
+
+            return request;
+        }
+
+        internal HttpClient PrepareHttpClient()
+        {
+            var httpClientHandler = new HttpClientHandler()
+            {
+                PreAuthenticate = this.PreAuthenticate,
+                AllowAutoRedirect = false,
+                CookieContainer = this.CookieContainer,
+                UseDefaultCredentials = this.UseDefaultCredentials,
+                // TODO : support different types of authentication
+                Credentials = this.UseDefaultCredentials ? null : (this.Credentials as WebCredentials)?.Credentials
+            };
+            return new HttpClient(httpClientHandler)
+            {
+                Timeout = TimeSpan.FromMilliseconds(this.Timeout)
+            };
+        }
 
         internal virtual void SetContentType(IEwsHttpWebRequest request)
         {

@@ -49,7 +49,7 @@ namespace Microsoft.Exchange.WebServices.Data.Core
         /// </returns>
         Stream IEwsHttpWebResponse.GetResponseStream()
         {
-            return response.Content.ReadAsStreamAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            return response.Content.ReadAsStreamAsync().Result;
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Microsoft.Exchange.WebServices.Data.Core
         /// <returns>A string that describes the method that is used to encode the body of the response.</returns>
         string IEwsHttpWebResponse.ContentEncoding
         {
-            get { return this.response.Content.Headers.ContentEncoding.FirstOrDefault(); }
+            get { return this.response.Content.Headers.ContentEncoding.FirstOrDefault() ?? string.Empty; }
         }
 
         /// <summary>

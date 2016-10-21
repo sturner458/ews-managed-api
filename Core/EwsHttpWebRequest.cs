@@ -132,7 +132,7 @@ namespace Microsoft.Exchange.WebServices.Data
 #if NETSTANDARD1_3
             try
             {
-                return this.request.GetRequestStreamAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                return this.request.GetRequestStreamAsync().Result;
             }
             catch(AggregateException exception)
             {
@@ -154,7 +154,7 @@ namespace Microsoft.Exchange.WebServices.Data
 #if NETSTANDARD1_3
             try
             {
-                return new EwsHttpWebResponse(request.GetResponseAsync().ConfigureAwait(false).GetAwaiter().GetResult() as HttpWebResponse);
+                return new EwsHttpWebResponse(request.GetResponseAsync().Result as HttpWebResponse);
             }
             catch (AggregateException exception)
             {

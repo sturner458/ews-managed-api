@@ -32,6 +32,9 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
     using System.Xml;
     using Microsoft.Exchange.WebServices.Data;
     using System.Threading.Tasks;
+    using System.Net.Http;
+    using Data.Core;
+    using System.Net.Http.Headers;
 
     /// <summary>
     /// Represents the base class for all requested made to the Autodiscover service.
@@ -83,15 +86,11 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
 
             try
             {
-                IEwsHttpWebRequest request = this.Service.PrepareHttpWebRequestForUrl(this.Url);
-
-                this.Service.TraceHttpRequestHeaders(TraceFlags.AutodiscoverRequestHttpHeaders, request);
+                var request = this.Service.PrepareHttpRequestMessageForUrl(url);
 
                 bool needSignature = this.Service.Credentials != null && this.Service.Credentials.NeedSignature;
                 bool needTrace = this.Service.IsTraceEnabledFor(TraceFlags.AutodiscoverRequest);
 
-                using (Stream requestStream = request.GetRequestStream())
-                {
                     using (MemoryStream memoryStream = new MemoryStream())
                     {
                         using (EwsServiceXmlWriter writer = new EwsServiceXmlWriter(this.Service, memoryStream))
@@ -113,11 +112,12 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                             this.Service.TraceXml(TraceFlags.AutodiscoverRequest, memoryStream);
                         }
 
-                        EwsUtilities.CopyStream(memoryStream, requestStream);
+                        request.Content = new ByteArrayContent(memoryStream.ToArray());
+                        request.Content.Headers.ContentType = new MediaTypeHeaderValue("text/xml") { CharSet = "utf-8" };
                     }
-                }
 
-                using (IEwsHttpWebResponse webResponse = request.GetResponse())
+                using (var client = this.Service.PrepareHttpClient())
+                using (IEwsHttpWebResponse webResponse = new EwsHttpResponse(client.SendAsync(request).Result))
                 {
                     if (AutodiscoverRequest.IsRedirectionResponse(webResponse))
                     {

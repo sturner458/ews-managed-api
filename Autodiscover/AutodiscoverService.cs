@@ -36,6 +36,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
     using System.Threading.Tasks;
     using System.Net.Http;
     using Data.Core;
+    using System.Net.Http.Headers;
 
     /// <summary>
     /// Defines a delegate that is used by the AutodiscoverService to ask whether a redirectionUrl can be used.
@@ -185,11 +186,9 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
 
             TSettings settings = new TSettings();
 
-            IEwsHttpWebRequest request = this.PrepareHttpWebRequestForUrl(url);
+            var request = this.PrepareHttpRequestMessageForUrl(url);
 
-            this.TraceHttpRequestHeaders(TraceFlags.AutodiscoverRequestHttpHeaders, request);
-
-            using (Stream requestStream = request.GetRequestStream())
+            using (var requestStream = new MemoryStream())
             {
                 Stream writerStream = requestStream;
 
@@ -218,9 +217,12 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                         this.WriteLegacyAutodiscoverRequest(emailAddress, settings, writer);
                     }
                 }
+                request.Content = new ByteArrayContent(requestStream.ToArray());
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("text/xml") { CharSet = "utf-8" };
             }
 
-            using (IEwsHttpWebResponse webResponse = request.GetResponse())
+            using (var client = this.PrepareHttpClient())
+            using (IEwsHttpWebResponse webResponse = new EwsHttpResponse(client.SendAsync(request).Result))
             {
                 Uri redirectUrl;
                 if (this.TryGetRedirectionResponse(webResponse, out redirectUrl))
@@ -299,7 +301,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             {
                 using (var client = new HttpClient(new HttpClientHandler(){ AllowAutoRedirect = false }))
                 {
-                    var httpResponse = client.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+                    var httpResponse = client.GetAsync(url).Result;
                     response = new EwsHttpResponse(httpResponse);
                 }
             }
@@ -576,7 +578,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     // The content at the URL wasn't a valid response, let's try the next.
                     currentUrlIndex++;
                 }
-                catch (IOException ex)
+                catch (Exception ex)
                 {
                     this.TraceMessage(
                         TraceFlags.AutodiscoverConfiguration,
@@ -757,7 +759,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                             string.Format("{0} failed: XML parsing error: {1}", redirectionUrl, ex.Message));
                         return false;
                     }
-                    catch (IOException ex)
+                    catch (Exception ex)
                     {
                         this.TraceMessage(
                             TraceFlags.AutodiscoverConfiguration,
@@ -1361,7 +1363,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 {
                     using (var client = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false }))
                     {
-                        var httpResponse = client.GetAsync(autoDiscoverUrl).ConfigureAwait(false).GetAwaiter().GetResult();
+                        var httpResponse = client.GetAsync(autoDiscoverUrl).Result;
                         response = new EwsHttpResponse(httpResponse);
                     }
                 }
@@ -1468,18 +1470,6 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         #endregion
 
         #region Utilities
-        /// <summary>
-        /// Creates an HttpWebRequest instance and initializes it with the appropriate parameters,
-        /// based on the configuration of this service object.
-        /// </summary>
-        /// <param name="url">The URL that the HttpWebRequest should target.</param>
-        internal IEwsHttpWebRequest PrepareHttpWebRequestForUrl(Uri url)
-        {
-            return this.PrepareHttpWebRequestForUrl(
-                            url,
-                            false,      // acceptGzipEncoding
-                            false);     // allowAutoRedirect
-        }
 
         /// <summary>
         /// Calls the redirection URL validation callback.
