@@ -31,6 +31,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Net;
     using System.Text;
     using System.Threading;
+    using System.Threading.Tasks;
     using System.Xml;
 
     /// <summary>
@@ -175,7 +176,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Parses the responses.
         /// </summary>
         /// <param name="state">The state.</param>
-        private void ParseResponses(object state)
+        private async void ParseResponses(object state)
         {
             try
             {
@@ -210,7 +211,7 @@ namespace Microsoft.Exchange.WebServices.Data
                             {
                                 try
                                 {
-                                    responseObject = this.ReadResponse(ewsXmlReader, this.response.Headers);
+                                    responseObject = await this.ReadResponseAsync(ewsXmlReader, this.response.Headers, CancellationToken.None);
                                 }
                                 finally
                                 {
@@ -224,7 +225,7 @@ namespace Microsoft.Exchange.WebServices.Data
                             }
                             else
                             {
-                                responseObject = this.ReadResponse(ewsXmlReader, this.response.Headers);
+                                responseObject = await this.ReadResponseAsync(ewsXmlReader, this.response.Headers, CancellationToken.None);
                             }
 
                             this.responseHandler(responseObject);
@@ -370,6 +371,15 @@ namespace Microsoft.Exchange.WebServices.Data
         protected override void ReadPreamble(EwsServiceXmlReader ewsXmlReader)
         {
             // Do nothing.
+        }
+
+        /// <summary>
+        /// Reads any preamble data not part of the core response.
+        /// </summary>
+        /// <param name="ewsXmlReader">The EwsServiceXmlReader.</param>
+        protected override System.Threading.Tasks.Task ReadPreambleAsync(EwsServiceXmlReader ewsXmlReader, CancellationToken token)
+        {
+            return System.Threading.Tasks.Task.CompletedTask;
         }
     }
 }

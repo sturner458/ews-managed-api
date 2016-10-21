@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading;
     using System.Xml;
 
     /// <summary>
@@ -69,6 +70,7 @@ namespace Microsoft.Exchange.WebServices.Data
             // so we disable the XmlResolver as well.
             XmlReaderSettings settings = new XmlReaderSettings()
             {
+                Async = true,
                 ConformanceLevel = ConformanceLevel.Auto,
                 DtdProcessing = DtdProcessing.Prohibit,
                 IgnoreComments = true,
@@ -132,6 +134,43 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Read XML element.
         /// </summary>
+        /// <param name="xmlNamespace">The XML namespace.</param>
+        /// <param name="localName">Name of the local.</param>
+        /// <param name="nodeType">Type of the node.</param>
+        private async System.Threading.Tasks.Task InternalReadElementAsync(
+            XmlNamespace xmlNamespace,
+            string localName,
+            XmlNodeType nodeType,
+            CancellationToken token)
+        {
+            if (xmlNamespace == XmlNamespace.NotSpecified)
+            {
+                this.InternalReadElement(
+                    string.Empty,
+                    localName,
+                    nodeType);
+            }
+            else
+            {
+                await this.ReadAsync(nodeType, token);
+
+                if ((this.LocalName != localName) || (this.NamespaceUri != EwsUtilities.GetNamespaceUri(xmlNamespace)))
+                {
+                    throw new ServiceXmlDeserializationException(
+                        string.Format(
+                            Strings.UnexpectedElement,
+                            EwsUtilities.GetNamespacePrefix(xmlNamespace),
+                            localName,
+                            nodeType,
+                            this.xmlReader.Name,
+                            this.NodeType));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Read XML element.
+        /// </summary>
         /// <param name="namespacePrefix">The namespace prefix.</param>
         /// <param name="localName">Name of the local.</param>
         /// <param name="nodeType">Type of the node.</param>
@@ -141,6 +180,33 @@ namespace Microsoft.Exchange.WebServices.Data
             XmlNodeType nodeType)
         {
             this.Read(nodeType);
+
+            if ((this.LocalName != localName) || (this.NamespacePrefix != namespacePrefix))
+            {
+                throw new ServiceXmlDeserializationException(
+                                string.Format(
+                                    Strings.UnexpectedElement,
+                                    namespacePrefix,
+                                    localName,
+                                    nodeType,
+                                    this.xmlReader.Name,
+                                    this.NodeType));
+            }
+        }
+
+        /// <summary>
+        /// Read XML element.
+        /// </summary>
+        /// <param name="namespacePrefix">The namespace prefix.</param>
+        /// <param name="localName">Name of the local.</param>
+        /// <param name="nodeType">Type of the node.</param>
+        private async System.Threading.Tasks.Task InternalReadElementAsync(
+            string namespacePrefix,
+            string localName,
+            XmlNodeType nodeType,
+            CancellationToken token)
+        {
+            await this.ReadAsync(nodeType, token);
 
             if ((this.LocalName != localName) || (this.NamespacePrefix != namespacePrefix))
             {
@@ -173,12 +239,46 @@ namespace Microsoft.Exchange.WebServices.Data
         }
 
         /// <summary>
+        /// Reads the next node.
+        /// </summary>
+        public async System.Threading.Tasks.Task ReadAsync(CancellationToken token)
+        {
+            this.prevNodeType = this.xmlReader.NodeType;
+
+            // XmlReader.Read returns true if the next node was read successfully; false if there 
+            // are no more nodes to read. The caller to EwsXmlReader.Read expects that there's another node to 
+            // read. Throw an exception if not true.
+            bool nodeRead = await this.xmlReader.ReadAsync();
+            if (!nodeRead)
+            {
+                throw new ServiceXmlDeserializationException(Strings.UnexpectedEndOfXmlDocument);
+            }
+        }
+
+        /// <summary>
         /// Reads the specified node type.
         /// </summary>
         /// <param name="nodeType">Type of the node.</param>
         public void Read(XmlNodeType nodeType)
         {
             this.Read();
+            if (this.NodeType != nodeType)
+            {
+                throw new ServiceXmlDeserializationException(
+                    string.Format(
+                        Strings.UnexpectedElementType,
+                        nodeType,
+                        this.NodeType));
+            }
+        }
+
+        /// <summary>
+        /// Reads the specified node type.
+        /// </summary>
+        /// <param name="nodeType">Type of the node.</param>
+        public async System.Threading.Tasks.Task ReadAsync(XmlNodeType nodeType, CancellationToken token)
+        {
+            await this.ReadAsync(token);
             if (this.NodeType != nodeType)
             {
                 throw new ServiceXmlDeserializationException(
@@ -514,6 +614,34 @@ namespace Microsoft.Exchange.WebServices.Data
         }
 
         /// <summary>
+        /// Reads the start element.
+        /// </summary>
+        /// <param name="namespacePrefix">The namespace prefix.</param>
+        /// <param name="localName">Name of the local.</param>
+        public System.Threading.Tasks.Task ReadStartElementAsync(string namespacePrefix, string localName, CancellationToken token)
+        {
+            return this.InternalReadElementAsync(
+                namespacePrefix,
+                localName,
+                XmlNodeType.Element, 
+                token);
+        }
+
+        /// <summary>
+        /// Reads the start element.
+        /// </summary>
+        /// <param name="xmlNamespace">The XML namespace.</param>
+        /// <param name="localName">Name of the local.</param>
+        public System.Threading.Tasks.Task ReadStartElementAsync(XmlNamespace xmlNamespace, string localName, CancellationToken token)
+        {
+            return this.InternalReadElementAsync(
+                xmlNamespace,
+                localName,
+                XmlNodeType.Element,
+                token);
+        }
+
+        /// <summary>
         /// Reads the end element.
         /// </summary>
         /// <param name="namespacePrefix">The namespace prefix.</param>
@@ -537,6 +665,34 @@ namespace Microsoft.Exchange.WebServices.Data
                 xmlNamespace,
                 localName,
                 XmlNodeType.EndElement);
+        }
+
+        /// <summary>
+        /// Reads the end element.
+        /// </summary>
+        /// <param name="namespacePrefix">The namespace prefix.</param>
+        /// <param name="elementName">Name of the element.</param>
+        public System.Threading.Tasks.Task ReadEndElementAsync(string namespacePrefix, string elementName, CancellationToken token)
+        {
+            return this.InternalReadElementAsync(
+                namespacePrefix,
+                elementName,
+                XmlNodeType.EndElement,
+                token);
+        }
+
+        /// <summary>
+        /// Reads the end element.
+        /// </summary>
+        /// <param name="xmlNamespace">The XML namespace.</param>
+        /// <param name="localName">Name of the local.</param>
+        public System.Threading.Tasks.Task ReadEndElementAsync(XmlNamespace xmlNamespace, string localName, CancellationToken token)
+        {
+            return this.InternalReadElementAsync(
+                xmlNamespace,
+                localName,
+                XmlNodeType.EndElement,
+                token);
         }
 
         /// <summary>

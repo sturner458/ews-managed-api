@@ -31,6 +31,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.IO.Compression;
     using System.Net;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
 
@@ -486,12 +487,54 @@ namespace Microsoft.Exchange.WebServices.Data
         }
 
         /// <summary>
+        /// Reads the response.
+        /// </summary>
+        /// <param name="ewsXmlReader">The XML reader.</param>
+        /// <param name="responseHeaders">HTTP response headers</param>
+        /// <returns>Service response.</returns>
+        protected async Task<object> ReadResponseAsync(EwsServiceXmlReader ewsXmlReader, WebHeaderCollection responseHeaders, CancellationToken token)
+        {
+            object serviceResponse;
+
+            await this.ReadPreambleAsync(ewsXmlReader, token);
+            await ewsXmlReader.ReadStartElementAsync(XmlNamespace.Soap, XmlElementNames.SOAPEnvelopeElementName, token);
+            await this.ReadSoapHeaderAsync(ewsXmlReader, token);
+            await ewsXmlReader.ReadStartElementAsync(XmlNamespace.Soap, XmlElementNames.SOAPBodyElementName, token);
+
+            await ewsXmlReader.ReadStartElementAsync(XmlNamespace.Messages, this.GetResponseXmlElementName(), token);
+
+            if (responseHeaders != null)
+            {
+                serviceResponse = this.ParseResponse(ewsXmlReader, responseHeaders);
+            }
+            else
+            {
+                serviceResponse = this.ParseResponse(ewsXmlReader);
+            }
+
+            ewsXmlReader.ReadEndElementIfNecessary(XmlNamespace.Messages, this.GetResponseXmlElementName());
+
+            await ewsXmlReader.ReadEndElementAsync(XmlNamespace.Soap, XmlElementNames.SOAPBodyElementName, token);
+            await ewsXmlReader.ReadEndElementAsync(XmlNamespace.Soap, XmlElementNames.SOAPEnvelopeElementName, token);
+            return serviceResponse;
+        }
+
+        /// <summary>
         /// Reads any preamble data not part of the core response.
         /// </summary>
         /// <param name="ewsXmlReader">The EwsServiceXmlReader.</param>
         protected virtual void ReadPreamble(EwsServiceXmlReader ewsXmlReader)
         {
             this.ReadXmlDeclaration(ewsXmlReader);
+        }
+
+        /// <summary>
+        /// Reads any preamble data not part of the core response.
+        /// </summary>
+        /// <param name="ewsXmlReader">The EwsServiceXmlReader.</param>
+        protected virtual System.Threading.Tasks.Task ReadPreambleAsync(EwsServiceXmlReader ewsXmlReader, CancellationToken token)
+        {
+            return this.ReadXmlDeclarationAsync(ewsXmlReader, token);
         }
 
         /// <summary>
@@ -504,6 +547,28 @@ namespace Microsoft.Exchange.WebServices.Data
             do
             {
                 reader.Read();
+
+                // Is this the ServerVersionInfo?
+                if (reader.IsStartElement(XmlNamespace.Types, XmlElementNames.ServerVersionInfo))
+                {
+                    this.Service.ServerInfo = ExchangeServerInfo.Parse(reader);
+                }
+
+                // Ignore anything else inside the SOAP header
+            }
+            while (!reader.IsEndElement(XmlNamespace.Soap, XmlElementNames.SOAPHeaderElementName));
+        }
+
+        /// <summary>
+        /// Read SOAP header and extract server version
+        /// </summary>
+        /// <param name="reader">EwsServiceXmlReader</param>
+        private async System.Threading.Tasks.Task ReadSoapHeaderAsync(EwsServiceXmlReader reader, CancellationToken token)
+        {
+            await reader.ReadStartElementAsync(XmlNamespace.Soap, XmlElementNames.SOAPHeaderElementName, token);
+            do
+            {
+                await reader.ReadAsync(token);
 
                 // Is this the ServerVersionInfo?
                 if (reader.IsStartElement(XmlNamespace.Types, XmlElementNames.ServerVersionInfo))
@@ -926,6 +991,25 @@ namespace Microsoft.Exchange.WebServices.Data
             }
         }
 
+        /// <summary>
+        /// Try to read the XML declaration. If it's not there, the server didn't return XML.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        private async System.Threading.Tasks.Task ReadXmlDeclarationAsync(EwsServiceXmlReader reader, CancellationToken token)
+        {
+            try
+            {
+                await reader.ReadAsync(XmlNodeType.XmlDeclaration, token);
+            }
+            catch (XmlException ex)
+            {
+                throw new ServiceRequestException(Strings.ServiceResponseDoesNotContainXml, ex);
+            }
+            catch (ServiceXmlDeserializationException ex)
+            {
+                throw new ServiceRequestException(Strings.ServiceResponseDoesNotContainXml, ex);
+            }
+        }
         #endregion
     }
 }

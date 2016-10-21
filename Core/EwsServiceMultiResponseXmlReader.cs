@@ -85,6 +85,7 @@ namespace Microsoft.Exchange.WebServices.Data
             // so we disable the XmlResolver as well.
             XmlReaderSettings settings = new XmlReaderSettings()
             {
+                Async = true,
                 ConformanceLevel = ConformanceLevel.Auto,
                 DtdProcessing = DtdProcessing.Prohibit,
                 IgnoreComments = true,

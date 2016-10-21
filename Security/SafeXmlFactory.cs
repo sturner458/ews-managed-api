@@ -40,6 +40,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         private static XmlReaderSettings defaultSettings = new XmlReaderSettings()
         {
+            Async = true,
             DtdProcessing = DtdProcessing.Prohibit,
         };
         #endregion
@@ -52,7 +53,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A new instance of the XmlTextReader class.</returns>
         public static XmlReader CreateSafeXmlTextReader(Stream stream)
         {
-            XmlReader xtr = XmlReader.Create(stream, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Ignore });
+            XmlReader xtr = XmlReader.Create(stream, new XmlReaderSettings() { Async = true, DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
 
@@ -63,7 +64,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A new instance of the XmlTextReader class.</returns>
         public static XmlReader CreateSafeXmlTextReader(string url)
         {
-            XmlReader xtr = XmlReader.Create(url, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Ignore });
+            XmlReader xtr = XmlReader.Create(url, new XmlReaderSettings() { Async = true, DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
 
@@ -74,7 +75,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A new instance of the XmlTextReader class.</returns>
         public static XmlReader CreateSafeXmlTextReader(TextReader input)
         {
-            XmlReader xtr = XmlReader.Create(input, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Ignore });
+            XmlReader xtr = XmlReader.Create(input, new XmlReaderSettings() { Async = true, DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
 
@@ -86,7 +87,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A new instance of the XmlTextReader class.</returns>
         public static XmlReader CreateSafeXmlTextReader(Stream input, XmlNameTable nt)
         {
-            XmlReader xtr = XmlReader.Create(input, new XmlReaderSettings() { NameTable = nt, DtdProcessing = DtdProcessing.Ignore });
+            XmlReader xtr = XmlReader.Create(input, new XmlReaderSettings() { Async = true, NameTable = nt, DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
 
@@ -98,7 +99,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A new instance of the XmlTextReader class.</returns>
         public static XmlReader CreateSafeXmlTextReader(string url, XmlNameTable nt)
         {
-            XmlReader xtr = XmlReader.Create(url, new XmlReaderSettings() { NameTable = nt, DtdProcessing = DtdProcessing.Ignore });
+            XmlReader xtr = XmlReader.Create(url, new XmlReaderSettings() { Async = true, NameTable = nt, DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
 
@@ -110,7 +111,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A new instance of the XmlTextReader class.</returns>
         public static XmlReader CreateSafeXmlTextReader(TextReader input, XmlNameTable nt)
         {
-            XmlReader xtr = XmlReader.Create(input, new XmlReaderSettings() { NameTable = nt, DtdProcessing = DtdProcessing.Ignore });
+            XmlReader xtr = XmlReader.Create(input, new XmlReaderSettings() { Async = true, NameTable = nt, DtdProcessing = DtdProcessing.Ignore });
             return xtr;
         }
         #endregion
