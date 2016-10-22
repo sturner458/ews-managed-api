@@ -1472,6 +1472,83 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         #region Utilities
 
         /// <summary>
+        /// Creates an HttpWebRequest instance and initializes it with the appropriate parameters,
+        /// based on the configuration of this service object.
+        /// </summary>
+        /// <param name="url">The URL that the HttpWebRequest should target.</param>
+        /// <returns>A initialized instance of HttpWebRequest.</returns>
+        internal HttpRequestMessage PrepareHttpRequestMessageForUrl(Uri url)
+        {
+            // Verify that the protocol is something that we can handle
+            if ((url.Scheme != "http") && (url.Scheme != "https"))
+            {
+                throw new ServiceLocalException(string.Format(Strings.UnsupportedWebProtocol, url.Scheme));
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+            request.Headers.Accept.ParseAdd("text/xml");
+            request.Headers.TryAddWithoutValidation("User-Agent", this.UserAgent);
+
+            if (!string.IsNullOrEmpty(this.ClientRequestId))
+            {
+                request.Headers.Add("client-request-id", this.ClientRequestId);
+                if (this.ReturnClientRequestId)
+                {
+                    request.Headers.Add("return-client-request-id", "true");
+                }
+            }
+
+            if (this.HttpHeaders.Count > 0)
+                this.HttpHeaders.ForEach((kv) => request.Headers.Add(kv.Key, kv.Value));
+            this.HttpResponseHeaders.Clear();
+
+            return request;
+        }
+
+        internal HttpClient PrepareHttpClient()
+        {
+            var httpClientHandler = new HttpClientHandler()
+            {
+                PreAuthenticate = this.PreAuthenticate,
+                AllowAutoRedirect = false,
+                CookieContainer = this.CookieContainer,
+                UseDefaultCredentials = this.UseDefaultCredentials,
+            };
+
+            if (this.WebProxy != null)
+            {
+                httpClientHandler.Proxy = this.WebProxy;
+                httpClientHandler.UseProxy = true;
+            }
+
+            if (!UseDefaultCredentials)
+            {
+                ExchangeCredentials serviceCredentials = this.Credentials;
+                if (serviceCredentials == null)
+                {
+                    throw new ServiceLocalException(Strings.CredentialsRequired);
+                }
+
+                // Make sure that credentials have been authenticated if required
+                serviceCredentials.PreAuthenticate();
+
+                // TODO support different credentials
+                if (!(serviceCredentials is WebCredentials))
+                    throw new NotImplementedException();
+                httpClientHandler.Credentials = (this.Credentials as WebCredentials)?.Credentials;
+
+                // Apply credentials to the request
+                // serviceCredentials.PrepareWebRequest(request);
+            }
+
+            return new HttpClient(httpClientHandler)
+            {
+                Timeout = TimeSpan.FromMilliseconds(this.Timeout)
+            };
+        }
+
+        /// <summary>
         /// Calls the redirection URL validation callback.
         /// </summary>
         /// <param name="redirectionUrl">The redirection URL.</param>
