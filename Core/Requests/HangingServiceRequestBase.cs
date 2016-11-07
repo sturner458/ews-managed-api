@@ -190,10 +190,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
                     using (Stream responseStream = this.response.GetResponseStream())
                     {
-                        //TODO: Implement heartbeat timeout 
-                        if (responseStream.CanTimeout)
-                            responseStream.ReadTimeout = 2 * this.heartbeatFrequencyMilliseconds;
-                        tracingStream = new HangingTraceStream(responseStream, this.Service);
+                        tracingStream = new HangingTraceStream(responseStream, this.Service) { ReadTimeout = 2 * this.heartbeatFrequencyMilliseconds };
 
                         // EwsServiceMultiResponseXmlReader.Create causes a read.
                         if (traceEwsResponse)
@@ -287,6 +284,10 @@ namespace Microsoft.Exchange.WebServices.Data
                 }
             }
             catch (ServiceLocalException exception)
+            {
+                this.Disconnect(HangingRequestDisconnectReason.Exception, exception);
+            }
+            catch (Exception exception)
             {
                 this.Disconnect(HangingRequestDisconnectReason.Exception, exception);
             }

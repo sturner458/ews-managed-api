@@ -54,6 +54,13 @@ namespace Microsoft.Exchange.WebServices.Data
             this.service = service;
         }
 
+        public override int ReadTimeout { get; set; }
+
+        public override bool CanTimeout
+        {
+            get { return true; }
+        }
+
         /// <summary>
         /// Gets a value indicating whether the current stream supports reading.
         /// </summary>
@@ -161,8 +168,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception>
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            int retVal = await this.underlyingStream.ReadAsync(buffer, offset, count, cancellationToken);
-            return PostRead(buffer, offset, count, retVal);
+            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+            {
+                if (ReadTimeout != 0)
+                    linkedTokenSource.CancelAfter(TimeSpan.FromMilliseconds(ReadTimeout));
+                int retVal = await this.underlyingStream.ReadAsync(buffer, offset, count, linkedTokenSource.Token);
+                return PostRead(buffer, offset, count, retVal);
+            }
         }
 
 

@@ -52,6 +52,8 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
     {
         #region Static members
 
+        private static readonly TimeSpan AutodiscoverTimeout = TimeSpan.FromSeconds(10);
+
         /// <summary>
         /// Autodiscover legacy path
         /// </summary>
@@ -299,7 +301,9 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
 
             try
             {
-                using (var client = new HttpClient(new HttpClientHandler(){ AllowAutoRedirect = false }))
+                using (var client = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false }) {
+                    Timeout = AutodiscoverTimeout
+                })
                 {
                     var httpResponse = client.GetAsync(url).Result;
                     response = new EwsHttpResponse(httpResponse);
@@ -1361,7 +1365,9 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
 
                 try
                 {
-                    using (var client = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false }))
+                    using (var client = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false }) {
+                        Timeout = AutodiscoverTimeout
+                    })
                     {
                         var httpResponse = client.GetAsync(autoDiscoverUrl).Result;
                         response = new EwsHttpResponse(httpResponse);
