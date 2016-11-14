@@ -166,7 +166,9 @@ namespace Microsoft.Exchange.WebServices.Data
         {
             lock (this.lockObject)
             {
-                this.response = this.ValidateAndEmitRequest(out this.request);
+                var tuple = this.ValidateAndEmitRequest().Result;
+                this.request = tuple.Item1;
+                this.response = tuple.Item2;
 
                 this.InternalOnConnect();
             }

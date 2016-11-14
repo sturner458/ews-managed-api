@@ -393,9 +393,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Emits the request.
         /// </summary>
         /// <param name="request">The request.</param>
-        private void EmitRequest(IEwsHttpWebRequest request)
+        private async System.Threading.Tasks.Task EmitRequest(IEwsHttpWebRequest request)
         {
-            using (Stream requestStream = this.GetWebRequestStream(request))
+            using (Stream requestStream = await this.GetWebRequestStream(request).ConfigureAwait(false))
             {
                 using (EwsServiceXmlWriter writer = new EwsServiceXmlWriter(this.Service, requestStream))
                 {
@@ -410,7 +410,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="request">The request.</param>
         /// <param name="needSignature"></param>
         /// <param name="needTrace"></param>
-        private void TraceAndEmitRequest(IEwsHttpWebRequest request, bool needSignature, bool needTrace)
+        private async System.Threading.Tasks.Task TraceAndEmitRequest(IEwsHttpWebRequest request, bool needSignature, bool needTrace)
         {
             using (MemoryStream memoryStream = new MemoryStream())
             {
@@ -430,7 +430,7 @@ namespace Microsoft.Exchange.WebServices.Data
                     this.TraceXmlRequest(memoryStream);
                 }
 
-                using (Stream serviceRequestStream = this.GetWebRequestStream(request))
+                using (Stream serviceRequestStream = await this.GetWebRequestStream(request).ConfigureAwait(false))
                 {
                     EwsUtilities.CopyStream(memoryStream, serviceRequestStream);
                 }
@@ -442,7 +442,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="request">The request</param>
         /// <returns>The Request stream</returns>
-        private Stream GetWebRequestStream(IEwsHttpWebRequest request)
+        private Task<Stream> GetWebRequestStream(IEwsHttpWebRequest request)
         {
             // In the async case, although we can use async callback to make the entire worflow completely async, 
             // there is little perf gain with this approach because of EWS's message nature.
@@ -450,7 +450,7 @@ namespace Microsoft.Exchange.WebServices.Data
             // The overhead to implement a two-step async operation includes wait handle synchronization, exception handling and wrapping.
             // Therefore, we only leverage BeginGetResponse() and EndGetResponse() to provide the async functionality.
             // Reference: http://www.wintellect.com/CS/blogs/jeffreyr/archive/2009/02/08/httpwebrequest-its-request-stream-and-sending-data-in-chunks.aspx
-            return request.EndGetRequestStream(request.BeginGetRequestStream(null, null));
+            return request.GetRequestStream();
         }
 
         /// <summary>
@@ -662,11 +662,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns>The response returned by the server.</returns>
-        protected IEwsHttpWebResponse ValidateAndEmitRequest(out IEwsHttpWebRequest request)
+        protected async Task<Tuple<IEwsHttpWebRequest, IEwsHttpWebResponse>> ValidateAndEmitRequest()
         {
             this.Validate();
 
-            request = this.BuildEwsHttpWebRequest();
+            var request = await this.BuildEwsHttpWebRequest().ConfigureAwait(false);
 
             if (this.service.SendClientLatencies)
             {
@@ -702,7 +702,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             try
             {
-                response = this.GetEwsHttpWebResponse(request);
+                response = await this.GetEwsHttpWebResponse(request).ConfigureAwait(false);
             }
             finally
             {
@@ -741,14 +741,14 @@ namespace Microsoft.Exchange.WebServices.Data
                 }
             }
 
-            return response;
+            return Tuple.Create(request, response);
         }
 
         /// <summary>
         /// Builds the IEwsHttpWebRequest object for current service request with exception handling.
         /// </summary>
         /// <returns>An IEwsHttpWebRequest instance</returns>
-        protected IEwsHttpWebRequest BuildEwsHttpWebRequest()
+        protected async Task<IEwsHttpWebRequest> BuildEwsHttpWebRequest()
         {
             try
             {
@@ -767,11 +767,11 @@ namespace Microsoft.Exchange.WebServices.Data
                 // the request stream.
                 if (needSignature || needTrace)
                 {
-                    this.TraceAndEmitRequest(request, needSignature, needTrace);
+                    await this.TraceAndEmitRequest(request, needSignature, needTrace).ConfigureAwait(false);
                 }
                 else
                 {
-                    this.EmitRequest(request);
+                    await this.EmitRequest(request).ConfigureAwait(false);
                 }
 
                 return request;
@@ -798,42 +798,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="request">The specified IEwsHttpWebRequest</param>
         /// <returns>An IEwsHttpWebResponse instance</returns>
-        protected IEwsHttpWebResponse GetEwsHttpWebResponse(IEwsHttpWebRequest request)
+        protected async Task<IEwsHttpWebResponse> GetEwsHttpWebResponse(IEwsHttpWebRequest request)
         {
             try
             {
-                return request.GetResponse();
-            }
-            catch (WebException ex)
-            {
-                if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
-                {
-                    this.ProcessWebException(ex);
-                }
-
-                // Wrap exception if the above code block didn't throw
-                throw new ServiceRequestException(string.Format(Strings.ServiceRequestFailed, ex.Message), ex);
-            }
-            catch (IOException e)
-            {
-                // Wrap exception.
-                throw new ServiceRequestException(string.Format(Strings.ServiceRequestFailed, e.Message), e);
-            }
-        }
-
-        /// <summary>
-        /// Ends getting the specified async IEwsHttpWebRequest object from the specified IEwsHttpWebRequest object with exception handling.
-        /// </summary>
-        /// <param name="request">The specified IEwsHttpWebRequest</param>
-        /// <param name="asyncResult">An IAsyncResult that references the asynchronous request.</param>
-        /// <returns>An IEwsHttpWebResponse instance</returns>
-        protected IEwsHttpWebResponse EndGetEwsHttpWebResponse(IEwsHttpWebRequest request, IAsyncResult asyncResult)
-        {
-            try
-            {
-                // Note that this call may throw ArgumentException if the HttpWebRequest instance is not the original one,
-                // and we just let it out
-                return request.EndGetResponse(asyncResult);
+                return await request.GetResponse().ConfigureAwait(false);
             }
             catch (WebException ex)
             {

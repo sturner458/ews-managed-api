@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a folder containing appointments.
@@ -43,7 +44,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the calendar folder to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A CalendarFolder instance representing the calendar folder corresponding to the specified Id.</returns>
-        public static new CalendarFolder Bind(
+        public static new Task<CalendarFolder> Bind(
             ExchangeService service,
             FolderId id,
             PropertySet propertySet)
@@ -58,7 +59,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the calendar folder.</param>
         /// <param name="id">The Id of the calendar folder to bind to.</param>
         /// <returns>A CalendarFolder instance representing the calendar folder corresponding to the specified Id.</returns>
-        public static new CalendarFolder Bind(ExchangeService service, FolderId id)
+        public static new Task<CalendarFolder> Bind(ExchangeService service, FolderId id)
         {
             return CalendarFolder.Bind(
                 service,
@@ -74,7 +75,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="name">The name of the calendar folder to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A CalendarFolder instance representing the calendar folder with the specified name.</returns>
-        public static new CalendarFolder Bind(
+        public static new Task<CalendarFolder> Bind(
             ExchangeService service,
             WellKnownFolderName name,
             PropertySet propertySet)
@@ -92,7 +93,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the calendar folder.</param>
         /// <param name="name">The name of the calendar folder to bind to.</param>
         /// <returns>A CalendarFolder instance representing the calendar folder with the specified name.</returns>
-        public static new CalendarFolder Bind(ExchangeService service, WellKnownFolderName name)
+        public static new Task<CalendarFolder> Bind(ExchangeService service, WellKnownFolderName name)
         {
             return CalendarFolder.Bind(
                 service,
@@ -115,14 +116,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="view">The view controlling the range of appointments returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindItemsResults<Appointment> FindAppointments(CalendarView view)
+        public async Task<FindItemsResults<Appointment>> FindAppointments(CalendarView view)
         {
             EwsUtilities.ValidateParam(view, "view");
 
-            ServiceResponseCollection<FindItemResponse<Appointment>> responses = this.InternalFindItems<Appointment>(
+            ServiceResponseCollection<FindItemResponse<Appointment>> responses = await this.InternalFindItems<Appointment>(
                 (SearchFilter)null,
                 view,
-                null /* groupBy */);
+                null /* groupBy */).ConfigureAwait(false);
 
             return responses[0].Results;
         }

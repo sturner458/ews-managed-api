@@ -26,6 +26,7 @@
 namespace Microsoft.Exchange.WebServices.Data
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a generic folder.
@@ -50,7 +51,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the folder to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A Folder instance representing the folder corresponding to the specified Id.</returns>
-        public static Folder Bind(
+        public static Task<Folder> Bind(
             ExchangeService service,
             FolderId id,
             PropertySet propertySet)
@@ -65,7 +66,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the folder.</param>
         /// <param name="id">The Id of the folder to bind to.</param>
         /// <returns>A Folder instance representing the folder corresponding to the specified Id.</returns>
-        public static Folder Bind(ExchangeService service, FolderId id)
+        public static Task<Folder> Bind(ExchangeService service, FolderId id)
         {
             return Folder.Bind(
                 service,
@@ -81,7 +82,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="name">The name of the folder to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A Folder instance representing the folder with the specified name.</returns>
-        public static Folder Bind(
+        public static Task<Folder> Bind(
             ExchangeService service,
             WellKnownFolderName name,
             PropertySet propertySet)
@@ -99,7 +100,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the folder.</param>
         /// <param name="name">The name of the folder to bind to.</param>
         /// <returns>A Folder instance representing the folder with the specified name.</returns>
-        public static Folder Bind(ExchangeService service, WellKnownFolderName name)
+        public static Task<Folder> Bind(ExchangeService service, WellKnownFolderName name)
         {
             return Folder.Bind(
                 service,
@@ -339,7 +340,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The group by.</param>
         /// <returns>FindItems response collection.</returns>
-        internal ServiceResponseCollection<FindItemResponse<TItem>> InternalFindItems<TItem>(
+        internal Task<ServiceResponseCollection<FindItemResponse<TItem>>> InternalFindItems<TItem>(
             string queryString,
             ViewBase view,
             Grouping groupBy)
@@ -366,7 +367,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The group by.</param>
         /// <returns>FindItems response collection.</returns>
-        internal ServiceResponseCollection<FindItemResponse<TItem>> InternalFindItems<TItem>(
+        internal Task<ServiceResponseCollection<FindItemResponse<TItem>>> InternalFindItems<TItem>(
             SearchFilter searchFilter,
             ViewBase view,
             Grouping groupBy)
@@ -391,14 +392,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// SearchFilter.SearchFilterCollection</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindItemsResults<Item> FindItems(SearchFilter searchFilter, ItemView view)
+        public async Task<FindItemsResults<Item>> FindItems(SearchFilter searchFilter, ItemView view)
         {
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = this.InternalFindItems<Item>(
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(
                 searchFilter,
                 view, 
-                null /* groupBy */);
+                null /* groupBy */).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -409,11 +410,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="queryString">query string to be used for indexed search</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindItemsResults<Item> FindItems(string queryString, ItemView view)
+        public async Task<FindItemsResults<Item>> FindItems(string queryString, ItemView view)
         {
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = this.InternalFindItems<Item>(queryString, view, null /* groupBy */);
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(queryString, view, null /* groupBy */).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -423,12 +424,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindItemsResults<Item> FindItems(ItemView view)
+        public async Task<FindItemsResults<Item>> FindItems(ItemView view)
         {
-            ServiceResponseCollection<FindItemResponse<Item>> responses = this.InternalFindItems<Item>(
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(
                 (SearchFilter)null,
                 view,
-                null /* groupBy */ );
+                null /* groupBy */ ).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -442,15 +443,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The grouping criteria.</param>
         /// <returns>A collection of grouped items representing the contents of this folder.</returns>
-        public GroupedFindItemsResults<Item> FindItems(SearchFilter searchFilter, ItemView view, Grouping groupBy)
+        public async Task<GroupedFindItemsResults<Item>> FindItems(SearchFilter searchFilter, ItemView view, Grouping groupBy)
         {
             EwsUtilities.ValidateParam(groupBy, "groupBy");
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = this.InternalFindItems<Item>(
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(
                 searchFilter,
                 view, 
-                groupBy);
+                groupBy).ConfigureAwait(false);
 
             return responses[0].GroupedFindResults;
         }
@@ -462,11 +463,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The grouping criteria.</param>
         /// <returns>A collection of grouped items representing the contents of this folder.</returns>
-        public GroupedFindItemsResults<Item> FindItems(string queryString, ItemView view, Grouping groupBy)
+        public async Task<GroupedFindItemsResults<Item>> FindItems(string queryString, ItemView view, Grouping groupBy)
         {
             EwsUtilities.ValidateParam(groupBy, "groupBy");
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = this.InternalFindItems<Item>(queryString, view, groupBy);
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(queryString, view, groupBy).ConfigureAwait(false);
 
             return responses[0].GroupedFindResults;
         }
@@ -504,7 +505,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The grouping criteria.</param>
         /// <returns>A collection of grouped items representing the contents of this folder.</returns>
-        public GroupedFindItemsResults<Item> FindItems(ItemView view, Grouping groupBy)
+        public Task<GroupedFindItemsResults<Item>> FindItems(ItemView view, Grouping groupBy)
         {
             EwsUtilities.ValidateParam(groupBy, "groupBy");
 

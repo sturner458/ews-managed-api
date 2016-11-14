@@ -44,29 +44,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Unsubscribes from the streaming subscription.
         /// </summary>
-        public void Unsubscribe()
+        public System.Threading.Tasks.Task Unsubscribe()
         {
-            this.Service.Unsubscribe(this.Id);
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to unsubscribe from the streaming subscription. 
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginUnsubscribe(AsyncCallback callback, object state)
-        {
-            return this.Service.BeginUnsubscribe(callback, state, this.Id);
-        }
-
-        /// <summary>
-        /// Ends an asynchronous request to unsubscribe from the streaming subscription. 
-        /// </summary>
-        /// <param name="asyncResult">An IAsyncResult that references the asynchronous request.</param>
-        public void EndUnsubscribe(IAsyncResult asyncResult)
-        {
-            this.Service.EndUnsubscribe(asyncResult);
+            return this.Service.Unsubscribe(this.Id);
         }
 
         /// <summary>

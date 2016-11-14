@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.IO;
     using System.IO.Compression;
     using System.Net;
+    using System.Threading.Tasks;
     using System.Xml;
 
     /// <summary>
@@ -51,44 +52,18 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>Service response.</returns>
         internal object InternalExecute()
         {
-            IEwsHttpWebRequest request;
-            IEwsHttpWebResponse response = this.ValidateAndEmitRequest(out request);
-
-            return this.ReadResponse(response);
+            var tuple = this.ValidateAndEmitRequest().Result;
+            return this.ReadResponse(tuple.Item2);
         }
 
         /// <summary>
-        /// Ends executing this async request.
+        /// Executes this request.
         /// </summary>
-        /// <param name="asyncResult">The async result</param>
-        /// <returns>Service response object.</returns>
-        internal object EndInternalExecute(IAsyncResult asyncResult)
+        /// <returns>Service response.</returns>
+        internal async Task<object> InternalExecuteAsync()
         {
-            // We have done enough validation before
-            AsyncRequestResult asyncRequestResult = (AsyncRequestResult)asyncResult;
-
-            IEwsHttpWebResponse response = this.EndGetEwsHttpWebResponse(asyncRequestResult.WebRequest, asyncRequestResult.WebAsyncResult);
-            return this.ReadResponse(response);
-        }
-
-        /// <summary>
-        /// Begins executing this async request.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        internal IAsyncResult BeginExecute(AsyncCallback callback, object state)
-        {
-            this.Validate();
-
-            IEwsHttpWebRequest request = this.BuildEwsHttpWebRequest();
-
-            WebAsyncCallStateAnchor wrappedState = new WebAsyncCallStateAnchor(this, request, callback /* user callback */, state /* user state */);
-
-            // BeginGetResponse() does not throw interesting exceptions
-            IAsyncResult webAsyncResult = request.BeginGetResponse(SimpleServiceRequestBase.WebRequestAsyncCallback, wrappedState);
-
-            return new AsyncRequestResult(this, request, webAsyncResult, state /* user state */);
+            var tuple = await this.ValidateAndEmitRequest().ConfigureAwait(false);
+            return this.ReadResponse(tuple.Item2);
         }
 
         /// <summary>

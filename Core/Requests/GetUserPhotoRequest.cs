@@ -188,15 +188,6 @@ namespace Microsoft.Exchange.WebServices.Data
         }
 
                 /// <summary>
-        /// Ends executing this async request.
-        /// </summary>
-        /// <param name="asyncResult">The async result</param>
-        /// <returns>Service response collection.</returns>
-        internal GetUserPhotoResponse EndExecute(IAsyncResult asyncResult)
-        {
-            return GetUserPhotoRequest.GetResultOrDefault(() => this.EndInternalExecute(asyncResult));
-        }
-
         private static GetUserPhotoResponse GetResultOrDefault(Func<object> serviceResponseFactory)
         {
             try

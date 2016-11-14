@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a folder containing contacts.
@@ -51,7 +52,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the contacts folder to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A ContactsFolder instance representing the contacts folder corresponding to the specified Id.</returns>
-        public static new ContactsFolder Bind(
+        public static new Task<ContactsFolder> Bind(
             ExchangeService service,
             FolderId id,
             PropertySet propertySet)
@@ -65,7 +66,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the contacts folder.</param>
         /// <param name="id">The Id of the contacts folder to bind to.</param>
         /// <returns>A ContactsFolder instance representing the contacts folder corresponding to the specified Id.</returns>
-        public static new ContactsFolder Bind(ExchangeService service, FolderId id)
+        public static new Task<ContactsFolder> Bind(ExchangeService service, FolderId id)
         {
             return ContactsFolder.Bind(
                 service,
@@ -80,7 +81,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="name">The name of the contacts folder to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A ContactsFolder instance representing the contacts folder with the specified name.</returns>
-        public static new ContactsFolder Bind(
+        public static new Task<ContactsFolder> Bind(
             ExchangeService service,
             WellKnownFolderName name,
             PropertySet propertySet)
@@ -97,7 +98,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the contacts folder.</param>
         /// <param name="name">The name of the contacts folder to bind to.</param>
         /// <returns>A ContactsFolder instance representing the contacts folder with the specified name.</returns>
-        public static new ContactsFolder Bind(ExchangeService service, WellKnownFolderName name)
+        public static new Task<ContactsFolder> Bind(ExchangeService service, WellKnownFolderName name)
         {
             return ContactsFolder.Bind(
                 service,

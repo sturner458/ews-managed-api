@@ -72,75 +72,14 @@ namespace Microsoft.Exchange.WebServices.Data
         }
 
         /// <summary>
-        /// Begins an asynchronous request for a <see cref="T:System.IO.Stream"/> object to use to write data.
-        /// </summary>
-        /// <param name="callback">The <see cref="T:System.AsyncCallback"/> delegate.</param>
-        /// <param name="state">The state object for this request.</param>
-        /// <returns>
-        /// An <see cref="T:System.IAsyncResult"/> that references the asynchronous request.
-        /// </returns>
-        IAsyncResult IEwsHttpWebRequest.BeginGetRequestStream(AsyncCallback callback, object state)
-        {
-            return this.request.BeginGetRequestStream(callback, state);
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to an Internet resource.
-        /// </summary>
-        /// <param name="callback">The <see cref="T:System.AsyncCallback"/> delegate</param>
-        /// <param name="state">The state object for this request.</param>
-        /// <returns>
-        /// An <see cref="T:System.IAsyncResult"/> that references the asynchronous request for a response.
-        /// </returns>
-        IAsyncResult IEwsHttpWebRequest.BeginGetResponse(AsyncCallback callback, object state)
-        {
-            return this.request.BeginGetResponse(callback, state);
-        }
-
-        /// <summary>
-        /// Ends an asynchronous request for a <see cref="T:System.IO.Stream"/> object to use to write data.
-        /// </summary>
-        /// <param name="asyncResult">The pending request for a stream.</param>
-        /// <returns>
-        /// A <see cref="T:System.IO.Stream"/> to use to write request data.
-        /// </returns>
-        Stream IEwsHttpWebRequest.EndGetRequestStream(IAsyncResult asyncResult)
-        {
-            return this.request.EndGetRequestStream(asyncResult);
-        }
-
-        /// <summary>
-        /// Ends an asynchronous request to an Internet resource.
-        /// </summary>
-        /// <param name="asyncResult">The pending request for a response.</param>
-        /// <returns>
-        /// A <see cref="IEwsHttpWebResponse"/> that contains the response from the Internet resource.
-        /// </returns>
-        IEwsHttpWebResponse IEwsHttpWebRequest.EndGetResponse(IAsyncResult asyncResult)
-        {
-            return new EwsHttpWebResponse((HttpWebResponse)this.request.EndGetResponse(asyncResult));
-        }
-
-        /// <summary>
         /// Gets a <see cref="T:System.IO.Stream"/> object to use to write request data.
         /// </summary>
         /// <returns>
         /// A <see cref="T:System.IO.Stream"/> to use to write request data.
         /// </returns>
-        Stream IEwsHttpWebRequest.GetRequestStream()
+        Task<Stream> IEwsHttpWebRequest.GetRequestStream()
         {
-#if NETSTANDARD1_3
-            try
-            {
-                return this.request.GetRequestStreamAsync().Result;
-            }
-            catch(AggregateException exception)
-            {
-                throw exception.InnerException;
-            }
-#else
-            return this.request.GetRequestStream();
-#endif
+            return this.request.GetRequestStreamAsync();
         }
 
         /// <summary>
@@ -149,20 +88,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.Net.HttpWebResponse"/> that contains the response from the Internet resource.
         /// </returns>
-        IEwsHttpWebResponse IEwsHttpWebRequest.GetResponse()
+        async Task<IEwsHttpWebResponse> IEwsHttpWebRequest.GetResponse()
         {
-#if NETSTANDARD1_3
-            try
-            {
-                return new EwsHttpWebResponse(request.GetResponseAsync().Result as HttpWebResponse);
-            }
-            catch (AggregateException exception)
-            {
-                throw exception.InnerException;
-            }
-#else
-            return new EwsHttpWebResponse(this.request.GetResponse() as HttpWebResponse);
-#endif
+            return new EwsHttpWebResponse(await request.GetResponseAsync() as HttpWebResponse);
         }
 
         /// <summary>

@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a search folder. 
@@ -43,7 +44,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the search folder to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A SearchFolder instance representing the search folder corresponding to the specified Id.</returns>
-        public static new SearchFolder Bind(
+        public static new Task<SearchFolder> Bind(
             ExchangeService service,
             FolderId id,
             PropertySet propertySet)
@@ -58,7 +59,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the search folder.</param>
         /// <param name="id">The Id of the search folder to bind to.</param>
         /// <returns>A SearchFolder instance representing the search folder corresponding to the specified Id.</returns>
-        public static new SearchFolder Bind(ExchangeService service, FolderId id)
+        public static new Task<SearchFolder> Bind(ExchangeService service, FolderId id)
         {
             return SearchFolder.Bind(
                 service,
@@ -74,7 +75,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="name">The name of the search folder to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A SearchFolder instance representing the search folder with the specified name.</returns>
-        public static new SearchFolder Bind(
+        public static new Task<SearchFolder> Bind(
             ExchangeService service,
             WellKnownFolderName name,
             PropertySet propertySet)
@@ -92,7 +93,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the search folder.</param>
         /// <param name="name">The name of the search folder to bind to.</param>
         /// <returns>A SearchFolder instance representing the search folder with the specified name.</returns>
-        public static new SearchFolder Bind(ExchangeService service, WellKnownFolderName name)
+        public static new Task<SearchFolder> Bind(ExchangeService service, WellKnownFolderName name)
         {
             return SearchFolder.Bind(
                 service,

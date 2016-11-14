@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a folder containing task items.
@@ -52,7 +53,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the tasks folder to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A TasksFolder instance representing the task folder corresponding to the specified Id.</returns>
-        public static new TasksFolder Bind(
+        public static new Task<TasksFolder> Bind(
             ExchangeService service,
             FolderId id,
             PropertySet propertySet)
@@ -67,7 +68,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the tasks folder.</param>
         /// <param name="id">The Id of the tasks folder to bind to.</param>
         /// <returns>A TasksFolder instance representing the task folder corresponding to the specified Id.</returns>
-        public static new TasksFolder Bind(ExchangeService service, FolderId id)
+        public static new Task<TasksFolder> Bind(ExchangeService service, FolderId id)
         {
             return TasksFolder.Bind(
                 service,
@@ -83,7 +84,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="name">The name of the tasks folder to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A TasksFolder instance representing the tasks folder with the specified name.</returns>
-        public static new TasksFolder Bind(
+        public static new Task<TasksFolder> Bind(
             ExchangeService service,
             WellKnownFolderName name,
             PropertySet propertySet)
@@ -101,7 +102,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the tasks folder.</param>
         /// <param name="name">The name of the tasks folder to bind to.</param>
         /// <returns>A TasksFolder instance representing the tasks folder with the specified name.</returns>
-        public static new TasksFolder Bind(ExchangeService service, WellKnownFolderName name)
+        public static new Task<TasksFolder> Bind(ExchangeService service, WellKnownFolderName name)
         {
             return TasksFolder.Bind(
                 service,

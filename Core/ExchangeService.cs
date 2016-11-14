@@ -284,12 +284,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="folderId">The folder id.</param>
         /// <param name="propertySet">The property set.</param>
         /// <returns>Folder</returns>
-        internal Folder BindToFolder(FolderId folderId, PropertySet propertySet)
+        internal async Task<Folder> BindToFolder(FolderId folderId, PropertySet propertySet)
         {
             EwsUtilities.ValidateParam(folderId, "folderId");
             EwsUtilities.ValidateParam(propertySet, "propertySet");
 
-            ServiceResponseCollection<GetFolderResponse> responses = this.InternalBindToFolders(
+            ServiceResponseCollection<GetFolderResponse> responses = await this.InternalBindToFolders(
                 new[] { folderId },
                 propertySet,
                 ServiceErrorHandling.ThrowOnError
@@ -305,10 +305,10 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="folderId">The folder id.</param>
         /// <param name="propertySet">The property set.</param>
         /// <returns>Folder</returns>
-        internal TFolder BindToFolder<TFolder>(FolderId folderId, PropertySet propertySet)
+        internal async Task<TFolder> BindToFolder<TFolder>(FolderId folderId, PropertySet propertySet)
             where TFolder : Folder
         {
-            Folder result = this.BindToFolder(folderId, propertySet);
+            Folder result = await this.BindToFolder(folderId, propertySet);
 
             if (result is TFolder)
             {
@@ -330,7 +330,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="folderIds">The Ids of the folders to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A ServiceResponseCollection providing results for each of the specified folder Ids.</returns>
-        public ServiceResponseCollection<GetFolderResponse> BindToFolders(
+        public Task<ServiceResponseCollection<GetFolderResponse>> BindToFolders(
             IEnumerable<FolderId> folderIds,
             PropertySet propertySet)
         {
@@ -351,7 +351,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="propertySet">The set of properties to load.</param>
         /// <param name="errorHandling">Type of error handling to perform.</param>
         /// <returns>A ServiceResponseCollection providing results for each of the specified folder Ids.</returns>
-        private ServiceResponseCollection<GetFolderResponse> InternalBindToFolders(
+        private Task<ServiceResponseCollection<GetFolderResponse>> InternalBindToFolders(
             IEnumerable<FolderId> folderIds,
             PropertySet propertySet,
             ServiceErrorHandling errorHandling)
@@ -361,7 +361,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.FolderIds.AddRange(folderIds);
             request.PropertySet = propertySet;
 
-            return request.Execute();
+            return request.ExecuteAsync();
         }
 
         /// <summary>
@@ -864,7 +864,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="groupBy">The group by.</param>
         /// <param name="errorHandlingMode">Indicates the type of error handling should be done.</param>
         /// <returns>Service response collection.</returns>
-        internal ServiceResponseCollection<FindItemResponse<TItem>> FindItems<TItem>(
+        internal Task<ServiceResponseCollection<FindItemResponse<TItem>>> FindItems<TItem>(
             IEnumerable<FolderId> parentFolderIds,
             SearchFilter searchFilter,
             string queryString,
@@ -887,7 +887,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.View = view;
             request.GroupBy = groupBy;
 
-            return request.Execute();
+            return request.ExecuteAsync();
         }
 
         /// <summary>
@@ -897,17 +897,17 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="queryString">the search string to be used for indexed search, if any.</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindItemsResults<Item> FindItems(FolderId parentFolderId, string queryString, ViewBase view)
+        public async Task<FindItemsResults<Item>> FindItems(FolderId parentFolderId, string queryString, ViewBase view)
         {
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = this.FindItems<Item>(
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.FindItems<Item>(
                 new FolderId[] { parentFolderId },
                 null, /* searchFilter */
                 queryString,
                 view,
                 null,   /* groupBy */
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -986,17 +986,17 @@ namespace Microsoft.Exchange.WebServices.Data
         /// SearchFilter.SearchFilterCollection</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindItemsResults<Item> FindItems(FolderId parentFolderId, SearchFilter searchFilter, ViewBase view)
+        public async Task<FindItemsResults<Item>> FindItems(FolderId parentFolderId, SearchFilter searchFilter, ViewBase view)
         {
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = this.FindItems<Item>(
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.FindItems<Item>(
                 new FolderId[] { parentFolderId },
                 searchFilter,
                 null, /* queryString */
                 view,
                 null,   /* groupBy */
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -1007,15 +1007,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The Id of the folder in which to search for items.</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindItemsResults<Item> FindItems(FolderId parentFolderId, ViewBase view)
+        public async Task<FindItemsResults<Item>> FindItems(FolderId parentFolderId, ViewBase view)
         {
-            ServiceResponseCollection<FindItemResponse<Item>> responses = this.FindItems<Item>(
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.FindItems<Item>(
                 new FolderId[] { parentFolderId },
                 null, /* searchFilter */
                 null, /* queryString */
                 view,
                 null, /* groupBy */
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -1027,7 +1027,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="queryString">query string to be used for indexed search</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindItemsResults<Item> FindItems(WellKnownFolderName parentFolderName, string queryString, ViewBase view)
+        public Task<FindItemsResults<Item>> FindItems(WellKnownFolderName parentFolderName, string queryString, ViewBase view)
         {
             return this.FindItems(new FolderId(parentFolderName), queryString, view);
         }
@@ -1041,7 +1041,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// SearchFilter.SearchFilterCollection</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindItemsResults<Item> FindItems(WellKnownFolderName parentFolderName, SearchFilter searchFilter, ViewBase view)
+        public Task<FindItemsResults<Item>> FindItems(WellKnownFolderName parentFolderName, SearchFilter searchFilter, ViewBase view)
         {
             return this.FindItems(
                 new FolderId(parentFolderName),
@@ -1055,7 +1055,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderName">The name of the folder in which to search for items.</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindItemsResults<Item> FindItems(WellKnownFolderName parentFolderName, ViewBase view)
+        public Task<FindItemsResults<Item>> FindItems(WellKnownFolderName parentFolderName, ViewBase view)
         {
             return this.FindItems(
                 new FolderId(parentFolderName),
@@ -1071,7 +1071,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The group by clause.</param>
         /// <returns>A list of items containing the contents of the specified folder.</returns>
-        public GroupedFindItemsResults<Item> FindItems(
+        public async Task<GroupedFindItemsResults<Item>> FindItems(
             FolderId parentFolderId,
             string queryString,
             ViewBase view,
@@ -1080,13 +1080,13 @@ namespace Microsoft.Exchange.WebServices.Data
             EwsUtilities.ValidateParam(groupBy, "groupBy");
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = this.FindItems<Item>(
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.FindItems<Item>(
                 new FolderId[] { parentFolderId },
                 null, /* searchFilter */
                 queryString,
                 view,
                 groupBy,
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
 
             return responses[0].GroupedFindResults;
         }
@@ -1101,7 +1101,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The group by clause.</param>
         /// <returns>A list of items containing the contents of the specified folder.</returns>
-        public GroupedFindItemsResults<Item> FindItems(
+        public async Task<GroupedFindItemsResults<Item>> FindItems(
             FolderId parentFolderId,
             SearchFilter searchFilter,
             ViewBase view,
@@ -1110,13 +1110,13 @@ namespace Microsoft.Exchange.WebServices.Data
             EwsUtilities.ValidateParam(groupBy, "groupBy");
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = this.FindItems<Item>(
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.FindItems<Item>(
                 new FolderId[] { parentFolderId },
                 searchFilter,
                 null, /* queryString */
                 view,
                 groupBy,
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
 
             return responses[0].GroupedFindResults;
         }
@@ -1128,20 +1128,20 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The group by clause.</param>
         /// <returns>A list of items containing the contents of the specified folder.</returns>
-        public GroupedFindItemsResults<Item> FindItems(
+        public async Task<GroupedFindItemsResults<Item>> FindItems(
             FolderId parentFolderId,
             ViewBase view,
             Grouping groupBy)
         {
             EwsUtilities.ValidateParam(groupBy, "groupBy");
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = this.FindItems<Item>(
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.FindItems<Item>(
                 new FolderId[] { parentFolderId },
                 null, /* searchFilter */
                 null, /* queryString */
                 view,
                 groupBy,
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
 
             return responses[0].GroupedFindResults;
         }
@@ -1157,7 +1157,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="groupBy">The group by clause.</param>
         /// <typeparam name="TItem">Type of item.</typeparam>
         /// <returns>A list of items containing the contents of the specified folder.</returns>
-        internal ServiceResponseCollection<FindItemResponse<TItem>> FindItems<TItem>(
+        internal Task<ServiceResponseCollection<FindItemResponse<TItem>>> FindItems<TItem>(
             FolderId parentFolderId,
             SearchFilter searchFilter,
             ViewBase view,
@@ -1181,7 +1181,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The group by clause.</param>
         /// <returns>A collection of grouped items representing the contents of the specified.</returns>
-        public GroupedFindItemsResults<Item> FindItems(
+        public Task<GroupedFindItemsResults<Item>> FindItems(
             WellKnownFolderName parentFolderName,
             string queryString,
             ViewBase view,
@@ -1206,7 +1206,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The group by clause.</param>
         /// <returns>A collection of grouped items representing the contents of the specified.</returns>
-        public GroupedFindItemsResults<Item> FindItems(
+        public Task<GroupedFindItemsResults<Item>> FindItems(
             WellKnownFolderName parentFolderName,
             SearchFilter searchFilter,
             ViewBase view,
@@ -1225,15 +1225,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The id of the calendar folder in which to search for items.</param>
         /// <param name="calendarView">The calendar view controlling the number of appointments returned.</param>
         /// <returns>A collection of appointments representing the contents of the specified folder.</returns>
-        public FindItemsResults<Appointment> FindAppointments(FolderId parentFolderId, CalendarView calendarView)
+        public async Task<FindItemsResults<Appointment>> FindAppointments(FolderId parentFolderId, CalendarView calendarView)
         {
-            ServiceResponseCollection<FindItemResponse<Appointment>> response = this.FindItems<Appointment>(
+            ServiceResponseCollection<FindItemResponse<Appointment>> response = await this.FindItems<Appointment>(
                 new FolderId[] { parentFolderId },
                 null, /* searchFilter */
                 null, /* queryString */
                 calendarView,
                 null, /* groupBy */
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
 
             return response[0].Results;
         }
@@ -1244,7 +1244,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderName">The name of the calendar folder in which to search for items.</param>
         /// <param name="calendarView">The calendar view controlling the number of appointments returned.</param>
         /// <returns>A collection of appointments representing the contents of the specified folder.</returns>
-        public FindItemsResults<Appointment> FindAppointments(WellKnownFolderName parentFolderName, CalendarView calendarView)
+        public Task<FindItemsResults<Appointment>> FindAppointments(WellKnownFolderName parentFolderName, CalendarView calendarView)
         {
             return this.FindAppointments(new FolderId(parentFolderName), calendarView);
         }
@@ -1724,46 +1724,6 @@ namespace Microsoft.Exchange.WebServices.Data
             return request.Execute().Results;
         }
 
-        /// <summary>
-        /// Begins an async request for a user photo
-        /// </summary>
-        /// <param name="callback">An AsyncCallback delegate</param>
-        /// <param name="state">An object that contains state information for this request</param>
-        /// <param name="emailAddress">The user's email address</param>
-        /// <param name="userPhotoSize">The desired size of the returned photo. Valid photo sizes are in UserPhotoSize</param>
-        /// <param name="entityTag">A photo's cache ID which will allow the caller to ensure their cached photo is up to date</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginGetUserPhoto(
-            AsyncCallback callback,
-            object state,
-            string emailAddress,
-            string userPhotoSize,
-            string entityTag)
-        {
-            EwsUtilities.ValidateParam(emailAddress, "emailAddress");
-            EwsUtilities.ValidateParam(userPhotoSize, "userPhotoSize");
-            EwsUtilities.ValidateParamAllowNull(entityTag, "entityTag");
-
-            GetUserPhotoRequest request = new GetUserPhotoRequest(this);
-
-            request.EmailAddress = emailAddress;
-            request.UserPhotoSize = userPhotoSize;
-            request.EntityTag = entityTag;
-
-            return request.BeginExecute(callback, state);
-        }
-
-        /// <summary>
-        /// Ends an async request for a user's photo
-        /// </summary>
-        /// <param name="asyncResult">An IAsyncResult that references the asynchronous request.</param>
-        /// <returns>A result object containing the photo state</returns>
-        public GetUserPhotoResults EndGetUserPhoto(IAsyncResult asyncResult)
-        {
-            GetUserPhotoRequest request = AsyncRequestResult.ExtractServiceRequest<GetUserPhotoRequest>(this, asyncResult);
-            return request.EndExecute(asyncResult).Results;
-        }
-
         #endregion
 
         #region PeopleInsights operations
@@ -2128,33 +2088,6 @@ namespace Microsoft.Exchange.WebServices.Data
         }
 
         /// <summary>
-        /// Begins an asynchronous request to subscribes to pull notifications. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="folderIds">The Ids of the folder to subscribe to.</param>
-        /// <param name="timeout">The timeout, in minutes, after which the subscription expires. Timeout must be between 1 and 1440.</param>
-        /// <param name="watermark">An optional watermark representing a previously opened subscription.</param>
-        /// <param name="eventTypes">The event types to subscribe to.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSubscribeToPullNotifications(
-            AsyncCallback callback,
-            object state,
-            IEnumerable<FolderId> folderIds,
-            int timeout,
-            string watermark,
-            params EventType[] eventTypes)
-        {
-            EwsUtilities.ValidateParamCollection(folderIds, "folderIds");
-
-            return this.BuildSubscribeToPullNotificationsRequest(
-                folderIds,
-                timeout,
-                watermark,
-                eventTypes).BeginExecute(callback, state);
-        }
-
-        /// <summary>
         /// Subscribes to pull notifications on all folders in the authenticated user's mailbox. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="timeout">The timeout, in minutes, after which the subscription expires. Timeout must be between 1 and 1440.</param>
@@ -2176,46 +2109,6 @@ namespace Microsoft.Exchange.WebServices.Data
                 timeout,
                 watermark,
                 eventTypes).Execute()[0].Subscription;
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to subscribe to pull notifications on all folders in the authenticated user's mailbox. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="timeout">The timeout, in minutes, after which the subscription expires. Timeout must be between 1 and 1440.</param>
-        /// <param name="watermark">An optional watermark representing a previously opened subscription.</param>
-        /// <param name="eventTypes">The event types to subscribe to.</param>>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSubscribeToPullNotificationsOnAllFolders(
-            AsyncCallback callback,
-            object state,
-            int timeout,
-            string watermark,
-            params EventType[] eventTypes)
-        {
-            EwsUtilities.ValidateMethodVersion(
-                this,
-                ExchangeVersion.Exchange2010,
-                "BeginSubscribeToPullNotificationsOnAllFolders");
-
-            return this.BuildSubscribeToPullNotificationsRequest(
-                null,
-                timeout,
-                watermark,
-                eventTypes).BeginExecute(callback, state);
-        }
-
-        /// <summary>
-        /// Ends an asynchronous request to subscribe to pull notifications in the authenticated user's mailbox. 
-        /// </summary>
-        /// <param name="asyncResult">An IAsyncResult that references the asynchronous request.</param>
-        /// <returns>A PullSubscription representing the new subscription.</returns>
-        public PullSubscription EndSubscribeToPullNotifications(IAsyncResult asyncResult)
-        {
-            var request = AsyncRequestResult.ExtractServiceRequest<SubscribeToPullNotificationsRequest>(this, asyncResult);
-
-            return request.EndExecute(asyncResult)[0].Subscription;
         }
 
         /// <summary>
@@ -2257,35 +2150,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Unsubscribes from a subscription. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="subscriptionId">The Id of the pull subscription to unsubscribe from.</param>
-        internal void Unsubscribe(string subscriptionId)
+        internal System.Threading.Tasks.Task Unsubscribe(string subscriptionId)
         {
-            this.BuildUnsubscribeRequest(subscriptionId).Execute();
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to unsubscribe from a subscription. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="subscriptionId">The Id of the pull subscription to unsubscribe from.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        internal IAsyncResult BeginUnsubscribe(
-            AsyncCallback callback,
-            object state,
-            string subscriptionId)
-        {
-            return this.BuildUnsubscribeRequest(subscriptionId).BeginExecute(callback, state);
-        }
-
-        /// <summary>
-        /// Ends an asynchronous request to unsubscribe from a subscription.
-        /// </summary>
-        /// <param name="asyncResult">An IAsyncResult that references the asynchronous request.</param>
-        internal void EndUnsubscribe(IAsyncResult asyncResult)
-        {
-            var request = AsyncRequestResult.ExtractServiceRequest<UnsubscribeRequest>(this, asyncResult);
-
-            request.EndExecute(asyncResult);
+            return this.BuildUnsubscribeRequest(subscriptionId).ExecuteAsync();
         }
 
         /// <summary>
@@ -2313,35 +2180,6 @@ namespace Microsoft.Exchange.WebServices.Data
         internal GetEventsResults GetEvents(string subscriptionId, string watermark)
         {
             return this.BuildGetEventsRequest(subscriptionId, watermark).Execute()[0].Results;
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to retrieve the latests events associated with a pull subscription. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="subscriptionId">The Id of the pull subscription for which to get the events.</param>
-        /// <param name="watermark">The watermark representing the point in time where to start receiving events.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        internal IAsyncResult BeginGetEvents(
-            AsyncCallback callback,
-            object state,
-            string subscriptionId,
-            string watermark)
-        {
-            return this.BuildGetEventsRequest(subscriptionId, watermark).BeginExecute(callback, state);
-        }
-
-        /// <summary>
-        /// Ends an asynchronous request to retrieve the latests events associated with a pull subscription.
-        /// </summary>
-        /// <param name="asyncResult">An IAsyncResult that references the asynchronous request.</param>
-        /// <returns>A GetEventsResults containing a list of events associated with the subscription.</returns>
-        internal GetEventsResults EndGetEvents(IAsyncResult asyncResult)
-        {
-            var request = AsyncRequestResult.ExtractServiceRequest<GetEventsRequest>(this, asyncResult);
-
-            return request.EndExecute(asyncResult)[0].Results;
         }
 
         /// <summary>
@@ -2394,38 +2232,6 @@ namespace Microsoft.Exchange.WebServices.Data
         }
 
         /// <summary>
-        /// Begins an asynchronous request to subscribe to push notifications. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="folderIds">The Ids of the folder to subscribe to.</param>
-        /// <param name="url">The URL of the Web Service endpoint the Exchange server should push events to.</param>
-        /// <param name="frequency">The frequency, in minutes, at which the Exchange server should contact the Web Service endpoint. Frequency must be between 1 and 1440.</param>
-        /// <param name="watermark">An optional watermark representing a previously opened subscription.</param>
-        /// <param name="eventTypes">The event types to subscribe to.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSubscribeToPushNotifications(
-            AsyncCallback callback,
-            object state,
-            IEnumerable<FolderId> folderIds,
-            Uri url,
-            int frequency,
-            string watermark,
-            params EventType[] eventTypes)
-        {
-            EwsUtilities.ValidateParamCollection(folderIds, "folderIds");
-
-            return this.BuildSubscribeToPushNotificationsRequest(
-                folderIds,
-                url,
-                frequency,
-                watermark,
-                null,
-                null, // AnchorMailbox
-                eventTypes).BeginExecute(callback, state);
-        }
-
-        /// <summary>
         /// Subscribes to push notifications on all folders in the authenticated user's mailbox. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="url">The URL of the Web Service endpoint the Exchange server should push events to.</param>
@@ -2452,39 +2258,6 @@ namespace Microsoft.Exchange.WebServices.Data
                 null,
                 null, // AnchorMailbox
                 eventTypes).Execute()[0].Subscription;
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to subscribe to push notifications on all folders in the authenticated user's mailbox. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="url"></param>
-        /// <param name="frequency">The frequency, in minutes, at which the Exchange server should contact the Web Service endpoint. Frequency must be between 1 and 1440.</param>
-        /// <param name="watermark">An optional watermark representing a previously opened subscription.</param>
-        /// <param name="eventTypes">The event types to subscribe to.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSubscribeToPushNotificationsOnAllFolders(
-            AsyncCallback callback,
-            object state,
-            Uri url,
-            int frequency,
-            string watermark,
-            params EventType[] eventTypes)
-        {
-            EwsUtilities.ValidateMethodVersion(
-                this,
-                ExchangeVersion.Exchange2010,
-                "BeginSubscribeToPushNotificationsOnAllFolders");
-
-            return this.BuildSubscribeToPushNotificationsRequest(
-                null,
-                url,
-                frequency,
-                watermark,
-                null,
-                null, // AnchorMailbox
-                eventTypes).BeginExecute(callback, state);
         }
 
         /// <summary>
@@ -2518,40 +2291,6 @@ namespace Microsoft.Exchange.WebServices.Data
         }
 
         /// <summary>
-        /// Begins an asynchronous request to subscribe to push notifications. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="folderIds">The Ids of the folder to subscribe to.</param>
-        /// <param name="url">The URL of the Web Service endpoint the Exchange server should push events to.</param>
-        /// <param name="frequency">The frequency, in minutes, at which the Exchange server should contact the Web Service endpoint. Frequency must be between 1 and 1440.</param>
-        /// <param name="watermark">An optional watermark representing a previously opened subscription.</param>
-        /// <param name="callerData">Optional caller data that will be returned the call back.</param>
-        /// <param name="eventTypes">The event types to subscribe to.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSubscribeToPushNotifications(
-            AsyncCallback callback,
-            object state,
-            IEnumerable<FolderId> folderIds,
-            Uri url,
-            int frequency,
-            string watermark,
-            string callerData,
-            params EventType[] eventTypes)
-        {
-            EwsUtilities.ValidateParamCollection(folderIds, "folderIds");
-
-            return this.BuildSubscribeToPushNotificationsRequest(
-                folderIds,
-                url,
-                frequency,
-                watermark,
-                callerData,
-                null, // AnchorMailbox
-                eventTypes).BeginExecute(callback, state);
-        }
-
-        /// <summary>
         /// Subscribes to push notifications on a group mailbox. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="groupMailboxSmtp">The smtpaddress of the group mailbox to subscribe to.</param>
@@ -2578,39 +2317,6 @@ namespace Microsoft.Exchange.WebServices.Data
                 callerData,
                 groupMailboxSmtp, // AnchorMailbox
                 eventTypes).Execute()[0].Subscription;
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to subscribe to push notifications. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="groupMailboxSmtp">The smtpaddress of the group mailbox to subscribe to.</param>
-        /// <param name="url">The URL of the Web Service endpoint the Exchange server should push events to.</param>
-        /// <param name="frequency">The frequency, in minutes, at which the Exchange server should contact the Web Service endpoint. Frequency must be between 1 and 1440.</param>
-        /// <param name="watermark">An optional watermark representing a previously opened subscription.</param>
-        /// <param name="callerData">Optional caller data that will be returned the call back.</param>
-        /// <param name="eventTypes">The event types to subscribe to.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSubscribeToGroupPushNotifications(
-            AsyncCallback callback,
-            object state,
-            string groupMailboxSmtp,
-            Uri url,
-            int frequency,
-            string watermark,
-            string callerData,
-            params EventType[] eventTypes)
-        {
-            var folderIds = new FolderId[] { new FolderId(WellKnownFolderName.Inbox, new Mailbox(groupMailboxSmtp)) };
-            return this.BuildSubscribeToPushNotificationsRequest(
-                folderIds,
-                url,
-                frequency,
-                watermark,
-                callerData,
-                groupMailboxSmtp, // AnchorMailbox
-                eventTypes).BeginExecute(callback, state);
         }
 
         /// <summary>
@@ -2642,65 +2348,6 @@ namespace Microsoft.Exchange.WebServices.Data
                 callerData,
                 null, // AnchorMailbox
                 eventTypes).Execute()[0].Subscription;
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to subscribe to push notifications on all folders in the authenticated user's mailbox. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="url"></param>
-        /// <param name="frequency">The frequency, in minutes, at which the Exchange server should contact the Web Service endpoint. Frequency must be between 1 and 1440.</param>
-        /// <param name="watermark">An optional watermark representing a previously opened subscription.</param>
-        /// <param name="callerData">Optional caller data that will be returned the call back.</param>
-        /// <param name="eventTypes">The event types to subscribe to.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSubscribeToPushNotificationsOnAllFolders(
-            AsyncCallback callback,
-            object state,
-            Uri url,
-            int frequency,
-            string watermark,
-            string callerData,
-            params EventType[] eventTypes)
-        {
-            EwsUtilities.ValidateMethodVersion(
-                this,
-                ExchangeVersion.Exchange2010,
-                "BeginSubscribeToPushNotificationsOnAllFolders");
-
-            return this.BuildSubscribeToPushNotificationsRequest(
-                null,
-                url,
-                frequency,
-                watermark,
-                callerData,
-                null, // AnchorMailbox
-                eventTypes).BeginExecute(callback, state);
-        }
-
-        /// <summary>
-        /// Ends an asynchronous request to subscribe to push notifications in the authenticated user's mailbox.
-        /// </summary>
-        /// <param name="asyncResult">An IAsyncResult that references the asynchronous request.</param>
-        /// <returns>A PushSubscription representing the new subscription.</returns>
-        public PushSubscription EndSubscribeToPushNotifications(IAsyncResult asyncResult)
-        {
-            var request = AsyncRequestResult.ExtractServiceRequest<SubscribeToPushNotificationsRequest>(this, asyncResult);
-
-            return request.EndExecute(asyncResult)[0].Subscription;
-        }
-
-        /// <summary>
-        /// Ends an asynchronous request to subscribe to push notifications in a group mailbox.
-        /// </summary>
-        /// <param name="asyncResult">An IAsyncResult that references the asynchronous request.</param>
-        /// <returns>A PushSubscription representing the new subscription.</returns>
-        public PushSubscription EndSubscribeToGroupPushNotifications(IAsyncResult asyncResult)
-        {
-            var request = AsyncRequestResult.ExtractServiceRequest<SubscribeToPushNotificationsRequest>(this, asyncResult);
-
-            return request.EndExecute(asyncResult)[0].Subscription;
         }
 
         /// <summary>
@@ -2796,7 +2443,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="folderIds">The Ids of the folder to subscribe to.</param>
         /// <param name="eventTypes">The event types to subscribe to.</param>
         /// <returns>A StreamingSubscription representing the new subscription.</returns>
-        public StreamingSubscription SubscribeToStreamingNotifications(
+        public async System.Threading.Tasks.Task<StreamingSubscription> SubscribeToStreamingNotifications(
             IEnumerable<FolderId> folderIds,
             params EventType[] eventTypes)
         {
@@ -2807,31 +2454,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             EwsUtilities.ValidateParamCollection(folderIds, "folderIds");
 
-            return this.BuildSubscribeToStreamingNotificationsRequest(folderIds, eventTypes).Execute()[0].Subscription;
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to subscribe to streaming notifications. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="folderIds">The Ids of the folder to subscribe to.</param>
-        /// <param name="eventTypes">The event types to subscribe to.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSubscribeToStreamingNotifications(
-            AsyncCallback callback,
-            object state,
-            IEnumerable<FolderId> folderIds,
-            params EventType[] eventTypes)
-        {
-            EwsUtilities.ValidateMethodVersion(
-                this,
-                ExchangeVersion.Exchange2010_SP1,
-                "BeginSubscribeToStreamingNotifications");
-
-            EwsUtilities.ValidateParamCollection(folderIds, "folderIds");
-
-            return this.BuildSubscribeToStreamingNotificationsRequest(folderIds, eventTypes).BeginExecute(callback, state);
+            return (await this.BuildSubscribeToStreamingNotificationsRequest(folderIds, eventTypes).ExecuteAsync().ConfigureAwait(false))[0].Subscription;
         }
 
         /// <summary>
@@ -2848,43 +2471,6 @@ namespace Microsoft.Exchange.WebServices.Data
                 "SubscribeToStreamingNotificationsOnAllFolders");
 
             return this.BuildSubscribeToStreamingNotificationsRequest(null, eventTypes).Execute()[0].Subscription;
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to subscribe to streaming notifications on all folders in the authenticated user's mailbox. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="eventTypes"></param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSubscribeToStreamingNotificationsOnAllFolders(
-            AsyncCallback callback,
-            object state,
-            params EventType[] eventTypes)
-        {
-            EwsUtilities.ValidateMethodVersion(
-                this,
-                ExchangeVersion.Exchange2010_SP1,
-                "BeginSubscribeToStreamingNotificationsOnAllFolders");
-
-            return this.BuildSubscribeToStreamingNotificationsRequest(null, eventTypes).BeginExecute(callback, state);
-        }
-
-        /// <summary>
-        /// Ends an asynchronous request to subscribe to streaming notifications in the authenticated user's mailbox. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="asyncResult">An IAsyncResult that references the asynchronous request.</param>
-        /// <returns>A StreamingSubscription representing the new subscription.</returns>
-        public StreamingSubscription EndSubscribeToStreamingNotifications(IAsyncResult asyncResult)
-        {
-            EwsUtilities.ValidateMethodVersion(
-                this,
-                ExchangeVersion.Exchange2010_SP1,
-                "EndSubscribeToStreamingNotifications");
-
-            var request = AsyncRequestResult.ExtractServiceRequest<SubscribeToStreamingNotificationsRequest>(this, asyncResult);
-
-            return request.EndExecute(asyncResult)[0].Subscription;
         }
 
         /// <summary>
@@ -2925,7 +2511,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="syncScope">The sync scope identifying items to include in the ChangeCollection.</param>
         /// <param name="syncState">The optional sync state representing the point in time when to start the synchronization.</param>
         /// <returns>A ChangeCollection containing a list of changes that occurred in the specified folder.</returns>
-        public ChangeCollection<ItemChange> SyncFolderItems(
+        public System.Threading.Tasks.Task<ChangeCollection<ItemChange>> SyncFolderItems(
             FolderId syncFolderId,
             PropertySet propertySet,
             IEnumerable<ItemId> ignoredItemIds,
@@ -2954,7 +2540,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="syncScope">The sync scope identifying items to include in the ChangeCollection.</param>
         /// <param name="syncState">The optional sync state representing the point in time when to start the synchronization.</param>
         /// <returns>A ChangeCollection containing a list of changes that occurred in the specified folder.</returns>
-        public ChangeCollection<ItemChange> SyncFolderItems(
+        public async System.Threading.Tasks.Task<ChangeCollection<ItemChange>> SyncFolderItems(
             FolderId syncFolderId,
             PropertySet propertySet,
             IEnumerable<ItemId> ignoredItemIds,
@@ -2963,94 +2549,14 @@ namespace Microsoft.Exchange.WebServices.Data
             SyncFolderItemsScope syncScope,
             string syncState)
         {
-            return this.BuildSyncFolderItemsRequest(
+            return (await this.BuildSyncFolderItemsRequest(
                 syncFolderId,
                 propertySet,
                 ignoredItemIds,
                 maxChangesReturned,
                 numberOfDays,
                 syncScope,
-                syncState).Execute()[0].Changes;
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to synchronize the items of a specific folder. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="syncFolderId">The Id of the folder containing the items to synchronize with.</param>
-        /// <param name="propertySet">The set of properties to retrieve for synchronized items.</param>
-        /// <param name="ignoredItemIds">The optional list of item Ids that should be ignored.</param>
-        /// <param name="maxChangesReturned">The maximum number of changes that should be returned.</param>
-        /// <param name="syncScope">The sync scope identifying items to include in the ChangeCollection.</param>
-        /// <param name="syncState">The optional sync state representing the point in time when to start the synchronization.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSyncFolderItems(
-            AsyncCallback callback,
-            object state,
-            FolderId syncFolderId,
-            PropertySet propertySet,
-            IEnumerable<ItemId> ignoredItemIds,
-            int maxChangesReturned,
-            SyncFolderItemsScope syncScope,
-            string syncState)
-        {
-            return this.BeginSyncFolderItems(
-                callback,
-                state,
-                syncFolderId,
-                propertySet,
-                ignoredItemIds,
-                maxChangesReturned,
-                0, // numberOfDays
-                syncScope,
-                syncState);
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to synchronize the items of a specific folder. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="syncFolderId">The Id of the folder containing the items to synchronize with.</param>
-        /// <param name="propertySet">The set of properties to retrieve for synchronized items.</param>
-        /// <param name="ignoredItemIds">The optional list of item Ids that should be ignored.</param>
-        /// <param name="maxChangesReturned">The maximum number of changes that should be returned.</param>
-        /// <param name="numberOfDays">Limit the changes returned to this many days ago; 0 means no limit.</param>
-        /// <param name="syncScope">The sync scope identifying items to include in the ChangeCollection.</param>
-        /// <param name="syncState">The optional sync state representing the point in time when to start the synchronization.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSyncFolderItems(
-            AsyncCallback callback,
-            object state,
-            FolderId syncFolderId,
-            PropertySet propertySet,
-            IEnumerable<ItemId> ignoredItemIds,
-            int maxChangesReturned,
-            int numberOfDays,
-            SyncFolderItemsScope syncScope,
-            string syncState)
-        {
-            return this.BuildSyncFolderItemsRequest(
-                syncFolderId,
-                propertySet,
-                ignoredItemIds,
-                maxChangesReturned,
-                numberOfDays,
-                syncScope,
-                syncState).BeginExecute(callback, state);
-        }
-
-        /// <summary>
-        /// Ends an asynchronous request to synchronize the items of a specific folder. 
-        /// </summary>
-        /// <param name="asyncResult">An IAsyncResult that references the asynchronous request.</param>
-        /// <returns>A ChangeCollection containing a list of changes that occurred in the specified folder.</returns>
-        public ChangeCollection<ItemChange> EndSyncFolderItems(IAsyncResult asyncResult)
-        {
-            var request = AsyncRequestResult.ExtractServiceRequest<SyncFolderItemsRequest>(this, asyncResult);
-
-            return request.EndExecute(asyncResult)[0].Changes;
+                syncState).ExecuteAsync().ConfigureAwait(false))[0].Changes;
         }
 
         /// <summary>
@@ -3111,28 +2617,6 @@ namespace Microsoft.Exchange.WebServices.Data
         }
 
         /// <summary>
-        /// Begins an asynchronous request to synchronize the sub-folders of a specific folder. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="syncFolderId">The Id of the folder containing the items to synchronize with. A null value indicates the root folder of the mailbox.</param>
-        /// <param name="propertySet">The set of properties to retrieve for synchronized items.</param>
-        /// <param name="syncState">The optional sync state representing the point in time when to start the synchronization.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSyncFolderHierarchy(
-            AsyncCallback callback,
-            object state,
-            FolderId syncFolderId,
-            PropertySet propertySet,
-            string syncState)
-        {
-            return this.BuildSyncFolderHierarchyRequest(
-                syncFolderId,
-                propertySet,
-                syncState).BeginExecute(callback, state);
-        }
-
-        /// <summary>
         /// Synchronizes the entire folder hierarchy of the mailbox this Service is connected to. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="propertySet">The set of properties to retrieve for synchronized items.</param>
@@ -3144,40 +2628,6 @@ namespace Microsoft.Exchange.WebServices.Data
                 null,
                 propertySet,
                 syncState);
-        }
-
-        /// <summary>
-        /// Begins an asynchronous request to synchronize the entire folder hierarchy of the mailbox this Service is connected to. Calling this method results in a call to EWS.
-        /// </summary>
-        /// <param name="callback">The AsyncCallback delegate.</param>
-        /// <param name="state">An object that contains state information for this request.</param>
-        /// <param name="propertySet">The set of properties to retrieve for synchronized items.</param>
-        /// <param name="syncState">The optional sync state representing the point in time when to start the synchronization.</param>
-        /// <returns>An IAsyncResult that references the asynchronous request.</returns>
-        public IAsyncResult BeginSyncFolderHierarchy(
-            AsyncCallback callback,
-            object state,
-            PropertySet propertySet,
-            string syncState)
-        {
-            return this.BeginSyncFolderHierarchy(
-                callback,
-                state,
-                null,
-                propertySet,
-                syncState);
-        }
-
-        /// <summary>
-        /// Ends an asynchronous request to synchronize the specified folder hierarchy of the mailbox this Service is connected to.
-        /// </summary>
-        /// <param name="asyncResult">An IAsyncResult that references the asynchronous request.</param>
-        /// <returns>A ChangeCollection containing a list of changes that occurred in the specified folder.</returns>
-        public ChangeCollection<FolderChange> EndSyncFolderHierarchy(IAsyncResult asyncResult)
-        {
-            var request = AsyncRequestResult.ExtractServiceRequest<SyncFolderHierarchyRequest>(this, asyncResult);
-
-            return request.EndExecute(asyncResult)[0].Changes;
         }
 
         /// <summary>
@@ -4596,37 +4046,6 @@ namespace Microsoft.Exchange.WebServices.Data
         }
 
         /// <summary>
-        /// Asynchronous call to search mailboxes
-        /// </summary>
-        /// <param name="callback">callback</param>
-        /// <param name="state">state</param>
-        /// <param name="searchParameters">search parameters</param>
-        /// <returns>Async result</returns>
-        public IAsyncResult BeginSearchMailboxes(
-            AsyncCallback callback,
-            object state,
-            SearchMailboxesParameters searchParameters)
-        {
-            EwsUtilities.ValidateParam(searchParameters, "searchParameters");
-            EwsUtilities.ValidateParam(searchParameters.SearchQueries, "searchParameters.SearchQueries");
-
-            SearchMailboxesRequest request = this.CreateSearchMailboxesRequest(searchParameters);
-            return request.BeginExecute(callback, state);
-        }
-
-        /// <summary>
-        /// Asynchronous call to end search mailboxes
-        /// </summary>
-        /// <param name="asyncResult"></param>
-        /// <returns></returns>
-        public ServiceResponseCollection<SearchMailboxesResponse> EndSearchMailboxes(IAsyncResult asyncResult)
-        {
-            var request = AsyncRequestResult.ExtractServiceRequest<SearchMailboxesRequest>(this, asyncResult);
-
-            return request.EndExecute(asyncResult);
-        }
-
-        /// <summary>
         /// Set hold on mailboxes
         /// </summary>
         /// <param name="holdId">Hold id</param>
@@ -4759,34 +4178,6 @@ namespace Microsoft.Exchange.WebServices.Data
         }
 
         /// <summary>
-        /// Asynchronous call to get non indexable item details
-        /// </summary>
-        /// <param name="callback">callback</param>
-        /// <param name="state">state</param>
-        /// <param name="parameters">Get non indexable item details parameters</param>
-        /// <returns>Async result</returns>
-        public IAsyncResult BeginGetNonIndexableItemDetails(
-            AsyncCallback callback,
-            object state,
-            GetNonIndexableItemDetailsParameters parameters)
-        {
-            GetNonIndexableItemDetailsRequest request = this.CreateGetNonIndexableItemDetailsRequest(parameters);
-            return request.BeginExecute(callback, state);
-        }
-
-        /// <summary>
-        /// Asynchronous call to get non indexable item details
-        /// </summary>
-        /// <param name="asyncResult"></param>
-        /// <returns></returns>
-        public GetNonIndexableItemDetailsResponse EndGetNonIndexableItemDetails(IAsyncResult asyncResult)
-        {
-            var request = AsyncRequestResult.ExtractServiceRequest<GetNonIndexableItemDetailsRequest>(this, asyncResult);
-
-            return (GetNonIndexableItemDetailsResponse)request.EndInternalExecute(asyncResult);
-        }
-
-        /// <summary>
         /// Get non indexable item statistics
         /// </summary>
         /// <param name="mailboxes">Array of mailbox legacy DN</param>
@@ -4812,34 +4203,6 @@ namespace Microsoft.Exchange.WebServices.Data
             GetNonIndexableItemStatisticsRequest request = this.CreateGetNonIndexableItemStatisticsRequest(parameters);
 
             return request.Execute();
-        }
-
-        /// <summary>
-        /// Asynchronous call to get non indexable item statistics
-        /// </summary>
-        /// <param name="callback">callback</param>
-        /// <param name="state">state</param>
-        /// <param name="parameters">Get non indexable item statistics parameters</param>
-        /// <returns>Async result</returns>
-        public IAsyncResult BeginGetNonIndexableItemStatistics(
-            AsyncCallback callback,
-            object state,
-            GetNonIndexableItemStatisticsParameters parameters)
-        {
-            GetNonIndexableItemStatisticsRequest request = this.CreateGetNonIndexableItemStatisticsRequest(parameters);
-            return request.BeginExecute(callback, state);
-        }
-
-        /// <summary>
-        /// Asynchronous call to get non indexable item statistics
-        /// </summary>
-        /// <param name="asyncResult"></param>
-        /// <returns></returns>
-        public GetNonIndexableItemStatisticsResponse EndGetNonIndexableItemStatistics(IAsyncResult asyncResult)
-        {
-            var request = AsyncRequestResult.ExtractServiceRequest<GetNonIndexableItemStatisticsRequest>(this, asyncResult);
-
-            return (GetNonIndexableItemStatisticsResponse)request.EndInternalExecute(asyncResult);
         }
 
         /// <summary>
