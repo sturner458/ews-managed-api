@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetPasswordExpirationDate request.
@@ -94,9 +95,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetPasswordExpirationDateResponse Execute()
+        internal async Task<GetPasswordExpirationDateResponse> Execute()
         {
-            GetPasswordExpirationDateResponse serviceResponse = (GetPasswordExpirationDateResponse)this.InternalExecute();
+            GetPasswordExpirationDateResponse serviceResponse = (GetPasswordExpirationDateResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

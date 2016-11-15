@@ -75,9 +75,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Refreshes the state of this phone call.
         /// </summary>
-        public void Refresh()
+        public async System.Threading.Tasks.Task Refresh()
         {
-            PhoneCall phoneCall = service.UnifiedMessaging.GetPhoneCallInformation(this.id);
+            PhoneCall phoneCall = await service.UnifiedMessaging.GetPhoneCallInformation(this.id).ConfigureAwait(false);
             this.state = phoneCall.State;
             this.connectionFailureCause = phoneCall.ConnectionFailureCause;
             this.sipResponseText = phoneCall.SIPResponseText;

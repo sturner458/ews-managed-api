@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Disable reason type
@@ -127,9 +128,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal DisableAppResponse Execute()
+        internal async Task<DisableAppResponse> Execute()
         {
-            DisableAppResponse serviceResponse = (DisableAppResponse)this.InternalExecute();
+            DisableAppResponse serviceResponse = (DisableAppResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

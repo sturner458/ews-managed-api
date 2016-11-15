@@ -31,6 +31,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Text;
 
     using Microsoft.Exchange.WebServices.Data.Enumerations;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a RegisterConsent request.
@@ -121,9 +122,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal RegisterConsentResponse Execute()
+        internal async Task<RegisterConsentResponse> Execute()
         {
-            RegisterConsentResponse serviceResponse = (RegisterConsentResponse)this.InternalExecute();
+            RegisterConsentResponse serviceResponse = (RegisterConsentResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

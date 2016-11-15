@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetUserAvailability request.
@@ -196,9 +197,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetUserAvailabilityResults Execute()
+        internal async Task<GetUserAvailabilityResults> Execute()
         {
-            return (GetUserAvailabilityResults)this.InternalExecute();
+            return (GetUserAvailabilityResults)await this.InternalExecuteAsync().ConfigureAwait(false);
         }
 
         /// <summary>

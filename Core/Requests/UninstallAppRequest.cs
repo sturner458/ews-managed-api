@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a UninstallApp request.
@@ -98,9 +99,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal UninstallAppResponse Execute()
+        internal async Task<UninstallAppResponse> Execute()
         {
-            UninstallAppResponse serviceResponse = (UninstallAppResponse)this.InternalExecute();
+            UninstallAppResponse serviceResponse = (UninstallAppResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

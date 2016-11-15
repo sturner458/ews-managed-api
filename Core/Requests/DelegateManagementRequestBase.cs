@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents an abstract delegate management request.
@@ -92,9 +93,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Response object.</returns>
-        internal TResponse Execute()
+        internal async Task<TResponse> Execute()
         {
-            TResponse serviceResponse = (TResponse)this.InternalExecute();
+            TResponse serviceResponse = (TResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
 
             serviceResponse.ThrowIfNecessary();
 

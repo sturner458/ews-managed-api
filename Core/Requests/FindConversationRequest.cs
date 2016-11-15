@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a request to a Find Conversation operation
@@ -292,9 +293,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal FindConversationResponse Execute()
+        internal async Task<FindConversationResponse> Execute()
         {
-            FindConversationResponse serviceResponse = (FindConversationResponse)this.InternalExecute();
+            FindConversationResponse serviceResponse = (FindConversationResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

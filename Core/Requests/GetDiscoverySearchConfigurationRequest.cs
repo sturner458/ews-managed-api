@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetDiscoverySearchConfigurationRequest.
@@ -97,9 +98,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetDiscoverySearchConfigurationResponse Execute()
+        internal async Task<GetDiscoverySearchConfigurationResponse> Execute()
         {
-            GetDiscoverySearchConfigurationResponse serviceResponse = (GetDiscoverySearchConfigurationResponse)this.InternalExecute();
+            GetDiscoverySearchConfigurationResponse serviceResponse = (GetDiscoverySearchConfigurationResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             return serviceResponse;
         }
 

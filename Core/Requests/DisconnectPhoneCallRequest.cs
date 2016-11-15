@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a DisconnectPhoneCall request.
@@ -97,9 +98,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal ServiceResponse Execute()
+        internal async Task<ServiceResponse> Execute()
         {
-            ServiceResponse serviceResponse = (ServiceResponse)this.InternalExecute();
+            ServiceResponse serviceResponse = (ServiceResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

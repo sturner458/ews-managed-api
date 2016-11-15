@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetAppMarketplaceUrl request.
@@ -136,9 +137,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetAppMarketplaceUrlResponse Execute()
+        internal async Task<GetAppMarketplaceUrlResponse> Execute()
         {
-            GetAppMarketplaceUrlResponse serviceResponse = (GetAppMarketplaceUrlResponse)this.InternalExecute();
+            GetAppMarketplaceUrlResponse serviceResponse = (GetAppMarketplaceUrlResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

@@ -23,6 +23,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+using System.Threading.Tasks;
+
 namespace Microsoft.Exchange.WebServices.Data
 {
     /// <summary>
@@ -91,9 +93,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetOMEConfigurationResponse Execute()
+        internal async Task<GetOMEConfigurationResponse> Execute()
         {
-            GetOMEConfigurationResponse serviceResponse = (GetOMEConfigurationResponse)this.InternalExecute();
+            GetOMEConfigurationResponse serviceResponse = (GetOMEConfigurationResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

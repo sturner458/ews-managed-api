@@ -23,6 +23,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+using System.Threading.Tasks;
+
 namespace Microsoft.Exchange.WebServices.Data
 {
     /// <summary>
@@ -105,9 +107,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal ServiceResponse Execute()
+        internal async Task<ServiceResponse> Execute()
         {
-            SetOMEConfigurationResponse serviceResponse = (SetOMEConfigurationResponse)this.InternalExecute();
+            SetOMEConfigurationResponse serviceResponse = (SetOMEConfigurationResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

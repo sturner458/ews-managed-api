@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data.Groups
     using System.Collections.Generic;
     using System.Text;
     using Microsoft.Exchange.WebServices.Data.Groups;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a request to a GetUserUnifiedGroupsRequest operation
@@ -117,9 +118,9 @@ namespace Microsoft.Exchange.WebServices.Data.Groups
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetUserUnifiedGroupsResponse Execute()
+        internal async Task<GetUserUnifiedGroupsResponse> Execute()
         {
-            return (GetUserUnifiedGroupsResponse)this.InternalExecute();
+            return (GetUserUnifiedGroupsResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
         }
     }
 }

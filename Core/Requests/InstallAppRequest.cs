@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a InstallApp request.
@@ -122,9 +123,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal InstallAppResponse Execute()
+        internal async Task<InstallAppResponse> Execute()
         {
-            InstallAppResponse serviceResponse = (InstallAppResponse)this.InternalExecute();
+            InstallAppResponse serviceResponse = (InstallAppResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

@@ -1545,7 +1545,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view which defines the number of persona being returned</param>
         /// <param name="queryString">The query string for which the search is being performed</param>
         /// <returns>A collection of personas matching the search conditions</returns>
-        public ICollection<Persona> FindPeople(FolderId folderId, SearchFilter searchFilter, ViewBase view, string queryString)
+        public async Task<ICollection<Persona>> FindPeople(FolderId folderId, SearchFilter searchFilter, ViewBase view, string queryString)
         {
             EwsUtilities.ValidateParamAllowNull(folderId, "folderId");
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
@@ -1560,7 +1560,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.View = view;
             request.QueryString = queryString;
 
-            return request.Execute().Personas;
+            return (await request.Execute().ConfigureAwait(false)).Personas;
         }
 
         /// <summary>
@@ -1573,7 +1573,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view which defines the number of persona being returned</param>
         /// <param name="queryString">The query string for which the search is being performed</param>
         /// <returns>A collection of personas matching the search conditions</returns>
-        public ICollection<Persona> FindPeople(WellKnownFolderName folderName, SearchFilter searchFilter, ViewBase view, string queryString)
+        public Task<ICollection<Persona>> FindPeople(WellKnownFolderName folderName, SearchFilter searchFilter, ViewBase view, string queryString)
         {
             return this.FindPeople(new FolderId(folderName), searchFilter, view, queryString);
         }
@@ -1586,7 +1586,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="searchFilter">Search filter</param>
         /// <param name="view">The view which defines paging and the number of persona being returned</param>
         /// <returns>A result object containing resultset for browsing</returns>
-        public FindPeopleResults FindPeople(FolderId folderId, SearchFilter searchFilter, ViewBase view)
+        public async Task<FindPeopleResults> FindPeople(FolderId folderId, SearchFilter searchFilter, ViewBase view)
         {
             EwsUtilities.ValidateParamAllowNull(folderId, "folderId");
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
@@ -1599,7 +1599,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.SearchFilter = searchFilter;
             request.View = view;
 
-            return request.Execute().Results;
+            return (await request.Execute().ConfigureAwait(false)).Results;
         }
 
         /// <summary>
@@ -1610,7 +1610,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="searchFilter">Search filter</param>
         /// <param name="view">The view which defines paging and the number of personas being returned</param>
         /// <returns>A result object containing resultset for browsing</returns>
-        public FindPeopleResults FindPeople(WellKnownFolderName folderName, SearchFilter searchFilter, ViewBase view)
+        public Task<FindPeopleResults> FindPeople(WellKnownFolderName folderName, SearchFilter searchFilter, ViewBase view)
         {
             return this.FindPeople(new FolderId(folderName), searchFilter, view);
         }
@@ -1620,7 +1620,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="view">The view which defines the number of personas being returned</param>
         /// <returns>A collection of personas matching the query string</returns>
-        public IPeopleQueryResults BrowsePeople(ViewBase view)
+        public Task<IPeopleQueryResults> BrowsePeople(ViewBase view)
         {
             return this.BrowsePeople(view, null);
         }
@@ -1631,7 +1631,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view which defines the number of personas being returned</param>
         /// <param name="context">The context for this query. See PeopleQueryContextKeys for keys</param>
         /// <returns>A collection of personas matching the query string</returns>
-        public IPeopleQueryResults BrowsePeople(ViewBase view, Dictionary<string, string> context)
+        public Task<IPeopleQueryResults> BrowsePeople(ViewBase view, Dictionary<string, string> context)
         {
             return this.PerformPeopleQuery(view, string.Empty, context, null);
         }
@@ -1643,7 +1643,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view which defines the number of personas being returned</param>
         /// <param name="queryString">The query string for which the search is being performed</param>
         /// <returns>A collection of personas matching the query string</returns>
-        public IPeopleQueryResults SearchPeople(ViewBase view, string queryString)
+        public Task<IPeopleQueryResults> SearchPeople(ViewBase view, string queryString)
         {
             return this.SearchPeople(view, queryString, null, null);
         }
@@ -1656,7 +1656,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="context">The context for this query. See PeopleQueryContextKeys for keys</param>
         /// <param name="queryMode">The scope of the query.</param>
         /// <returns>A collection of personas matching the query string</returns>
-        public IPeopleQueryResults SearchPeople(ViewBase view, string queryString, Dictionary<string, string> context, PeopleQueryMode queryMode)
+        public Task<IPeopleQueryResults> SearchPeople(ViewBase view, string queryString, Dictionary<string, string> context, PeopleQueryMode queryMode)
         {
             EwsUtilities.ValidateParam(queryString, "queryString");
 
@@ -1671,7 +1671,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="context">The context for this query</param>
         /// <param name="queryMode">The scope of the query.</param>
         /// <returns></returns>
-        private IPeopleQueryResults PerformPeopleQuery(ViewBase view, string queryString, Dictionary<string, string> context, PeopleQueryMode queryMode)
+        private async Task<IPeopleQueryResults> PerformPeopleQuery(ViewBase view, string queryString, Dictionary<string, string> context, PeopleQueryMode queryMode)
         {
             EwsUtilities.ValidateParam(view, "view");
             EwsUtilities.ValidateMethodVersion(this, ExchangeVersion.Exchange2015, "FindPeople");
@@ -1693,7 +1693,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.Context = context;
             request.QueryMode = queryMode;
 
-            FindPeopleResponse response = request.Execute();
+            FindPeopleResponse response = await request.Execute().ConfigureAwait(false);
 
             PeopleQueryResults results = new PeopleQueryResults();
             results.Personas = response.Personas.ToList();
@@ -1709,7 +1709,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="userPhotoSize">The desired size of the returned photo. Valid photo sizes are in UserPhotoSize</param>
         /// <param name="entityTag">A photo's cache ID which will allow the caller to ensure their cached photo is up to date</param>
         /// <returns>A result object containing the photo state</returns>
-        public GetUserPhotoResults GetUserPhoto(string emailAddress, string userPhotoSize, string entityTag)
+        public async Task<GetUserPhotoResults> GetUserPhoto(string emailAddress, string userPhotoSize, string entityTag)
         {
             EwsUtilities.ValidateParam(emailAddress, "emailAddress");
             EwsUtilities.ValidateParam(userPhotoSize, "userPhotoSize");
@@ -1721,7 +1721,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.UserPhotoSize = userPhotoSize;
             request.EntityTag = entityTag;
 
-            return request.Execute().Results;
+            return (await request.Execute().ConfigureAwait(false)).Results;
         }
 
         #endregion
@@ -1733,12 +1733,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="emailAddresses">Specified eamiladdresses to retrieve</param>
         /// <returns>The collection of Person objects containing the insight info</returns>
-        public Collection<Person> GetPeopleInsights(IEnumerable<string> emailAddresses)
+        public async Task<Collection<Person>> GetPeopleInsights(IEnumerable<string> emailAddresses)
         {
             GetPeopleInsightsRequest request = new GetPeopleInsightsRequest(this);
             request.Emailaddresses.AddRange(emailAddresses);
 
-            return request.Execute().People;
+            return (await request.Execute().ConfigureAwait(false)).People;
         }
 
         #endregion
@@ -2053,12 +2053,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="mailboxSmtpAddress">The e-mail address of the user.</param>
         /// <returns>The password expiration date.</returns>
-        public DateTime? GetPasswordExpirationDate(string mailboxSmtpAddress)
+        public async Task<DateTime?> GetPasswordExpirationDate(string mailboxSmtpAddress)
         {
             GetPasswordExpirationDateRequest request = new GetPasswordExpirationDateRequest(this);
             request.MailboxSmtpAddress = mailboxSmtpAddress;
 
-            return request.Execute().PasswordExpirationDate;
+            return (await request.Execute().ConfigureAwait(false)).PasswordExpirationDate;
         }
         #endregion
 
@@ -2356,7 +2356,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="emailAddress">TeamMailbox email address</param>
         /// <param name="sharePointSiteUrl">SharePoint site URL</param>
         /// <param name="state">TeamMailbox lifecycle state</param>
-        public void SetTeamMailbox(EmailAddress emailAddress, Uri sharePointSiteUrl, TeamMailboxLifecycleState state)
+        public System.Threading.Tasks.Task SetTeamMailbox(EmailAddress emailAddress, Uri sharePointSiteUrl, TeamMailboxLifecycleState state)
         {
             EwsUtilities.ValidateMethodVersion(this, ExchangeVersion.Exchange2013, "SetTeamMailbox");
 
@@ -2371,14 +2371,14 @@ namespace Microsoft.Exchange.WebServices.Data
             }
 
             SetTeamMailboxRequest request = new SetTeamMailboxRequest(this, emailAddress, sharePointSiteUrl, state);
-            request.Execute();
+            return request.Execute();
         }
 
         /// <summary>
         /// Unpin a TeamMailbox
         /// </summary>
         /// <param name="emailAddress">TeamMailbox email address</param>
-        public void UnpinTeamMailbox(EmailAddress emailAddress)
+        public System.Threading.Tasks.Task UnpinTeamMailbox(EmailAddress emailAddress)
         {
             EwsUtilities.ValidateMethodVersion(this, ExchangeVersion.Exchange2013, "UnpinTeamMailbox");
 
@@ -2388,7 +2388,7 @@ namespace Microsoft.Exchange.WebServices.Data
             }
 
             UnpinTeamMailboxRequest request = new UnpinTeamMailboxRequest(this, emailAddress);
-            request.Execute();
+            return request.Execute();
         }
 
         /// <summary>
@@ -2663,7 +2663,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="smtpAddress">The SMTP address of the user for which to retrieve OOF settings.</param>
         /// <returns>An OofSettings instance containing OOF information for the specified user.</returns>
-        public OofSettings GetUserOofSettings(string smtpAddress)
+        public async Task<OofSettings> GetUserOofSettings(string smtpAddress)
         {
             EwsUtilities.ValidateParam(smtpAddress, "smtpAddress");
 
@@ -2671,7 +2671,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             request.SmtpAddress = smtpAddress;
 
-            return request.Execute().OofSettings;
+            return (await request.Execute().ConfigureAwait(false)).OofSettings;
         }
 
         /// <summary>
@@ -2679,7 +2679,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="smtpAddress">The SMTP address of the user for which to set OOF settings.</param>
         /// <param name="oofSettings">The OOF settings.</param>
-        public void SetUserOofSettings(string smtpAddress, OofSettings oofSettings)
+        public System.Threading.Tasks.Task SetUserOofSettings(string smtpAddress, OofSettings oofSettings)
         {
             EwsUtilities.ValidateParam(smtpAddress, "smtpAddress");
             EwsUtilities.ValidateParam(oofSettings, "oofSettings");
@@ -2689,7 +2689,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.SmtpAddress = smtpAddress;
             request.OofSettings = oofSettings;
 
-            request.Execute();
+            return request.Execute();
         }
 
         /// <summary>
@@ -2704,7 +2704,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// The availability information for each user appears in a unique FreeBusyResponse object. The order of users
         /// in the request determines the order of availability data for each user in the response.
         /// </returns>
-        public GetUserAvailabilityResults GetUserAvailability(
+        public Task<GetUserAvailabilityResults> GetUserAvailability(
             IEnumerable<AttendeeInfo> attendees,
             TimeWindow timeWindow,
             AvailabilityData requestedData,
@@ -2735,7 +2735,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// The availability information for each user appears in a unique FreeBusyResponse object. The order of users
         /// in the request determines the order of availability data for each user in the response.
         /// </returns>
-        public GetUserAvailabilityResults GetUserAvailability(
+        public Task<GetUserAvailabilityResults> GetUserAvailability(
             IEnumerable<AttendeeInfo> attendees,
             TimeWindow timeWindow,
             AvailabilityData requestedData)
@@ -2751,11 +2751,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Retrieves a collection of all room lists in the organization.
         /// </summary>
         /// <returns>An EmailAddressCollection containing all the room lists in the organization.</returns>
-        public EmailAddressCollection GetRoomLists()
+        public async Task<EmailAddressCollection> GetRoomLists()
         {
             GetRoomListsRequest request = new GetRoomListsRequest(this);
 
-            return request.Execute().RoomLists;
+            return (await request.Execute().ConfigureAwait(false)).RoomLists;
         }
 
         /// <summary>
@@ -2763,7 +2763,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="emailAddress">The e-mail address of the room list.</param>
         /// <returns>A collection of EmailAddress objects representing all the rooms within the specifed room list.</returns>
-        public Collection<EmailAddress> GetRooms(EmailAddress emailAddress)
+        public async Task<Collection<EmailAddress>> GetRooms(EmailAddress emailAddress)
         {
             EwsUtilities.ValidateParam(emailAddress, "emailAddress");
 
@@ -2771,7 +2771,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             request.RoomList = emailAddress;
 
-            return request.Execute().Rooms;
+            return (await request.Execute().ConfigureAwait(false)).Rooms;
         }
         #endregion
 
@@ -2782,7 +2782,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of conversations returned.</param>
         /// <param name="folderId">The Id of the folder in which to search for conversations.</param>
         /// <returns>Collection of conversations.</returns>
-        public ICollection<Conversation> FindConversation(ViewBase view, FolderId folderId)
+        public async Task<ICollection<Conversation>> FindConversation(ViewBase view, FolderId folderId)
         {
             EwsUtilities.ValidateParam(view, "view");
             EwsUtilities.ValidateParam(folderId, "folderId");
@@ -2796,7 +2796,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.View = view;
             request.FolderId = new FolderIdWrapper(folderId);
 
-            return request.Execute().Conversations;
+            return (await request.Execute().ConfigureAwait(false)).Conversations;
         }
 
         /// <summary>
@@ -2810,7 +2810,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// This API designed to be used primarily in groups scenarios where we want to set the
         /// anchor mailbox header so that request is routed directly to the group mailbox backend server.
         /// </remarks>
-        public Collection<Conversation> FindGroupConversation(
+        public async Task<Collection<Conversation>> FindGroupConversation(
             ViewBase view,
             FolderId folderId,
             string anchorMailbox)
@@ -2829,7 +2829,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.FolderId = new FolderIdWrapper(folderId);
             request.AnchorMailbox = anchorMailbox;
 
-            return request.Execute().Conversations;
+            return (await request.Execute().ConfigureAwait(false)).Conversations;
         }
 
         /// <summary>
@@ -2839,7 +2839,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="folderId">The Id of the folder in which to search for conversations.</param>
         /// <param name="queryString">The query string for which the search is being performed</param>
         /// <returns>Collection of conversations.</returns>
-        public ICollection<Conversation> FindConversation(ViewBase view, FolderId folderId, string queryString)
+        public async Task<ICollection<Conversation>> FindConversation(ViewBase view, FolderId folderId, string queryString)
         {
             EwsUtilities.ValidateParam(view, "view");
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
@@ -2855,7 +2855,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.FolderId = new FolderIdWrapper(folderId);
             request.QueryString = queryString;
 
-            return request.Execute().Conversations;
+            return (await request.Execute().ConfigureAwait(false)).Conversations;
         }
 
         /// <summary>
@@ -2867,7 +2867,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="queryString">The query string for which the search is being performed</param>
         /// <param name="returnHighlightTerms">Flag indicating if highlight terms should be returned in the response</param>
         /// <returns>FindConversation results.</returns>
-        public FindConversationResults FindConversation(ViewBase view, FolderId folderId, string queryString, bool returnHighlightTerms)
+        public async Task<FindConversationResults> FindConversation(ViewBase view, FolderId folderId, string queryString, bool returnHighlightTerms)
         {
             EwsUtilities.ValidateParam(view, "view");
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
@@ -2885,7 +2885,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.QueryString = queryString;
             request.ReturnHighlightTerms = returnHighlightTerms;
 
-            return request.Execute().Results;
+            return (await request.Execute().ConfigureAwait(false)).Results;
         }
 
         /// <summary>
@@ -2898,7 +2898,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="returnHighlightTerms">Flag indicating if highlight terms should be returned in the response</param>
         /// <param name="mailboxScope">The mailbox scope to reference.</param>
         /// <returns>FindConversation results.</returns>
-        public FindConversationResults FindConversation(ViewBase view, FolderId folderId, string queryString, bool returnHighlightTerms, MailboxSearchLocation? mailboxScope)
+        public async Task<FindConversationResults> FindConversation(ViewBase view, FolderId folderId, string queryString, bool returnHighlightTerms, MailboxSearchLocation? mailboxScope)
         {
             EwsUtilities.ValidateParam(view, "view");
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
@@ -2918,7 +2918,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.ReturnHighlightTerms = returnHighlightTerms;
             request.MailboxScope = mailboxScope;
 
-            return request.Execute().Results;
+            return (await request.Execute().ConfigureAwait(false)).Results;
         }
 
         /// <summary>
@@ -3627,7 +3627,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="meetingRequestsDeliveryScope">Indicates how meeting requests should be sent to delegates.</param>
         /// <param name="delegateUsers">The delegate users to add.</param>
         /// <returns>A collection of DelegateUserResponse objects providing the results of the operation.</returns>
-        public Collection<DelegateUserResponse> AddDelegates(
+        public Task<Collection<DelegateUserResponse>> AddDelegates(
             Mailbox mailbox,
             MeetingRequestsDeliveryScope? meetingRequestsDeliveryScope,
             params DelegateUser[] delegateUsers)
@@ -3645,7 +3645,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="meetingRequestsDeliveryScope">Indicates how meeting requests should be sent to delegates.</param>
         /// <param name="delegateUsers">The delegate users to add.</param>
         /// <returns>A collection of DelegateUserResponse objects providing the results of the operation.</returns>
-        public Collection<DelegateUserResponse> AddDelegates(
+        public async Task<Collection<DelegateUserResponse>> AddDelegates(
             Mailbox mailbox,
             MeetingRequestsDeliveryScope? meetingRequestsDeliveryScope,
             IEnumerable<DelegateUser> delegateUsers)
@@ -3659,7 +3659,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.DelegateUsers.AddRange(delegateUsers);
             request.MeetingRequestsDeliveryScope = meetingRequestsDeliveryScope;
 
-            DelegateManagementResponse response = request.Execute();
+            DelegateManagementResponse response = await request.Execute().ConfigureAwait(false);
             return response.DelegateUserResponses;
         }
 
@@ -3670,7 +3670,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="meetingRequestsDeliveryScope">Indicates how meeting requests should be sent to delegates.</param>
         /// <param name="delegateUsers">The delegate users to update.</param>
         /// <returns>A collection of DelegateUserResponse objects providing the results of the operation.</returns>
-        public Collection<DelegateUserResponse> UpdateDelegates(
+        public Task<Collection<DelegateUserResponse>> UpdateDelegates(
             Mailbox mailbox,
             MeetingRequestsDeliveryScope? meetingRequestsDeliveryScope,
             params DelegateUser[] delegateUsers)
@@ -3688,7 +3688,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="meetingRequestsDeliveryScope">Indicates how meeting requests should be sent to delegates.</param>
         /// <param name="delegateUsers">The delegate users to update.</param>
         /// <returns>A collection of DelegateUserResponse objects providing the results of the operation.</returns>
-        public Collection<DelegateUserResponse> UpdateDelegates(
+        public async Task<Collection<DelegateUserResponse>> UpdateDelegates(
             Mailbox mailbox,
             MeetingRequestsDeliveryScope? meetingRequestsDeliveryScope,
             IEnumerable<DelegateUser> delegateUsers)
@@ -3702,7 +3702,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.DelegateUsers.AddRange(delegateUsers);
             request.MeetingRequestsDeliveryScope = meetingRequestsDeliveryScope;
 
-            DelegateManagementResponse response = request.Execute();
+            DelegateManagementResponse response = await request.Execute().ConfigureAwait(false);
             return response.DelegateUserResponses;
         }
 
@@ -3712,7 +3712,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="mailbox">The mailbox to remove delegates from.</param>
         /// <param name="userIds">The Ids of the delegate users to remove.</param>
         /// <returns>A collection of DelegateUserResponse objects providing the results of the operation.</returns>
-        public Collection<DelegateUserResponse> RemoveDelegates(Mailbox mailbox, params UserId[] userIds)
+        public Task<Collection<DelegateUserResponse>> RemoveDelegates(Mailbox mailbox, params UserId[] userIds)
         {
             return this.RemoveDelegates(mailbox, (IEnumerable<UserId>)userIds);
         }
@@ -3723,7 +3723,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="mailbox">The mailbox to remove delegates from.</param>
         /// <param name="userIds">The Ids of the delegate users to remove.</param>
         /// <returns>A collection of DelegateUserResponse objects providing the results of the operation.</returns>
-        public Collection<DelegateUserResponse> RemoveDelegates(Mailbox mailbox, IEnumerable<UserId> userIds)
+        public async Task<Collection<DelegateUserResponse>> RemoveDelegates(Mailbox mailbox, IEnumerable<UserId> userIds)
         {
             EwsUtilities.ValidateParam(mailbox, "mailbox");
             EwsUtilities.ValidateParamCollection(userIds, "userIds");
@@ -3733,7 +3733,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.Mailbox = mailbox;
             request.UserIds.AddRange(userIds);
 
-            DelegateManagementResponse response = request.Execute();
+            DelegateManagementResponse response = await request.Execute().ConfigureAwait(false);
             return response.DelegateUserResponses;
         }
 
@@ -3744,7 +3744,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="includePermissions">Indicates whether detailed permissions should be returned fro each delegate.</param>
         /// <param name="userIds">The optional Ids of the delegate users to retrieve.</param>
         /// <returns>A GetDelegateResponse providing the results of the operation.</returns>
-        public DelegateInformation GetDelegates(
+        public Task<DelegateInformation> GetDelegates(
             Mailbox mailbox,
             bool includePermissions,
             params UserId[] userIds)
@@ -3762,7 +3762,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="includePermissions">Indicates whether detailed permissions should be returned fro each delegate.</param>
         /// <param name="userIds">The optional Ids of the delegate users to retrieve.</param>
         /// <returns>A GetDelegateResponse providing the results of the operation.</returns>
-        public DelegateInformation GetDelegates(
+        public async Task<DelegateInformation> GetDelegates(
             Mailbox mailbox,
             bool includePermissions,
             IEnumerable<UserId> userIds)
@@ -3775,7 +3775,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.UserIds.AddRange(userIds);
             request.IncludePermissions = includePermissions;
 
-            GetDelegateResponse response = request.Execute();
+            GetDelegateResponse response = await request.Execute().ConfigureAwait(false);
             DelegateInformation delegateInformation = new DelegateInformation(
                 response.DelegateUserResponses,
                 response.MeetingRequestsDeliveryScope);
@@ -3886,11 +3886,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Retrieves inbox rules of the authenticated user.
         /// </summary>
         /// <returns>A RuleCollection object containing the authenticated user's inbox rules.</returns>
-        public RuleCollection GetInboxRules()
+        public async Task<RuleCollection> GetInboxRules()
         {
             GetInboxRulesRequest request = new GetInboxRulesRequest(this);
 
-            return request.Execute().Rules;
+            return (await request.Execute().ConfigureAwait(false)).Rules;
         }
 
         /// <summary>
@@ -3898,14 +3898,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="mailboxSmtpAddress">The SMTP address of the user whose inbox rules should be retrieved.</param>
         /// <returns>A RuleCollection object containing the inbox rules of the specified user.</returns>
-        public RuleCollection GetInboxRules(string mailboxSmtpAddress)
+        public async Task<RuleCollection> GetInboxRules(string mailboxSmtpAddress)
         {
             EwsUtilities.ValidateParam(mailboxSmtpAddress, "MailboxSmtpAddress");
 
             GetInboxRulesRequest request = new GetInboxRulesRequest(this);
             request.MailboxSmtpAddress = mailboxSmtpAddress;
 
-            return request.Execute().Rules;
+            return (await request.Execute().ConfigureAwait(false)).Rules;
         }
 
         /// <summary>
@@ -3913,14 +3913,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="operations">The operations that should be applied to the user's inbox rules.</param>
         /// <param name="removeOutlookRuleBlob">Indicate whether or not to remove Outlook Rule Blob.</param>
-        public void UpdateInboxRules(
+        public System.Threading.Tasks.Task UpdateInboxRules(
             IEnumerable<RuleOperation> operations,
             bool removeOutlookRuleBlob)
         {
             UpdateInboxRulesRequest request = new UpdateInboxRulesRequest(this);
             request.InboxRuleOperations = operations;
             request.RemoveOutlookRuleBlob = removeOutlookRuleBlob;
-            request.Execute();
+            return request.Execute();
         }
 
         /// <summary>
@@ -3929,7 +3929,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="operations">The operations that should be applied to the user's inbox rules.</param>
         /// <param name="removeOutlookRuleBlob">Indicate whether or not to remove Outlook Rule Blob.</param>
         /// <param name="mailboxSmtpAddress">The SMTP address of the user whose inbox rules should be updated.</param>
-        public void UpdateInboxRules(
+        public System.Threading.Tasks.Task UpdateInboxRules(
             IEnumerable<RuleOperation> operations,
             bool removeOutlookRuleBlob,
             string mailboxSmtpAddress)
@@ -3938,7 +3938,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.InboxRuleOperations = operations;
             request.RemoveOutlookRuleBlob = removeOutlookRuleBlob;
             request.MailboxSmtpAddress = mailboxSmtpAddress;
-            request.Execute();
+            return request.Execute();
         }
         #endregion
 
@@ -3951,7 +3951,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="expandGroupMembership">True if want to expand group membership</param>
         /// <param name="inPlaceHoldConfigurationOnly">True if only want the inplacehold configuration</param>
         /// <returns>Service response object</returns>
-        public GetDiscoverySearchConfigurationResponse GetDiscoverySearchConfiguration(string searchId, bool expandGroupMembership, bool inPlaceHoldConfigurationOnly)
+        public Task<GetDiscoverySearchConfigurationResponse> GetDiscoverySearchConfiguration(string searchId, bool expandGroupMembership, bool inPlaceHoldConfigurationOnly)
         {
             GetDiscoverySearchConfigurationRequest request = new GetDiscoverySearchConfigurationRequest(this);
             request.SearchId = searchId;
@@ -3967,7 +3967,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="searchFilter">Search filter</param>
         /// <param name="expandGroupMembership">True if want to expand group membership</param>
         /// <returns>Service response object</returns>
-        public GetSearchableMailboxesResponse GetSearchableMailboxes(string searchFilter, bool expandGroupMembership)
+        public Task<GetSearchableMailboxesResponse> GetSearchableMailboxes(string searchFilter, bool expandGroupMembership)
         {
             GetSearchableMailboxesRequest request = new GetSearchableMailboxesRequest(this);
             request.SearchFilter = searchFilter;
@@ -4053,7 +4053,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="query">Query string</param>
         /// <param name="mailboxes">Collection of mailboxes</param>
         /// <returns>Service response object</returns>
-        public SetHoldOnMailboxesResponse SetHoldOnMailboxes(string holdId, HoldAction actionType, string query, string[] mailboxes)
+        public Task<SetHoldOnMailboxesResponse> SetHoldOnMailboxes(string holdId, HoldAction actionType, string query, string[] mailboxes)
         {
             SetHoldOnMailboxesRequest request = new SetHoldOnMailboxesRequest(this);
             request.HoldId = holdId;
@@ -4073,7 +4073,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="query">Query string</param>
         /// <param name="inPlaceHoldIdentity">in-place hold identity</param>
         /// <returns>Service response object</returns>
-        public SetHoldOnMailboxesResponse SetHoldOnMailboxes(string holdId, HoldAction actionType, string query, string inPlaceHoldIdentity)
+        public Task<SetHoldOnMailboxesResponse> SetHoldOnMailboxes(string holdId, HoldAction actionType, string query, string inPlaceHoldIdentity)
         {
             return this.SetHoldOnMailboxes(holdId, actionType, query, inPlaceHoldIdentity, null);
         }
@@ -4087,7 +4087,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="inPlaceHoldIdentity">in-place hold identity</param>
         /// <param name="itemHoldPeriod">item hold period</param>
         /// <returns>Service response object</returns>
-        public SetHoldOnMailboxesResponse SetHoldOnMailboxes(string holdId, HoldAction actionType, string query, string inPlaceHoldIdentity, string itemHoldPeriod)
+        public Task<SetHoldOnMailboxesResponse> SetHoldOnMailboxes(string holdId, HoldAction actionType, string query, string inPlaceHoldIdentity, string itemHoldPeriod)
         {
             SetHoldOnMailboxesRequest request = new SetHoldOnMailboxesRequest(this);
             request.HoldId = holdId;
@@ -4105,7 +4105,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="parameters">Set hold parameters</param>
         /// <returns>Service response object</returns>
-        public SetHoldOnMailboxesResponse SetHoldOnMailboxes(SetHoldOnMailboxesParameters parameters)
+        public Task<SetHoldOnMailboxesResponse> SetHoldOnMailboxes(SetHoldOnMailboxesParameters parameters)
         {
             EwsUtilities.ValidateParam(parameters, "parameters");
 
@@ -4125,7 +4125,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="holdId">Hold id</param>
         /// <returns>Service response object</returns>
-        public GetHoldOnMailboxesResponse GetHoldOnMailboxes(string holdId)
+        public Task<GetHoldOnMailboxesResponse> GetHoldOnMailboxes(string holdId)
         {
             GetHoldOnMailboxesRequest request = new GetHoldOnMailboxesRequest(this);
             request.HoldId = holdId;
@@ -4138,7 +4138,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="mailboxes">Array of mailbox legacy DN</param>
         /// <returns>Service response object</returns>
-        public GetNonIndexableItemDetailsResponse GetNonIndexableItemDetails(string[] mailboxes)
+        public Task<GetNonIndexableItemDetailsResponse> GetNonIndexableItemDetails(string[] mailboxes)
         {
             return this.GetNonIndexableItemDetails(mailboxes, null, null, null);
         }
@@ -4151,7 +4151,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="pageItemReference">Page item reference</param>
         /// <param name="pageDirection">Page direction</param>
         /// <returns>Service response object</returns>
-        public GetNonIndexableItemDetailsResponse GetNonIndexableItemDetails(string[] mailboxes, int? pageSize, string pageItemReference, SearchPageDirection? pageDirection)
+        public Task<GetNonIndexableItemDetailsResponse> GetNonIndexableItemDetails(string[] mailboxes, int? pageSize, string pageItemReference, SearchPageDirection? pageDirection)
         {
             GetNonIndexableItemDetailsParameters parameters = new GetNonIndexableItemDetailsParameters
             {
@@ -4170,7 +4170,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="parameters">Get non indexable item details parameters</param>
         /// <returns>Service response object</returns>
-        public GetNonIndexableItemDetailsResponse GetNonIndexableItemDetails(GetNonIndexableItemDetailsParameters parameters)
+        public Task<GetNonIndexableItemDetailsResponse> GetNonIndexableItemDetails(GetNonIndexableItemDetailsParameters parameters)
         {
             GetNonIndexableItemDetailsRequest request = this.CreateGetNonIndexableItemDetailsRequest(parameters);
 
@@ -4182,7 +4182,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="mailboxes">Array of mailbox legacy DN</param>
         /// <returns>Service response object</returns>
-        public GetNonIndexableItemStatisticsResponse GetNonIndexableItemStatistics(string[] mailboxes)
+        public Task<GetNonIndexableItemStatisticsResponse> GetNonIndexableItemStatistics(string[] mailboxes)
         {
             GetNonIndexableItemStatisticsParameters parameters = new GetNonIndexableItemStatisticsParameters
             {
@@ -4198,7 +4198,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="parameters">Get non indexable item statistics parameters</param>
         /// <returns>Service response object</returns>
-        public GetNonIndexableItemStatisticsResponse GetNonIndexableItemStatistics(GetNonIndexableItemStatisticsParameters parameters)
+        public Task<GetNonIndexableItemStatisticsResponse> GetNonIndexableItemStatistics(GetNonIndexableItemStatisticsParameters parameters)
         {
             GetNonIndexableItemStatisticsRequest request = this.CreateGetNonIndexableItemStatisticsRequest(parameters);
 
@@ -4271,7 +4271,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Get user retention policy tags.
         /// </summary>
         /// <returns>Service response object.</returns>
-        public GetUserRetentionPolicyTagsResponse GetUserRetentionPolicyTags()
+        public Task<GetUserRetentionPolicyTagsResponse> GetUserRetentionPolicyTags()
         {
             GetUserRetentionPolicyTagsRequest request = new GetUserRetentionPolicyTagsRequest(this);
 
@@ -4487,10 +4487,10 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Get the app manifests.
         /// </summary>
         /// <returns>Collection of manifests</returns>
-        public Collection<XmlDocument> GetAppManifests()
+        public async Task<Collection<XmlDocument>> GetAppManifests()
         {
             GetAppManifestsRequest request = new GetAppManifestsRequest(this);
-            return request.Execute().Manifests;
+            return (await request.Execute().ConfigureAwait(false)).Manifests;
         }
 
         /// <summary>
@@ -4499,13 +4499,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="apiVersionSupported">The api version supported by the client.</param>
         /// <param name="schemaVersionSupported">The schema version supported by the client.</param>
         /// <returns>Collection of manifests</returns>
-        public Collection<ClientApp> GetAppManifests(string apiVersionSupported, string schemaVersionSupported)
+        public async Task<Collection<ClientApp>> GetAppManifests(string apiVersionSupported, string schemaVersionSupported)
         {
             GetAppManifestsRequest request = new GetAppManifestsRequest(this);
             request.ApiVersionSupported = apiVersionSupported;
             request.SchemaVersionSupported = schemaVersionSupported;
 
-            return request.Execute().Apps;
+            return (await request.Execute().ConfigureAwait(false)).Apps;
         }
 
         /// <summary>
@@ -4519,11 +4519,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// When this function succeeds, manifestStream is closed. This is by EWS design to 
         /// release resource in timely manner. </param>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        public void InstallApp(Stream manifestStream)
+        public System.Threading.Tasks.Task InstallApp(Stream manifestStream)
         {
             EwsUtilities.ValidateParam(manifestStream, "manifestStream");
 
-            this.InternalInstallApp(manifestStream, marketplaceAssetId: null, marketplaceContentMarket: null, sendWelcomeEmail: false);
+            return this.InternalInstallApp(manifestStream, marketplaceAssetId: null, marketplaceContentMarket: null, sendWelcomeEmail: false);
         }
 
         /// <summary>
@@ -4541,13 +4541,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="sendWelcomeEmail">Whether to send welcome email for the addin</param>
         /// <returns>True if the app was not already installed. False if it was not installed. Null if it is not a user mailbox.</returns>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        internal bool? InternalInstallApp(Stream manifestStream, string marketplaceAssetId, string marketplaceContentMarket, bool sendWelcomeEmail)
+        internal async Task<bool?> InternalInstallApp(Stream manifestStream, string marketplaceAssetId, string marketplaceContentMarket, bool sendWelcomeEmail)
         {
             EwsUtilities.ValidateParam(manifestStream, "manifestStream");
 
             InstallAppRequest request = new InstallAppRequest(this, manifestStream, marketplaceAssetId, marketplaceContentMarket, false);
 
-            InstallAppResponse response = request.Execute();
+            InstallAppResponse response = await request.Execute().ConfigureAwait(false);
 
             return response.WasFirstInstall;
         }
@@ -4557,13 +4557,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="id">App ID</param>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        public void UninstallApp(string id)
+        public System.Threading.Tasks.Task UninstallApp(string id)
         {
             EwsUtilities.ValidateParam(id, "id");
 
             UninstallAppRequest request = new UninstallAppRequest(this, id);
 
-            request.Execute();
+            return request.Execute();
         }
 
         /// <summary>
@@ -4572,14 +4572,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">App ID</param>
         /// <param name="disableReason">Disable reason</param>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        public void DisableApp(string id, DisableReasonType disableReason)
+        public System.Threading.Tasks.Task DisableApp(string id, DisableReasonType disableReason)
         {
             EwsUtilities.ValidateParam(id, "id");
             EwsUtilities.ValidateParam(disableReason, "disableReason");
 
             DisableAppRequest request = new DisableAppRequest(this, id, disableReason);
 
-            request.Execute();
+            return request.Execute();
         }
 
         /// <summary>
@@ -4588,21 +4588,21 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">Extension id.</param>
         /// <param name="state">Sets the consent state of an extension.</param>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        public void RegisterConsent(string id, ConsentState state)
+        public System.Threading.Tasks.Task RegisterConsent(string id, ConsentState state)
         {
             EwsUtilities.ValidateParam(id, "id");
             EwsUtilities.ValidateParam(state, "state");
 
             RegisterConsentRequest request = new RegisterConsentRequest(this, id, state);
 
-            request.Execute();
+            return request.Execute();
         }
 
         /// <summary>
         /// Get App Marketplace Url.
         /// </summary>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        public string GetAppMarketplaceUrl()
+        public Task<string> GetAppMarketplaceUrl()
         {
             return GetAppMarketplaceUrl(null, null);
         }
@@ -4613,13 +4613,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="apiVersionSupported">The api version supported by the client.</param>
         /// <param name="schemaVersionSupported">The schema version supported by the client.</param>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        public string GetAppMarketplaceUrl(string apiVersionSupported, string schemaVersionSupported)
+        public async Task<string> GetAppMarketplaceUrl(string apiVersionSupported, string schemaVersionSupported)
         {
             GetAppMarketplaceUrlRequest request = new GetAppMarketplaceUrlRequest(this);
             request.ApiVersionSupported = apiVersionSupported;
             request.SchemaVersionSupported = schemaVersionSupported;
 
-            return request.Execute().AppMarketplaceUrl;
+            return (await request.Execute().ConfigureAwait(false)).AppMarketplaceUrl;
         }
 
         /// <summary>
@@ -4644,7 +4644,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="isDebug">Optional flag to indicate whether it is debug mode. 
         /// If it is, org master table in arbitration mailbox will be returned for debugging purpose.</param>
         /// <returns>Collection of ClientExtension objects</returns>
-        public GetClientExtensionResponse GetClientExtension(
+        public Task<GetClientExtensionResponse> GetClientExtension(
             StringList requestedExtensionIds,
             bool shouldReturnEnabledOnly,
             bool isUserScope,
@@ -4670,7 +4670,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Get the OME (i.e. Office Message Encryption) configuration data. This method is used in server-to-server calls to retrieve OME configuration
         /// </summary>
         /// <returns>OME Configuration response object</returns>
-        public GetOMEConfigurationResponse GetOMEConfiguration()
+        public Task<GetOMEConfigurationResponse> GetOMEConfiguration()
         {
             GetOMEConfigurationRequest request = new GetOMEConfigurationRequest(this);
 
@@ -4681,11 +4681,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Set the OME (i.e. Office Message Encryption) configuration data. This method is used in server-to-server calls to set encryption configuration
         /// </summary>
         /// <param name="xml">The xml</param>
-        public void SetOMEConfiguration(string xml)
+        public System.Threading.Tasks.Task SetOMEConfiguration(string xml)
         {
             SetOMEConfigurationRequest request = new SetOMEConfigurationRequest(this, xml);
 
-            request.Execute();
+            return request.Execute();
         }
 
         /// <summary>
@@ -4709,7 +4709,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="requestedUnifiedGroupsSets">The Requested Unified Groups Sets</param>
         /// <param name="userSmtpAddress">The smtp address of accessing user.</param>
         /// <returns>UserUnified groups.</returns>
-        public Collection<UnifiedGroupsSet> GetUserUnifiedGroups(
+        public Task<Collection<UnifiedGroupsSet>> GetUserUnifiedGroups(
                             IEnumerable<RequestedUnifiedGroupsSet> requestedUnifiedGroupsSets,
                             string userSmtpAddress)
         {
@@ -4724,7 +4724,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="requestedUnifiedGroupsSets">The Requested Unified Groups Sets</param>
         /// <returns>UserUnified groups.</returns>
-        public Collection<UnifiedGroupsSet> GetUserUnifiedGroups(IEnumerable<RequestedUnifiedGroupsSet> requestedUnifiedGroupsSets)
+        public Task<Collection<UnifiedGroupsSet>> GetUserUnifiedGroups(IEnumerable<RequestedUnifiedGroupsSet> requestedUnifiedGroupsSets)
         {
             EwsUtilities.ValidateParam(requestedUnifiedGroupsSets, "requestedUnifiedGroupsSets");
             return this.GetUserUnifiedGroupsInternal(requestedUnifiedGroupsSets, null);
@@ -4736,7 +4736,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="requestedUnifiedGroupsSets">The Requested Unified Groups Sets</param>
         /// <param name="userSmtpAddress">The smtp address of accessing user.</param>
         /// <returns>UserUnified groups.</returns>
-        private Collection<UnifiedGroupsSet> GetUserUnifiedGroupsInternal(
+        private async Task<Collection<UnifiedGroupsSet>> GetUserUnifiedGroupsInternal(
                             IEnumerable<RequestedUnifiedGroupsSet> requestedUnifiedGroupsSets,
                             string userSmtpAddress)
         {
@@ -4752,7 +4752,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 request.RequestedUnifiedGroupsSets = requestedUnifiedGroupsSets;
             }
 
-            return request.Execute().GroupsSets;
+            return (await request.Execute().ConfigureAwait(false)).GroupsSets;
         }
 
         /// <summary>
@@ -4761,7 +4761,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="groupMailboxSmtpAddress">The smtpaddress of group for which unseendata is desired</param>
         /// <param name="lastVisitedTimeUtc">The LastVisitedTimeUtc of group for which unseendata is desired</param>
         /// <returns>UnifiedGroupsUnseenCount</returns>
-        public int GetUnifiedGroupUnseenCount(string groupMailboxSmtpAddress, DateTime lastVisitedTimeUtc)
+        public async Task<int> GetUnifiedGroupUnseenCount(string groupMailboxSmtpAddress, DateTime lastVisitedTimeUtc)
         {
             EwsUtilities.ValidateParam(groupMailboxSmtpAddress, "groupMailboxSmtpAddress");
 
@@ -4770,7 +4770,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             request.AnchorMailbox = groupMailboxSmtpAddress;
 
-            return request.Execute().UnseenCount;
+            return (await request.Execute().ConfigureAwait(false)).UnseenCount;
         }
 
         /// <summary>
@@ -4778,13 +4778,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="groupMailboxSmtpAddress">The smtpaddress of group for which unseendata is desired</param>
         /// <param name="lastVisitedTimeUtc">The LastVisitedTimeUtc of group for which unseendata is desired</param>
-        public void SetUnifiedGroupLastVisitedTime(string groupMailboxSmtpAddress, DateTime lastVisitedTimeUtc)
+        public System.Threading.Tasks.Task SetUnifiedGroupLastVisitedTime(string groupMailboxSmtpAddress, DateTime lastVisitedTimeUtc)
         {
             EwsUtilities.ValidateParam(groupMailboxSmtpAddress, "groupMailboxSmtpAddress");
 
             SetUnifiedGroupLastVisitedTimeRequest request = new SetUnifiedGroupLastVisitedTimeRequest(this, lastVisitedTimeUtc, UnifiedGroupIdentityType.SmtpAddress, groupMailboxSmtpAddress);
 
-            request.Execute();
+            return request.Execute();
         }
 
         #endregion

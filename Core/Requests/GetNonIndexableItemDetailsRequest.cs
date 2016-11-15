@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetNonIndexableItemDetailsRequest request.
@@ -131,9 +132,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetNonIndexableItemDetailsResponse Execute()
+        internal async Task<GetNonIndexableItemDetailsResponse> Execute()
         {
-            GetNonIndexableItemDetailsResponse serviceResponse = (GetNonIndexableItemDetailsResponse)this.InternalExecute();
+            GetNonIndexableItemDetailsResponse serviceResponse = (GetNonIndexableItemDetailsResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             return serviceResponse;
         }
 

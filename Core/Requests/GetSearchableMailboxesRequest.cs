@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetSearchableMailboxesRequest request.
@@ -96,9 +97,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetSearchableMailboxesResponse Execute()
+        internal async Task<GetSearchableMailboxesResponse> Execute()
         {
-            GetSearchableMailboxesResponse serviceResponse = (GetSearchableMailboxesResponse)this.InternalExecute();
+            GetSearchableMailboxesResponse serviceResponse = (GetSearchableMailboxesResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             return serviceResponse;
         }
 

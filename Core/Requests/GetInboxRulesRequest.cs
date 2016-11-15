@@ -23,6 +23,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+using System.Threading.Tasks;
+
 namespace Microsoft.Exchange.WebServices.Data
 {
     /// <summary>
@@ -111,9 +113,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetInboxRulesResponse Execute()
+        internal async Task<GetInboxRulesResponse> Execute()
         {
-            GetInboxRulesResponse serviceResponse = (GetInboxRulesResponse)this.InternalExecute();
+            GetInboxRulesResponse serviceResponse = (GetInboxRulesResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

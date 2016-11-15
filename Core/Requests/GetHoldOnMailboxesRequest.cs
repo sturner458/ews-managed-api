@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetHoldOnMailboxesRequest request.
@@ -108,9 +109,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetHoldOnMailboxesResponse Execute()
+        internal async Task<GetHoldOnMailboxesResponse> Execute()
         {
-            GetHoldOnMailboxesResponse serviceResponse = (GetHoldOnMailboxesResponse)this.InternalExecute();
+            GetHoldOnMailboxesResponse serviceResponse = (GetHoldOnMailboxesResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             return serviceResponse;
         }
 

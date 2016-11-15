@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetClientExtension request.
@@ -198,9 +199,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetClientExtensionResponse Execute()
+        internal async Task<GetClientExtensionResponse> Execute()
         {
-            GetClientExtensionResponse serviceResponse = (GetClientExtensionResponse)this.InternalExecute();
+            GetClientExtensionResponse serviceResponse = (GetClientExtensionResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

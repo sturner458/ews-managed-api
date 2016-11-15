@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetRoomList request.
@@ -95,9 +96,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetRoomListsResponse Execute()
+        internal async Task<GetRoomListsResponse> Execute()
         {
-            GetRoomListsResponse serviceResponse = (GetRoomListsResponse)this.InternalExecute();
+            GetRoomListsResponse serviceResponse = (GetRoomListsResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

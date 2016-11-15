@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Net;
     using Microsoft.Exchange.WebServices.Data;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a request of a get user photo operation
@@ -182,17 +183,17 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetUserPhotoResponse Execute()
+        internal Task<GetUserPhotoResponse> Execute()
         {
-            return GetUserPhotoRequest.GetResultOrDefault(this.InternalExecute);
+            return GetUserPhotoRequest.GetResultOrDefault(this.InternalExecuteAsync);
         }
 
                 /// <summary>
-        private static GetUserPhotoResponse GetResultOrDefault(Func<object> serviceResponseFactory)
+        private static async Task<GetUserPhotoResponse> GetResultOrDefault(Func<Task<object>> serviceResponseFactory)
         {
             try
             {
-                return (GetUserPhotoResponse)serviceResponseFactory();
+                return (GetUserPhotoResponse)await serviceResponseFactory().ConfigureAwait(false);
             }
             catch (ServiceRequestException ex)
             {

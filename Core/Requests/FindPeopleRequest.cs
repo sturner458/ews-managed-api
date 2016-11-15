@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a request of a find persona operation
@@ -223,9 +224,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal FindPeopleResponse Execute()
+        internal async Task<FindPeopleResponse> Execute()
         {
-            FindPeopleResponse serviceResponse = (FindPeopleResponse)this.InternalExecute();
+            FindPeopleResponse serviceResponse = (FindPeopleResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

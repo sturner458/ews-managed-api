@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a UpdateInboxRulesRequest request.
@@ -151,9 +152,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal UpdateInboxRulesResponse Execute()
+        internal async Task<UpdateInboxRulesResponse> Execute()
         {
-            UpdateInboxRulesResponse serviceResponse = (UpdateInboxRulesResponse)this.InternalExecute();
+            UpdateInboxRulesResponse serviceResponse = (UpdateInboxRulesResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             if (serviceResponse.Result == ServiceResult.Error)
             {
                 throw new UpdateInboxRulesException(serviceResponse, this.inboxRuleOperations.GetEnumerator());

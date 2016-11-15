@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a PlayOnPhone request.
@@ -99,9 +100,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal PlayOnPhoneResponse Execute()
+        internal async Task<PlayOnPhoneResponse> Execute()
         {
-            PlayOnPhoneResponse serviceResponse = (PlayOnPhoneResponse)this.InternalExecute();
+            PlayOnPhoneResponse serviceResponse = (PlayOnPhoneResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

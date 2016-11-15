@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetPhoneCall request.
@@ -97,9 +98,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetPhoneCallResponse Execute()
+        internal async Task<GetPhoneCallResponse> Execute()
         {
-            GetPhoneCallResponse serviceResponse = (GetPhoneCallResponse)this.InternalExecute();
+            GetPhoneCallResponse serviceResponse = (GetPhoneCallResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

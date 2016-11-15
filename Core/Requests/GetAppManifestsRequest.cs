@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetAppManifests request.
@@ -135,9 +136,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetAppManifestsResponse Execute()
+        internal async Task<GetAppManifestsResponse> Execute()
         {
-            GetAppManifestsResponse serviceResponse = (GetAppManifestsResponse)this.InternalExecute();
+            GetAppManifestsResponse serviceResponse = (GetAppManifestsResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

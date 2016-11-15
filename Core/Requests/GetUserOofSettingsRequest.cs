@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a GetUserOofSettings request.
@@ -123,9 +124,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal GetUserOofSettingsResponse Execute()
+        internal async Task<GetUserOofSettingsResponse> Execute()
         {
-            GetUserOofSettingsResponse serviceResponse = (GetUserOofSettingsResponse)this.InternalExecute();
+            GetUserOofSettingsResponse serviceResponse = (GetUserOofSettingsResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
 
             serviceResponse.ThrowIfNecessary();
 

@@ -50,16 +50,6 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal object InternalExecute()
-        {
-            var tuple = this.ValidateAndEmitRequest().Result;
-            return this.ReadResponse(tuple.Item2);
-        }
-
-        /// <summary>
-        /// Executes this request.
-        /// </summary>
-        /// <returns>Service response.</returns>
         internal async Task<object> InternalExecuteAsync()
         {
             var tuple = await this.ValidateAndEmitRequest().ConfigureAwait(false);

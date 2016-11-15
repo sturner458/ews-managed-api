@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data.Groups
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a request to the SetUnifiedGroupLastVisitedTimeRequest operation.
@@ -124,9 +125,9 @@ namespace Microsoft.Exchange.WebServices.Data.Groups
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal ServiceResponse Execute()
+        internal async Task<ServiceResponse> Execute()
         {
-            return (ServiceResponse)this.InternalExecute();
+            return (ServiceResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
         }
     }
 }
