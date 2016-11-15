@@ -100,11 +100,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="parentFolderId">The parent folder id.</param>
         /// <param name="messageDisposition">The message disposition.</param>
-        internal void InternalCreate(FolderId parentFolderId, MessageDisposition? messageDisposition)
+        internal System.Threading.Tasks.Task InternalCreate(FolderId parentFolderId, MessageDisposition? messageDisposition)
         {
             ((ItemId)this.PropertyBag[ResponseObjectSchema.ReferenceItemId]).Assign(this.referenceItem.Id);
 
-            this.Service.InternalCreateResponseObject(
+            return this.Service.InternalCreateResponseObject(
                 this,
                 parentFolderId,
                 messageDisposition);

@@ -26,6 +26,7 @@
 namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a Persona. Properties available on Personas are defined in the PersonaSchema class.
@@ -73,7 +74,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the Persona to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A Persona instance representing the Persona corresponding to the specified Id.</returns>
-        public static new Persona Bind(
+        public static new Task<Persona> Bind(
             ExchangeService service,
             ItemId id,
             PropertySet propertySet)
@@ -88,7 +89,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the Persona.</param>
         /// <param name="id">The Id of the Persona to bind to.</param>
         /// <returns>A Persona instance representing the Persona corresponding to the specified Id.</returns>
-        public static new Persona Bind(ExchangeService service, ItemId id)
+        public static new Task<Persona> Bind(ExchangeService service, ItemId id)
         {
             return Persona.Bind(
                 service,

@@ -26,6 +26,7 @@
 namespace Microsoft.Exchange.WebServices.Data
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents an e-mail message. Properties available on e-mail messages are defined in the EmailMessageSchema class.
@@ -60,7 +61,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the e-mail message to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>An EmailMessage instance representing the e-mail message corresponding to the specified Id.</returns>
-        public static new EmailMessage Bind(
+        public static new Task<EmailMessage> Bind(
             ExchangeService service,
             ItemId id,
             PropertySet propertySet)
@@ -75,7 +76,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the e-mail message.</param>
         /// <param name="id">The Id of the e-mail message to bind to.</param>
         /// <returns>An EmailMessage instance representing the e-mail message corresponding to the specified Id.</returns>
-        public static new EmailMessage Bind(ExchangeService service, ItemId id)
+        public static new Task<EmailMessage> Bind(ExchangeService service, ItemId id)
         {
             return EmailMessage.Bind(
                 service,
@@ -106,7 +107,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="parentFolderId">The parent folder id.</param>
         /// <param name="messageDisposition">The message disposition.</param>
-        private void InternalSend(FolderId parentFolderId, MessageDisposition messageDisposition)
+        private async System.Threading.Tasks.Task InternalSend(FolderId parentFolderId, MessageDisposition messageDisposition)
         {
             this.ThrowIfThisIsAttachment();
 
@@ -114,7 +115,7 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 if ((this.Attachments.Count == 0) || (messageDisposition == MessageDisposition.SaveOnly))
                 {
-                    this.InternalCreate(
+                    await this.InternalCreate(
                         parentFolderId,
                         messageDisposition,
                         null);
@@ -122,12 +123,12 @@ namespace Microsoft.Exchange.WebServices.Data
                 else
                 {
                     // If the message has attachments, save as a draft (and add attachments) before sending.
-                    this.InternalCreate(
+                    await this.InternalCreate(
                         null,                           // null means use the Drafts folder in the mailbox of the authenticated user.
                         MessageDisposition.SaveOnly,
                         null);
 
-                    this.Service.SendItem(this, parentFolderId);
+                    await this.Service.SendItem(this, parentFolderId);
                 }
             }
             else
@@ -139,12 +140,12 @@ namespace Microsoft.Exchange.WebServices.Data
                 if (this.HasUnprocessedAttachmentChanges())
                 {
                     this.Attachments.Validate();
-                    this.Attachments.Save();
+                    await this.Attachments.Save();
                 }
 
                 if (this.PropertyBag.GetIsUpdateCallNecessary())
                 {
-                    this.InternalUpdate(
+                    await this.InternalUpdate(
                         parentFolderId,
                         ConflictResolutionMode.AutoResolve,
                         messageDisposition,
@@ -152,7 +153,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 }
                 else
                 {
-                    this.Service.SendItem(this, parentFolderId);
+                    await this.Service.SendItem(this, parentFolderId);
                 }
             }
         }
@@ -224,9 +225,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Sends this e-mail message. Calling this method results in at least one call to EWS.
         /// </summary>
-        public void Send()
+        public System.Threading.Tasks.Task Send()
         {
-            this.InternalSend(null, MessageDisposition.SendOnly);
+            return this.InternalSend(null, MessageDisposition.SendOnly);
         }
 
         /// <summary>
@@ -235,11 +236,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// results in a call to EWS.
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to save the copy.</param>
-        public void SendAndSaveCopy(FolderId destinationFolderId)
+        public System.Threading.Tasks.Task SendAndSaveCopy(FolderId destinationFolderId)
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            this.InternalSend(destinationFolderId, MessageDisposition.SendAndSaveCopy);
+            return this.InternalSend(destinationFolderId, MessageDisposition.SendAndSaveCopy);
         }
 
         /// <summary>
@@ -248,9 +249,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// results in a call to EWS.
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to save the copy.</param>
-        public void SendAndSaveCopy(WellKnownFolderName destinationFolderName)
+        public System.Threading.Tasks.Task SendAndSaveCopy(WellKnownFolderName destinationFolderName)
         {
-            this.InternalSend(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy);
+            return this.InternalSend(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy);
         }
 
         /// <summary>
@@ -258,9 +259,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// message has unsaved attachments. In that case, the message must first be saved and then sent. Calling this method
         /// results in a call to EWS.
         /// </summary>
-        public void SendAndSaveCopy()
+        public System.Threading.Tasks.Task SendAndSaveCopy()
         {
-            this.InternalSend(new FolderId(WellKnownFolderName.SentItems), MessageDisposition.SendAndSaveCopy);
+            return this.InternalSend(new FolderId(WellKnownFolderName.SentItems), MessageDisposition.SendAndSaveCopy);
         }
 
         /// <summary>

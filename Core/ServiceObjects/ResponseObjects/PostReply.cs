@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a reply to a post item.
@@ -78,11 +79,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The parent folder id.</param>
         /// <param name="messageDisposition">The message disposition.</param>
         /// <returns>Created PostItem.</returns>
-        internal PostItem InternalCreate(FolderId parentFolderId, MessageDisposition? messageDisposition)
+        internal async Task<PostItem> InternalCreate(FolderId parentFolderId, MessageDisposition? messageDisposition)
         {
             ((ItemId)this.PropertyBag[ResponseObjectSchema.ReferenceItemId]).Assign(this.referenceItem.Id);
 
-            List<Item> items = this.Service.InternalCreateResponseObject(
+            List<Item> items = await this.Service.InternalCreateResponseObject(
                 this,
                 parentFolderId,
                 messageDisposition);
@@ -125,9 +126,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Saves the post reply in the same folder as the original post item. Calling this method results in a call to EWS.
         /// </summary>
         /// <returns>A PostItem representing the posted reply.</returns>
-        public PostItem Save()
+        public async Task<PostItem> Save()
         {
-            return (PostItem)this.InternalCreate(null, null);
+            return (PostItem)await this.InternalCreate(null, null).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -135,11 +136,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to save the post reply.</param>
         /// <returns>A PostItem representing the posted reply.</returns>
-        public PostItem Save(FolderId destinationFolderId)
+        public async Task<PostItem> Save(FolderId destinationFolderId)
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return (PostItem)this.InternalCreate(destinationFolderId, null);
+            return (PostItem)await this.InternalCreate(destinationFolderId, null).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -147,9 +148,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to save the post reply.</param>
         /// <returns>A PostItem representing the posted reply.</returns>
-        public PostItem Save(WellKnownFolderName destinationFolderName)
+        public async Task<PostItem> Save(WellKnownFolderName destinationFolderName)
         {
-            return (PostItem)this.InternalCreate(new FolderId(destinationFolderName), null);
+            return (PostItem)await this.InternalCreate(new FolderId(destinationFolderName), null).ConfigureAwait(false);
         }
 
         #region Properties

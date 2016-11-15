@@ -23,6 +23,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+using System.Threading.Tasks;
+
 namespace Microsoft.Exchange.WebServices.Data
 {
     /// <summary>
@@ -101,7 +103,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the contact group to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A ContactGroup instance representing the contact group corresponding to the specified Id.</returns>
-        public static new ContactGroup Bind(
+        public static new Task<ContactGroup> Bind(
             ExchangeService service,
             ItemId id,
             PropertySet propertySet)
@@ -116,7 +118,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the contact group.</param>
         /// <param name="id">The Id of the contact group to bind to.</param>
         /// <returns>A ContactGroup instance representing the contact group corresponding to the specified Id.</returns>
-        public static new ContactGroup Bind(ExchangeService service, ItemId id)
+        public static new Task<ContactGroup> Bind(ExchangeService service, ItemId id)
         {
             return ContactGroup.Bind(
                 service,

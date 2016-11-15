@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a meeting cancellation message. Properties available on meeting messages are defined in the MeetingMessageSchema class.
@@ -61,7 +62,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the meeting cancellation message to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A MeetingCancellation instance representing the meeting cancellation message corresponding to the specified Id.</returns>
-        public static new MeetingCancellation Bind(
+        public static new Task<MeetingCancellation> Bind(
             ExchangeService service,
             ItemId id, 
             PropertySet propertySet)
@@ -76,7 +77,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the meeting cancellation message.</param>
         /// <param name="id">The Id of the meeting cancellation message to bind to.</param>
         /// <returns>A MeetingCancellation instance representing the meeting cancellation message corresponding to the specified Id.</returns>
-        public static new MeetingCancellation Bind(ExchangeService service, ItemId id)
+        public static new Task<MeetingCancellation> Bind(ExchangeService service, ItemId id)
         {
             return MeetingCancellation.Bind(
                 service,
@@ -100,9 +101,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public CalendarActionResults RemoveMeetingFromCalendar()
+        public async Task<CalendarActionResults> RemoveMeetingFromCalendar()
         {
-            return new CalendarActionResults(new RemoveFromCalendar(this).InternalCreate(null, null));
+            return new CalendarActionResults(await new RemoveFromCalendar(this).InternalCreate(null, null).ConfigureAwait(false));
         }
 
         /// <summary>

@@ -149,12 +149,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="processSynchronously">Indicates whether the method should return only once enabling this rule and stamping existing items 
         /// in the conversation is completely done. If processSynchronously is false, the method returns immediately.
         /// </param>
-        public void EnableAlwaysCategorizeItems(IEnumerable<string> categories, bool processSynchronously)
+        public async System.Threading.Tasks.Task EnableAlwaysCategorizeItems(IEnumerable<string> categories, bool processSynchronously)
         {
-            this.Service.EnableAlwaysCategorizeItemsInConversations(
+            (await this.Service.EnableAlwaysCategorizeItemsInConversations(
                     new ConversationId[] { this.Id },
                     categories,
-                    processSynchronously)[0].ThrowIfNecessary();
+                    processSynchronously).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -164,11 +164,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="processSynchronously">Indicates whether the method should return only once disabling this rule and removing the categories from existing items 
         /// in the conversation is completely done. If processSynchronously is false, the method returns immediately.
         /// </param>
-        public void DisableAlwaysCategorizeItems(bool processSynchronously)
+        public async System.Threading.Tasks.Task DisableAlwaysCategorizeItems(bool processSynchronously)
         {
-            this.Service.DisableAlwaysCategorizeItemsInConversations(
+            (await this.Service.DisableAlwaysCategorizeItemsInConversations(
                 new ConversationId[] { this.Id },
-                processSynchronously)[0].ThrowIfNecessary();
+                processSynchronously).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -178,11 +178,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="processSynchronously">Indicates whether the method should return only once enabling this rule and deleting existing items 
         /// in the conversation is completely done. If processSynchronously is false, the method returns immediately.
         /// </param>
-        public void EnableAlwaysDeleteItems(bool processSynchronously)
+        public async System.Threading.Tasks.Task EnableAlwaysDeleteItems(bool processSynchronously)
         {
-            this.Service.EnableAlwaysDeleteItemsInConversations(
+            (await this.Service.EnableAlwaysDeleteItemsInConversations(
                 new ConversationId[] { this.Id },
-                processSynchronously)[0].ThrowIfNecessary();
+                processSynchronously).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -192,11 +192,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="processSynchronously">Indicates whether the method should return only once disabling this rule and restoring the items 
         /// in the conversation is completely done. If processSynchronously is false, the method returns immediately.
         /// </param>
-        public void DisableAlwaysDeleteItems(bool processSynchronously)
+        public async System.Threading.Tasks.Task DisableAlwaysDeleteItems(bool processSynchronously)
         {
-            this.Service.DisableAlwaysDeleteItemsInConversations(
+            (await this.Service.DisableAlwaysDeleteItemsInConversations(
                 new ConversationId[] { this.Id },
-                processSynchronously)[0].ThrowIfNecessary();
+                processSynchronously).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -208,12 +208,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// and moving existing items in the conversation is completely done. If processSynchronously is false, the method
         /// returns immediately.
         /// </param>
-        public void EnableAlwaysMoveItems(FolderId destinationFolderId, bool processSynchronously)
+        public async System.Threading.Tasks.Task EnableAlwaysMoveItems(FolderId destinationFolderId, bool processSynchronously)
         {
-            this.Service.EnableAlwaysMoveItemsInConversations(
+            (await this.Service.EnableAlwaysMoveItemsInConversations(
                         new ConversationId[] { this.Id },
                         destinationFolderId,
-                        processSynchronously)[0].ThrowIfNecessary();
+                        processSynchronously).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -223,11 +223,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="processSynchronously">Indicates whether the method should return only once disabling this
         /// rule is completely done. If processSynchronously is false, the method returns immediately.
         /// </param>
-        public void DisableAlwaysMoveItemsInConversation(bool processSynchronously)
+        public async System.Threading.Tasks.Task DisableAlwaysMoveItemsInConversation(bool processSynchronously)
         {
-            this.Service.DisableAlwaysMoveItemsInConversations(
+            (await this.Service.DisableAlwaysMoveItemsInConversations(
                 new ConversationId[] { this.Id },
-                processSynchronously)[0].ThrowIfNecessary();
+                processSynchronously).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -237,11 +237,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="contextFolderId">The Id of the folder items must belong to in order to be deleted. If contextFolderId is
         /// null, items across the entire mailbox are deleted.</param>
         /// <param name="deleteMode">The deletion mode.</param>
-        public void DeleteItems(
+        public async System.Threading.Tasks.Task DeleteItems(
             FolderId contextFolderId,
             DeleteMode deleteMode)
         {
-            this.Service.DeleteItemsInConversations(
+            (await this.Service.DeleteItemsInConversations(
                 new KeyValuePair<ConversationId, DateTime?>[]
                 {
                     new KeyValuePair<ConversationId, DateTime?>(
@@ -249,7 +249,7 @@ namespace Microsoft.Exchange.WebServices.Data
                         this.GlobalLastDeliveryTime)
                 },
                 contextFolderId,
-                deleteMode)[0].ThrowIfNecessary();
+                deleteMode).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -259,11 +259,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="contextFolderId">The Id of the folder items must belong to in order to be moved. If contextFolderId is null,
         /// items across the entire mailbox are moved.</param>
         /// <param name="destinationFolderId">The Id of the destination folder.</param>
-        public void MoveItemsInConversation(
+        public async System.Threading.Tasks.Task MoveItemsInConversation(
             FolderId contextFolderId,
             FolderId destinationFolderId)
         {
-            this.Service.MoveItemsInConversations(
+            (await this.Service.MoveItemsInConversations(
                 new KeyValuePair<ConversationId, DateTime?>[]
                 {
                     new KeyValuePair<ConversationId, DateTime?>(
@@ -271,7 +271,7 @@ namespace Microsoft.Exchange.WebServices.Data
                         this.GlobalLastDeliveryTime)
                 },
                 contextFolderId,
-                destinationFolderId)[0].ThrowIfNecessary();
+                destinationFolderId).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -280,11 +280,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="contextFolderId">The Id of the folder items must belong to in order to be copied. If contextFolderId
         /// is null, items across the entire mailbox are copied.</param>
         /// <param name="destinationFolderId">The Id of the destination folder.</param>
-        public void CopyItemsInConversation(
+        public async System.Threading.Tasks.Task CopyItemsInConversation(
             FolderId contextFolderId,
             FolderId destinationFolderId)
         {
-            this.Service.CopyItemsInConversations(
+            (await this.Service.CopyItemsInConversations(
                 new KeyValuePair<ConversationId, DateTime?>[]
                 {
                     new KeyValuePair<ConversationId, DateTime?>(
@@ -292,7 +292,7 @@ namespace Microsoft.Exchange.WebServices.Data
                         this.GlobalLastDeliveryTime)
                 },
                 contextFolderId,
-                destinationFolderId)[0].ThrowIfNecessary();
+                destinationFolderId).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -302,11 +302,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// be set. If contextFolderId is null, the read states of items across the entire mailbox are set.</param>
         /// <param name="isRead">if set to <c>true</c>, conversation items are marked as read; otherwise they are
         /// marked as unread.</param>
-        public void SetReadStateForItemsInConversation(
+        public async System.Threading.Tasks.Task SetReadStateForItemsInConversation(
             FolderId contextFolderId,
             bool isRead)
         {
-            this.Service.SetReadStateForItemsInConversations(
+            (await this.Service.SetReadStateForItemsInConversations(
                 new KeyValuePair<ConversationId, DateTime?>[]
                 {
                     new KeyValuePair<ConversationId, DateTime?>(
@@ -314,7 +314,7 @@ namespace Microsoft.Exchange.WebServices.Data
                         this.GlobalLastDeliveryTime)
                 },
                 contextFolderId,
-                isRead)[0].ThrowIfNecessary();
+                isRead).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -325,12 +325,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="isRead">if set to <c>true</c>, conversation items are marked as read; otherwise they are
         /// marked as unread.</param>
         /// <param name="suppressReadReceipts">if set to <c>true</c> read receipts are suppressed.</param>
-        public void SetReadStateForItemsInConversation(
+        public async System.Threading.Tasks.Task SetReadStateForItemsInConversation(
             FolderId contextFolderId,
             bool isRead,
             bool suppressReadReceipts)
         {
-            this.Service.SetReadStateForItemsInConversations(
+            (await this.Service.SetReadStateForItemsInConversations(
                 new KeyValuePair<ConversationId, DateTime?>[]
                 {
                     new KeyValuePair<ConversationId, DateTime?>(
@@ -339,7 +339,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 },
                 contextFolderId,
                 isRead,
-                suppressReadReceipts)[0].ThrowIfNecessary();
+                suppressReadReceipts).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -349,12 +349,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// be set. If contextFolderId is null, the retention policy of items across the entire mailbox are set.</param>
         /// <param name="retentionPolicyType">Retention policy type.</param>
         /// <param name="retentionPolicyTagId">Retention policy tag id.  Null will clear the policy.</param>
-        public void SetRetentionPolicyForItemsInConversation(
+        public async System.Threading.Tasks.Task SetRetentionPolicyForItemsInConversation(
             FolderId contextFolderId,
             RetentionType retentionPolicyType,
             Guid? retentionPolicyTagId)
         {
-            this.Service.SetRetentionPolicyForItemsInConversations(
+            (await this.Service.SetRetentionPolicyForItemsInConversations(
                 new KeyValuePair<ConversationId, DateTime?>[]
                 {
                     new KeyValuePair<ConversationId, DateTime?>(
@@ -363,7 +363,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 },
                 contextFolderId,
                 retentionPolicyType,
-                retentionPolicyTagId)[0].ThrowIfNecessary();
+                retentionPolicyTagId).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -372,7 +372,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="contextFolderId">The Id of the folder items must belong to in order to be flagged as complete. If contextFolderId is
         /// null, items in conversation across the entire mailbox are marked as complete.</param>
         /// <param name="completeDate">The complete date (can be null).</param>
-        public void FlagItemsComplete(
+        public async System.Threading.Tasks.Task FlagItemsComplete(
             FolderId contextFolderId,
             DateTime? completeDate)
         {
@@ -382,7 +382,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 flag.CompleteDate = completeDate.Value;
             }
 
-            this.Service.SetFlagStatusForItemsInConversations(
+            (await this.Service.SetFlagStatusForItemsInConversations(
                 new KeyValuePair<ConversationId, DateTime?>[]
                 {
                     new KeyValuePair<ConversationId, DateTime?>(
@@ -390,7 +390,7 @@ namespace Microsoft.Exchange.WebServices.Data
                         this.GlobalLastDeliveryTime)
                 },
                 contextFolderId,
-                flag)[0].ThrowIfNecessary();
+                flag).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -398,11 +398,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="contextFolderId">The Id of the folder items must belong to in order to be unflagged. If contextFolderId is
         /// null, flags for items in conversation across the entire mailbox are cleared.</param>
-        public void ClearItemFlags(FolderId contextFolderId)
+        public async System.Threading.Tasks.Task ClearItemFlags(FolderId contextFolderId)
         {
             Flag flag = new Flag() { FlagStatus = ItemFlagStatus.NotFlagged };
 
-            this.Service.SetFlagStatusForItemsInConversations(
+            (await this.Service.SetFlagStatusForItemsInConversations(
                 new KeyValuePair<ConversationId, DateTime?>[]
                 {
                     new KeyValuePair<ConversationId, DateTime?>(
@@ -410,7 +410,7 @@ namespace Microsoft.Exchange.WebServices.Data
                         this.GlobalLastDeliveryTime)
                 },
                 contextFolderId,
-                flag)[0].ThrowIfNecessary();
+                flag).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
 
         /// <summary>
@@ -420,7 +420,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// null, items in conversation across the entire mailbox are flagged.</param>
         /// <param name="startDate">The start date (can be null).</param>
         /// <param name="dueDate">The due date (can be null).</param>
-        public void FlagItems(
+        public async System.Threading.Tasks.Task FlagItems(
             FolderId contextFolderId,
             DateTime? startDate,
             DateTime? dueDate)
@@ -435,7 +435,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 flag.DueDate = dueDate.Value;
             }
 
-            this.Service.SetFlagStatusForItemsInConversations(
+            (await this.Service.SetFlagStatusForItemsInConversations(
                 new KeyValuePair<ConversationId, DateTime?>[]
                 {
                     new KeyValuePair<ConversationId, DateTime?>(
@@ -443,7 +443,7 @@ namespace Microsoft.Exchange.WebServices.Data
                         this.GlobalLastDeliveryTime)
                 },
                 contextFolderId,
-                flag)[0].ThrowIfNecessary();
+                flag).ConfigureAwait(false))[0].ThrowIfNecessary();
         }
         #endregion
 

@@ -128,15 +128,6 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response collection.</returns>
-        internal ServiceResponseCollection<TResponse> Execute()
-        {
-            return ExecuteAsync().Result;
-        }
-
-        /// <summary>
-        /// Executes this request.
-        /// </summary>
-        /// <returns>Service response collection.</returns>
         internal async Task<ServiceResponseCollection<TResponse>> ExecuteAsync()
         {
             ServiceResponseCollection<TResponse> serviceResponses = (ServiceResponseCollection<TResponse>)await this.InternalExecuteAsync().ConfigureAwait(false);

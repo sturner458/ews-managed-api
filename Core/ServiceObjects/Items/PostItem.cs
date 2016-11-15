@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a post item. Properties available on post items are defined in the PostItemSchema class.
@@ -62,7 +63,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the post item to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>An PostItem instance representing the post item corresponding to the specified Id.</returns>
-        public static new PostItem Bind(
+        public static new Task<PostItem> Bind(
             ExchangeService service,
             ItemId id,
             PropertySet propertySet)
@@ -77,7 +78,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the post item.</param>
         /// <param name="id">The Id of the post item to bind to.</param>
         /// <returns>An PostItem instance representing the post item corresponding to the specified Id.</returns>
-        public static new PostItem Bind(ExchangeService service, ItemId id)
+        public static new Task<PostItem> Bind(ExchangeService service, ItemId id)
         {
             return PostItem.Bind(
                 service,
@@ -118,13 +119,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Posts a reply to this post item. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="bodyPrefix">Body prefix.</param>
-        public void PostReply(MessageBody bodyPrefix)
+        public System.Threading.Tasks.Task PostReply(MessageBody bodyPrefix)
         {
             PostReply postReply = this.CreatePostReply();
 
             postReply.BodyPrefix = bodyPrefix;
 
-            postReply.Save();
+            return postReply.Save();
         }
 
         /// <summary>

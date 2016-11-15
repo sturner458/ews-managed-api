@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents the base class for all calendar-related response messages.
@@ -55,11 +56,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new CalendarActionResults Save(FolderId destinationFolderId)
+        public new async Task<CalendarActionResults> Save(FolderId destinationFolderId)
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return new CalendarActionResults(this.InternalCreate(destinationFolderId, MessageDisposition.SaveOnly));
+            return new CalendarActionResults(await this.InternalCreate(destinationFolderId, MessageDisposition.SaveOnly).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -70,9 +71,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new CalendarActionResults Save(WellKnownFolderName destinationFolderName)
+        public new async Task<CalendarActionResults> Save(WellKnownFolderName destinationFolderName)
         {
-            return new CalendarActionResults(this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SaveOnly));
+            return new CalendarActionResults(await this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SaveOnly).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -82,9 +83,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new CalendarActionResults Save()
+        public new async Task<CalendarActionResults> Save()
         {
-            return new CalendarActionResults(this.InternalCreate(null, MessageDisposition.SaveOnly));
+            return new CalendarActionResults(await this.InternalCreate(null, MessageDisposition.SaveOnly).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -94,9 +95,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new CalendarActionResults Send()
+        public new async Task<CalendarActionResults> Send()
         {
-            return new CalendarActionResults(this.InternalCreate(null, MessageDisposition.SendOnly));
+            return new CalendarActionResults(await this.InternalCreate(null, MessageDisposition.SendOnly).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -107,11 +108,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new CalendarActionResults SendAndSaveCopy(FolderId destinationFolderId)
+        public new async Task<CalendarActionResults> SendAndSaveCopy(FolderId destinationFolderId)
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return new CalendarActionResults(this.InternalCreate(destinationFolderId, MessageDisposition.SendAndSaveCopy));
+            return new CalendarActionResults(await this.InternalCreate(destinationFolderId, MessageDisposition.SendAndSaveCopy).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -122,9 +123,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new CalendarActionResults SendAndSaveCopy(WellKnownFolderName destinationFolderName)
+        public new async Task<CalendarActionResults> SendAndSaveCopy(WellKnownFolderName destinationFolderName)
         {
-            return new CalendarActionResults(this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy));
+            return new CalendarActionResults(await this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -134,9 +135,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new CalendarActionResults SendAndSaveCopy()
+        public new async Task<CalendarActionResults> SendAndSaveCopy()
         {
-            return new CalendarActionResults(this.InternalCreate(null, MessageDisposition.SendAndSaveCopy));
+            return new CalendarActionResults(await this.InternalCreate(null, MessageDisposition.SendAndSaveCopy).ConfigureAwait(false));
         }
     }
 }

@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a meeting request that an attendee can accept or decline. Properties available on meeting requests are defined in the MeetingRequestSchema class.
@@ -61,7 +62,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the meeting request to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A MeetingRequest instance representing the meeting request corresponding to the specified Id.</returns>
-        public static new MeetingRequest Bind(
+        public static new Task<MeetingRequest> Bind(
             ExchangeService service,
             ItemId id,
             PropertySet propertySet)
@@ -76,7 +77,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the meeting request.</param>
         /// <param name="id">The Id of the meeting request to bind to.</param>
         /// <returns>A MeetingRequest instance representing the meeting request corresponding to the specified Id.</returns>
-        public static new MeetingRequest Bind(ExchangeService service, ItemId id)
+        public static new Task<MeetingRequest> Bind(ExchangeService service, ItemId id)
         {
             return MeetingRequest.Bind(
                 service,
@@ -129,7 +130,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public CalendarActionResults Accept(bool sendResponse)
+        public Task<CalendarActionResults> Accept(bool sendResponse)
         {
             return this.InternalAccept(false, sendResponse);
         }
@@ -142,7 +143,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public CalendarActionResults AcceptTentatively(bool sendResponse)
+        public Task<CalendarActionResults> AcceptTentatively(bool sendResponse)
         {
             return this.InternalAccept(true, sendResponse);
         }
@@ -156,7 +157,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        internal CalendarActionResults InternalAccept(bool tentative, bool sendResponse)
+        internal Task<CalendarActionResults> InternalAccept(bool tentative, bool sendResponse)
         {
             AcceptMeetingInvitationMessage accept = this.CreateAcceptMessage(tentative);
 
@@ -178,7 +179,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public CalendarActionResults Decline(bool sendResponse)
+        public Task<CalendarActionResults> Decline(bool sendResponse)
         {
             DeclineMeetingInvitationMessage decline = this.CreateDeclineMessage();
 

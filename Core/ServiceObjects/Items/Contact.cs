@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a contact. Properties available on contacts are defined in the ContactSchema class.
@@ -65,7 +66,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the contact to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A Contact instance representing the contact corresponding to the specified Id.</returns>
-        public static new Contact Bind(
+        public static new Task<Contact> Bind(
             ExchangeService service,
             ItemId id,
             PropertySet propertySet)
@@ -80,7 +81,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the contact.</param>
         /// <param name="id">The Id of the contact to bind to.</param>
         /// <returns>A Contact instance representing the contact corresponding to the specified Id.</returns>
-        public static new Contact Bind(ExchangeService service, ItemId id)
+        public static new Task<Contact> Bind(ExchangeService service, ItemId id)
         {
             return Contact.Bind(
                 service,

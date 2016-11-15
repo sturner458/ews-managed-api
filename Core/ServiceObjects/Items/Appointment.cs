@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents an appointment or a meeting. Properties available on appointments are defined in the AppointmentSchema class.
@@ -79,7 +80,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the appointment to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>An Appointment instance representing the appointment corresponding to the specified Id.</returns>
-        public static new Appointment Bind(
+        public static new Task<Appointment> Bind(
             ExchangeService service,
             ItemId id,
             PropertySet propertySet)
@@ -94,7 +95,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the appointment.</param>
         /// <param name="id">The Id of the appointment to bind to.</param>
         /// <returns>An Appointment instance representing the appointment corresponding to the specified Id.</returns>
-        public static new Appointment Bind(ExchangeService service, ItemId id)
+        public static new Task<Appointment> Bind(ExchangeService service, ItemId id)
         {
             return Appointment.Bind(
                 service,
@@ -110,7 +111,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="recurringMasterId">The Id of the recurring master that the index represents an occurrence of.</param>
         /// <param name="occurenceIndex">The index of the occurrence.</param>
         /// <returns>An Appointment instance representing the appointment occurence corresponding to the specified occurence index .</returns>
-        public static Appointment BindToOccurrence(
+        public static Task<Appointment> BindToOccurrence(
             ExchangeService service,
             ItemId recurringMasterId,
             int occurenceIndex)
@@ -131,7 +132,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="occurenceIndex">The index of the occurrence.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>An Appointment instance representing the appointment occurence corresponding to the specified occurence index.</returns>
-        public static Appointment BindToOccurrence(
+        public static Task<Appointment> BindToOccurrence(
             ExchangeService service,
             ItemId recurringMasterId,
             int occurenceIndex,
@@ -151,7 +152,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the appointment.</param>
         /// <param name="occurrenceId">The Id of one of the occurrences in the series.</param>
         /// <returns>An Appointment instance representing the master appointment of the recurring series to which the specified occurrence belongs.</returns>
-        public static Appointment BindToRecurringMaster(ExchangeService service, ItemId occurrenceId)
+        public static Task<Appointment> BindToRecurringMaster(ExchangeService service, ItemId occurrenceId)
         {
             return Appointment.BindToRecurringMaster(
                 service,
@@ -167,7 +168,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="occurrenceId">The Id of one of the occurrences in the series.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>An Appointment instance representing the master appointment of the recurring series to which the specified occurrence belongs.</returns>
-        public static Appointment BindToRecurringMaster(
+        public static Task<Appointment> BindToRecurringMaster(
             ExchangeService service,
             ItemId occurrenceId,
             PropertySet propertySet)
@@ -354,9 +355,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to save this appointment.</param>
         /// <param name="sendInvitationsMode">Specifies if and how invitations should be sent if this appointment is a meeting.</param>
-        public void Save(WellKnownFolderName destinationFolderName, SendInvitationsMode sendInvitationsMode)
+        public System.Threading.Tasks.Task Save(WellKnownFolderName destinationFolderName, SendInvitationsMode sendInvitationsMode)
         {
-            this.InternalCreate(
+            return this.InternalCreate(
                 new FolderId(destinationFolderName),
                 null,
                 sendInvitationsMode);
@@ -368,11 +369,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to save this appointment.</param>
         /// <param name="sendInvitationsMode">Specifies if and how invitations should be sent if this appointment is a meeting.</param>
-        public void Save(FolderId destinationFolderId, SendInvitationsMode sendInvitationsMode)
+        public System.Threading.Tasks.Task Save(FolderId destinationFolderId, SendInvitationsMode sendInvitationsMode)
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            this.InternalCreate(
+            return this.InternalCreate(
                 destinationFolderId,
                 null,
                 sendInvitationsMode);
@@ -383,9 +384,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Mutliple calls to EWS might be made if attachments have been added.
         /// </summary>
         /// <param name="sendInvitationsMode">Specifies if and how invitations should be sent if this appointment is a meeting.</param>
-        public void Save(SendInvitationsMode sendInvitationsMode)
+        public System.Threading.Tasks.Task Save(SendInvitationsMode sendInvitationsMode)
         {
-            this.InternalCreate(
+            return this.InternalCreate(
                 null,
                 null,
                 sendInvitationsMode);
@@ -457,7 +458,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public CalendarActionResults Accept(bool sendResponse)
+        public Task<CalendarActionResults> Accept(bool sendResponse)
         {
             return this.InternalAccept(false, sendResponse);
         }
@@ -470,7 +471,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public CalendarActionResults AcceptTentatively(bool sendResponse)
+        public Task<CalendarActionResults> AcceptTentatively(bool sendResponse)
         {
             return this.InternalAccept(true, sendResponse);
         }
@@ -484,7 +485,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        internal CalendarActionResults InternalAccept(bool tentative, bool sendResponse)
+        internal Task<CalendarActionResults> InternalAccept(bool tentative, bool sendResponse)
         {
             AcceptMeetingInvitationMessage accept = this.CreateAcceptMessage(tentative);
 
@@ -505,7 +506,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public CalendarActionResults CancelMeeting()
+        public Task<CalendarActionResults> CancelMeeting()
         {
             return this.CreateCancelMeetingMessage().SendAndSaveCopy();
         }
@@ -518,7 +519,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public CalendarActionResults CancelMeeting(string cancellationMessageText)
+        public Task<CalendarActionResults> CancelMeeting(string cancellationMessageText)
         {
             CancelMeetingMessage cancelMsg = this.CreateCancelMeetingMessage();
             cancelMsg.Body = cancellationMessageText;
@@ -533,7 +534,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public CalendarActionResults Decline(bool sendResponse)
+        public Task<CalendarActionResults> Decline(bool sendResponse)
         {
             DeclineMeetingInvitationMessage decline = this.CreateDeclineMessage();
 

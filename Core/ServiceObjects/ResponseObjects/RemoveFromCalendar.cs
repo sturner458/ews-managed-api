@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a response object created to remove a calendar item from a meeting cancellation.
@@ -101,7 +102,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The parent folder id.</param>
         /// <param name="messageDisposition">The message disposition.</param>
         /// <returns>A list of items that were created or modified as a results of this operation.</returns>
-        internal List<Item> InternalCreate(FolderId parentFolderId, MessageDisposition? messageDisposition)
+        internal Task<List<Item>> InternalCreate(FolderId parentFolderId, MessageDisposition? messageDisposition)
         {
             ((ItemId)this.PropertyBag[ResponseObjectSchema.ReferenceItemId]).Assign(this.referenceItem.Id);
 

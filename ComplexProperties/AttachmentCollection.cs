@@ -276,7 +276,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Saves this collection by creating new attachment and deleting removed ones.
         /// </summary>
-        internal void Save()
+        internal async System.Threading.Tasks.Task Save()
         {
             List<Attachment> attachments = new List<Attachment>();
 
@@ -292,7 +292,7 @@ namespace Microsoft.Exchange.WebServices.Data
             // If any, delete them by calling the DeleteAttachment web method.
             if (attachments.Count > 0)
             {
-                this.InternalDeleteAttachments(attachments);
+                await this.InternalDeleteAttachments(attachments);
             }
 
             attachments.Clear();
@@ -311,11 +311,11 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 if (this.owner.IsAttachment)
                 {
-                    this.InternalCreateAttachments(this.owner.ParentAttachment.Id, attachments);
+                    await this.InternalCreateAttachments(this.owner.ParentAttachment.Id, attachments);
                 }
                 else
                 {
-                    this.InternalCreateAttachments(this.owner.Id.UniqueId, attachments);
+                    await this.InternalCreateAttachments(this.owner.Id.UniqueId, attachments);
                 }
             }
 
@@ -329,7 +329,7 @@ namespace Microsoft.Exchange.WebServices.Data
                     if (itemAttachment.Item != null)
                     {
                         // Create/delete any sub-attachments
-                        itemAttachment.Item.Attachments.Save();
+                        await itemAttachment.Item.Attachments.Save();
 
                         // Clear the item's change log
                         itemAttachment.Item.ClearChangeLog();
@@ -434,9 +434,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Calls the DeleteAttachment web method to delete a list of attachments.
         /// </summary>
         /// <param name="attachments">The attachments to delete.</param>
-        private void InternalDeleteAttachments(IEnumerable<Attachment> attachments)
+        private async System.Threading.Tasks.Task InternalDeleteAttachments(IEnumerable<Attachment> attachments)
         {
-            ServiceResponseCollection<DeleteAttachmentResponse> responses = this.owner.Service.DeleteAttachments(attachments);
+            ServiceResponseCollection<DeleteAttachmentResponse> responses = await this.owner.Service.DeleteAttachments(attachments);
 
             foreach (DeleteAttachmentResponse response in responses)
             {
@@ -460,9 +460,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="parentItemId">The Id of the parent item of the new attachments.</param>
         /// <param name="attachments">The attachments to create.</param>
-        private void InternalCreateAttachments(string parentItemId, IEnumerable<Attachment> attachments)
+        private async System.Threading.Tasks.Task InternalCreateAttachments(string parentItemId, IEnumerable<Attachment> attachments)
         {
-            ServiceResponseCollection<CreateAttachmentResponse> responses = this.owner.Service.CreateAttachments(parentItemId, attachments);
+            ServiceResponseCollection<CreateAttachmentResponse> responses = await this.owner.Service.CreateAttachments(parentItemId, attachments);
 
             foreach (CreateAttachmentResponse response in responses)
             {

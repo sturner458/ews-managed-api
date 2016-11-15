@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.Globalization;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a Task item. Properties available on tasks are defined in the TaskSchema class.
@@ -63,7 +64,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the task to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A Task instance representing the task corresponding to the specified Id.</returns>
-        public static new Task Bind(
+        public static new Task<Task> Bind(
             ExchangeService service,
             ItemId id,
             PropertySet propertySet)
@@ -78,7 +79,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the task.</param>
         /// <param name="id">The Id of the task to bind to.</param>
         /// <returns>A Task instance representing the task corresponding to the specified Id.</returns>
-        public static new Task Bind(ExchangeService service, ItemId id)
+        public static new Task<Task> Bind(ExchangeService service, ItemId id)
         {
             return Task.Bind(
                 service,
@@ -141,9 +142,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// a Task object representing the current occurrence if the task is recurring and the uypdate changed its recurrence
         /// pattern; or null in every other case.
         /// </returns>
-        public new Task Update(ConflictResolutionMode conflictResolutionMode)
+        public new async Task<Task> Update(ConflictResolutionMode conflictResolutionMode)
         {
-            return (Task)this.InternalUpdate(
+            return (Task)await this.InternalUpdate(
                 null /* parentFolder */,
                 conflictResolutionMode,
                 MessageDisposition.SaveOnly,

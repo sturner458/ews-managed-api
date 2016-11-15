@@ -289,7 +289,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to copy this folder.</param>
         /// <returns>A Folder representing the copy of this folder.</returns>
-        public Folder Copy(FolderId destinationFolderId)
+        public Task<Folder> Copy(FolderId destinationFolderId)
         {
             this.ThrowIfThisIsNew();
 
@@ -303,7 +303,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to copy this folder.</param>
         /// <returns>A Folder representing the copy of this folder.</returns>
-        public Folder Copy(WellKnownFolderName destinationFolderName)
+        public Task<Folder> Copy(WellKnownFolderName destinationFolderName)
         {
             return this.Copy(new FolderId(destinationFolderName));
         }
@@ -313,7 +313,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to move this folder.</param>
         /// <returns>A new folder representing this folder in its new location. After Move completes, this folder does not exist anymore.</returns>
-        public Folder Move(FolderId destinationFolderId)
+        public Task<Folder> Move(FolderId destinationFolderId)
         {
             this.ThrowIfThisIsNew();
 
@@ -327,7 +327,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to move this folder.</param>
         /// <returns>A new folder representing this folder in its new location. After Move completes, this folder does not exist anymore.</returns>
-        public Folder Move(WellKnownFolderName destinationFolderName)
+        public Task<Folder> Move(WellKnownFolderName destinationFolderName)
         {
             return this.Move(new FolderId(destinationFolderName));
         }
@@ -477,7 +477,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="view">The view controlling the number of folders returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindFoldersResults FindFolders(FolderView view)
+        public Task<FindFoldersResults> FindFolders(FolderView view)
         {
             this.ThrowIfThisIsNew();
 
@@ -492,7 +492,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// SearchFilter.SearchFilterCollection</param>
         /// <param name="view">The view controlling the number of folders returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public FindFoldersResults FindFolders(SearchFilter searchFilter, FolderView view)
+        public Task<FindFoldersResults> FindFolders(SearchFilter searchFilter, FolderView view)
         {
             this.ThrowIfThisIsNew();
 

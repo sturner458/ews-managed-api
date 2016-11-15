@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading.Tasks;
     using System.Xml;
 
     /// <summary>
@@ -259,13 +260,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The Id of the folder containing the user configuration.</param>
         /// <param name="properties">The properties to load.</param>
         /// <returns>A user configuration instance.</returns>
-        public static UserConfiguration Bind(
+        public static async Task<UserConfiguration> Bind(
             ExchangeService service,
             string name,
             FolderId parentFolderId,
             UserConfigurationProperties properties)
         {
-            UserConfiguration result = service.GetUserConfiguration(
+            UserConfiguration result = await service.GetUserConfiguration(
                 name,
                 parentFolderId,
                 properties);
@@ -284,7 +285,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderName">The name of the folder containing the user configuration.</param>
         /// <param name="properties">The properties to load.</param>
         /// <returns>A user configuration instance.</returns>
-        public static UserConfiguration Bind(
+        public static Task<UserConfiguration> Bind(
             ExchangeService service,
             string name,
             WellKnownFolderName parentFolderName,

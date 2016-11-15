@@ -23,6 +23,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+using System.Threading.Tasks;
+
 namespace Microsoft.Exchange.WebServices.Data
 {
     /// <summary>
@@ -35,21 +37,21 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="sendResponse">Indicates whether to send a response to the organizer.</param>
         /// <returns>A CalendarActionResults object containing the various items that were created or modified as a result of this operation.</returns>
-        CalendarActionResults Accept(bool sendResponse);
+        Task<CalendarActionResults> Accept(bool sendResponse);
 
         /// <summary>
         /// Implements the AcceptTentatively method.
         /// </summary>
         /// <param name="sendResponse">Indicates whether to send a response to the organizer.</param>
         /// <returns>A CalendarActionResults object containing the various items that were created or modified as a result of this operation.</returns>
-        CalendarActionResults AcceptTentatively(bool sendResponse);
+        Task<CalendarActionResults> AcceptTentatively(bool sendResponse);
 
         /// <summary>
         /// Implements the Decline method.
         /// </summary>
         /// <param name="sendResponse">Indicates whether to send a response to the organizer.</param>
         /// <returns>A CalendarActionResults object containing the various items that were created or modified as a result of this operation.</returns>
-        CalendarActionResults Decline(bool sendResponse);
+        Task<CalendarActionResults> Decline(bool sendResponse);
 
         /// <summary>
         /// Implements the CreateAcceptMessage method.

@@ -26,6 +26,7 @@
 namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a pull subscription.
@@ -48,9 +49,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// in time defined by the Watermark property. When GetEvents succeeds, Watermark is updated.
         /// </summary>
         /// <returns>Returns a collection of events that occurred since the last watermark.</returns>
-        public GetEventsResults GetEvents()
+        public async Task<GetEventsResults> GetEvents()
         {
-            GetEventsResults results = this.Service.GetEvents(this.Id, this.Watermark);
+            GetEventsResults results = await this.Service.GetEvents(this.Id, this.Watermark);
 
             this.Watermark = results.NewWatermark;
             this.moreEventsAvailable = results.MoreEventsAvailable;

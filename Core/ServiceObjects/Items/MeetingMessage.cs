@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.ComponentModel;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a meeting-related message. Properties available on meeting messages are defined in the MeetingMessageSchema class.
@@ -61,7 +62,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the meeting message to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A MeetingMessage instance representing the meeting message corresponding to the specified Id.</returns>
-        public static new MeetingMessage Bind(
+        public static new Task<MeetingMessage> Bind(
             ExchangeService service,
             ItemId id,
             PropertySet propertySet)
@@ -76,7 +77,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the meeting message.</param>
         /// <param name="id">The Id of the meeting message to bind to.</param>
         /// <returns>A MeetingMessage instance representing the meeting message corresponding to the specified Id.</returns>
-        public static new MeetingMessage Bind(ExchangeService service, ItemId id)
+        public static new Task<MeetingMessage> Bind(ExchangeService service, ItemId id)
         {
             return MeetingMessage.Bind(
                 service,

@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents the base class for all responses that can be sent.
@@ -94,7 +95,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="destinationFolderId">The destination folder id.</param>
         /// <param name="messageDisposition">The message disposition.</param>
         /// <returns>The list of items returned by EWS.</returns>
-        internal List<Item> InternalCreate(FolderId destinationFolderId, MessageDisposition messageDisposition)
+        internal Task<List<Item>> InternalCreate(FolderId destinationFolderId, MessageDisposition messageDisposition)
         {
             ((ItemId)this.PropertyBag[ResponseObjectSchema.ReferenceItemId]).Assign(this.referenceItem.Id);
 
@@ -109,11 +110,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to save the response.</param>
         /// <returns>A TMessage that represents the response.</returns>
-        public TMessage Save(FolderId destinationFolderId)
+        public async Task<TMessage> Save(FolderId destinationFolderId)
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return this.InternalCreate(destinationFolderId, MessageDisposition.SaveOnly)[0] as TMessage;
+            return (await this.InternalCreate(destinationFolderId, MessageDisposition.SaveOnly).ConfigureAwait(false))[0] as TMessage;
         }
 
         /// <summary>
@@ -121,18 +122,18 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to save the response.</param>
         /// <returns>A TMessage that represents the response.</returns>
-        public TMessage Save(WellKnownFolderName destinationFolderName)
+        public async Task<TMessage> Save(WellKnownFolderName destinationFolderName)
         {
-            return this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SaveOnly)[0] as TMessage;
+            return (await this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SaveOnly).ConfigureAwait(false))[0] as TMessage;
         }
 
         /// <summary>
         /// Saves the response in the Drafts folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <returns>A TMessage that represents the response.</returns>
-        public TMessage Save()
+        public async Task<TMessage> Save()
         {
-            return this.InternalCreate(null, MessageDisposition.SaveOnly)[0] as TMessage;
+            return (await this.InternalCreate(null, MessageDisposition.SaveOnly).ConfigureAwait(false))[0] as TMessage;
         }
 
         /// <summary>

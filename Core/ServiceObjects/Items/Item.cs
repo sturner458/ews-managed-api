@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a generic item. Properties available on items are defined in the ItemSchema class.
@@ -70,7 +71,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id of the item to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>An Item instance representing the item corresponding to the specified Id.</returns>
-        public static Item Bind(
+        public static Task<Item> Bind(
             ExchangeService service,
             ItemId id,
             PropertySet propertySet)
@@ -85,7 +86,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the item.</param>
         /// <param name="id">The Id of the item to bind to.</param>
         /// <returns>An Item instance representing the item corresponding to the specified Id.</returns>
-        public static Item Bind(ExchangeService service, ItemId id)
+        public static Task<Item> Bind(ExchangeService service, ItemId id)
         {
             return Item.Bind(
                 service,
@@ -202,7 +203,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The parent folder id.</param>
         /// <param name="messageDisposition">The message disposition.</param>
         /// <param name="sendInvitationsMode">The send invitations mode.</param>
-        internal void InternalCreate(
+        internal async System.Threading.Tasks.Task InternalCreate(
             FolderId parentFolderId,
             MessageDisposition? messageDisposition,
             SendInvitationsMode? sendInvitationsMode)
@@ -218,7 +219,7 @@ namespace Microsoft.Exchange.WebServices.Data
                     messageDisposition,
                     sendInvitationsMode.HasValue ? sendInvitationsMode : this.DefaultSendInvitationsMode);
 
-                this.Attachments.Save();
+                await this.Attachments.Save();
             }
         }
 
@@ -230,7 +231,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="messageDisposition">The message disposition.</param>
         /// <param name="sendInvitationsOrCancellationsMode">The send invitations or cancellations mode.</param>
         /// <returns>Updated item.</returns>
-        internal Item InternalUpdate(
+        internal Task<Item> InternalUpdate(
             FolderId parentFolderId,
             ConflictResolutionMode conflictResolutionMode,
             MessageDisposition? messageDisposition,
@@ -248,7 +249,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="sendInvitationsOrCancellationsMode">The send invitations or cancellations mode.</param>
         /// <param name="suppressReadReceipts">Whether to suppress read receipts</param>
         /// <returns>Updated item.</returns>
-        internal Item InternalUpdate(
+        internal async Task<Item> InternalUpdate(
             FolderId parentFolderId,
             ConflictResolutionMode conflictResolutionMode,
             MessageDisposition? messageDisposition,
@@ -262,7 +263,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             if (this.IsDirty && this.PropertyBag.GetIsUpdateCallNecessary())
             {
-                returnedItem = this.Service.UpdateItem(
+                returnedItem = await this.Service.UpdateItem(
                     this,
                     parentFolderId,
                     conflictResolutionMode,
@@ -276,7 +277,7 @@ namespace Microsoft.Exchange.WebServices.Data
             if (this.HasUnprocessedAttachmentChanges())
             {
                 this.Attachments.Validate();
-                this.Attachments.Save();
+                await this.Attachments.Save();
             }
 
             return returnedItem;
@@ -340,11 +341,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Mutliple calls to EWS might be made if attachments have been added.
         /// </summary>
         /// <param name="parentFolderId">The Id of the folder in which to save this item.</param>
-        public void Save(FolderId parentFolderId)
+        public System.Threading.Tasks.Task Save(FolderId parentFolderId)
         {
             EwsUtilities.ValidateParam(parentFolderId, "parentFolderId");
 
-            this.InternalCreate(
+            return this.InternalCreate(
                 parentFolderId,
                 MessageDisposition.SaveOnly,
                 null);
@@ -355,9 +356,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Mutliple calls to EWS might be made if attachments have been added.
         /// </summary>
         /// <param name="parentFolderName">The name of the folder in which to save this item.</param>
-        public void Save(WellKnownFolderName parentFolderName)
+        public System.Threading.Tasks.Task Save(WellKnownFolderName parentFolderName)
         {
-            this.InternalCreate(
+            return this.InternalCreate(
                 new FolderId(parentFolderName),
                 MessageDisposition.SaveOnly,
                 null);
@@ -367,9 +368,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Saves this item in the default folder based on the item's type (for example, an e-mail message is saved to the Drafts folder).
         /// Calling this method results in at least one call to EWS. Mutliple calls to EWS might be made if attachments have been added.
         /// </summary>
-        public void Save()
+        public System.Threading.Tasks.Task Save()
         {
-            this.InternalCreate(
+            return this.InternalCreate(
                 null,
                 MessageDisposition.SaveOnly,
                 null);
@@ -391,9 +392,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="conflictResolutionMode">The conflict resolution mode.</param>
         /// <param name="suppressReadReceipts">Whether to suppress read receipts</param>
-        public void Update(ConflictResolutionMode conflictResolutionMode, bool suppressReadReceipts)
+        public System.Threading.Tasks.Task Update(ConflictResolutionMode conflictResolutionMode, bool suppressReadReceipts)
         {
-            this.InternalUpdate(
+            return this.InternalUpdate(
                 null /* parentFolder */,
                 conflictResolutionMode,
                 MessageDisposition.SaveOnly,
@@ -410,7 +411,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to create a copy of this item.</param>
         /// <returns>The copy of this item.</returns>
-        public Item Copy(FolderId destinationFolderId)
+        public Task<Item> Copy(FolderId destinationFolderId)
         {
             this.ThrowIfThisIsNew();
             this.ThrowIfThisIsAttachment();
@@ -429,7 +430,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to create a copy of this item.</param>
         /// <returns>The copy of this item.</returns>
-        public Item Copy(WellKnownFolderName destinationFolderName)
+        public Task<Item> Copy(WellKnownFolderName destinationFolderName)
         {
             return this.Copy(new FolderId(destinationFolderName));
         }
@@ -443,7 +444,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder to which to move this item.</param>
         /// <returns>The moved copy of this item.</returns>
-        public Item Move(FolderId destinationFolderId)
+        public Task<Item> Move(FolderId destinationFolderId)
         {
             this.ThrowIfThisIsNew();
             this.ThrowIfThisIsAttachment();
@@ -462,7 +463,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder to which to move this item.</param>
         /// <returns>The moved copy of this item.</returns>
-        public Item Move(WellKnownFolderName destinationFolderName)
+        public Task<Item> Move(WellKnownFolderName destinationFolderName)
         {
             return this.Move(new FolderId(destinationFolderName));
         }
