@@ -190,7 +190,10 @@ namespace Microsoft.Exchange.WebServices.Data
                 serviceCredentials.PrepareWebRequest(request);
             }
 
-            this.httpResponseHeaders.Clear();
+            lock (this.httpResponseHeaders)
+            {
+                this.httpResponseHeaders.Clear();
+            }
 
             return request;
         }        
@@ -345,19 +348,22 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="headers">The response headers</param>
         private void SaveHttpResponseHeaders(WebHeaderCollection headers)
         {
-            this.httpResponseHeaders.Clear();
-
-            foreach (string key in headers.AllKeys)
+            lock (this.httpResponseHeaders)
             {
-                string existingValue;
+                this.httpResponseHeaders.Clear();
 
-                if (this.httpResponseHeaders.TryGetValue(key, out existingValue))
+                foreach (string key in headers.AllKeys)
                 {
-                    this.httpResponseHeaders[key] = existingValue + "," + headers[key];
-                }
-                else
-                {
-                    this.httpResponseHeaders.Add(key, headers[key]);
+                    string existingValue;
+
+                    if (this.httpResponseHeaders.TryGetValue(key, out existingValue))
+                    {
+                        this.httpResponseHeaders[key] = existingValue + "," + headers[key];
+                    }
+                    else
+                    {
+                        this.httpResponseHeaders.Add(key, headers[key]);
+                    }
                 }
             }
 
