@@ -213,7 +213,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             if (this.IsNew || this.IsDirty)
             {
-                this.Service.CreateItem(
+                await this.Service.CreateItem(
                     this,
                     parentFolderId,
                     messageDisposition,

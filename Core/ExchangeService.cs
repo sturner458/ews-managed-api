@@ -501,13 +501,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The Id of the folder in which to place the newly created item. If null, the item is created in its default folders.</param>
         /// <param name="messageDisposition">Indicates the disposition mode for items of type EmailMessage. Required if item is an EmailMessage instance.</param>
         /// <param name="sendInvitationsMode">Indicates if and how invitations should be sent for item of type Appointment. Required if item is an Appointment instance.</param>
-        internal void CreateItem(
+        internal System.Threading.Tasks.Task CreateItem(
             Item item,
             FolderId parentFolderId,
             MessageDisposition? messageDisposition,
             SendInvitationsMode? sendInvitationsMode)
         {
-            this.InternalCreateItems(
+            return this.InternalCreateItems(
                 new Item[] { item },
                 parentFolderId,
                 messageDisposition,
