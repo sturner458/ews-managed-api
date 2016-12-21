@@ -21,7 +21,7 @@ namespace Microsoft.Exchange.WebServices.Data.Misc
 
         public static AdjustmentRule[] GetAdjustmentRulesEx(this TimeZoneInfo tz)
         {
-            throw new NotImplementedException();
+            return new AdjustmentRule[0];
         }
 #else
         public static TimeZoneInfo CreateCustomTimeZone(string id, TimeSpan baseOffsetToUtc, string name, string standardDisplayName)
