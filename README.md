@@ -1,3 +1,15 @@
+# Quick introduction
+
+This is a NET Standard 1.4 port of EWS API. Here are some tips to take into account.
+
+- NET Framework version is as functional as original
+- Almost all functions involving HTTP requests are now async
+- Outdated async Begin/End functions were removed
+- NET Standard: LDAP Autodiscovery feature will not work
+- NET Standard: Authorization using login/password only. PartnerTokenCredentials, X509CertificateCredentials, WSSecurityUtilityIdSignedXml excluded
+- NET Standard on Linux: DNS Autodiscovery feature will not work
+- Nuget package can be found here: https://www.nuget.org/packages/Microsoft.Exchange.WebServices.NETStandard/
+
 # Getting Started with the EWS Managed API
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/OfficeDev/ews-managed-api?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
