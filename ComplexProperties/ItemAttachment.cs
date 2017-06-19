@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents an item attachment.
@@ -183,9 +184,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads this attachment.
         /// </summary>
         /// <param name="additionalProperties">The optional additional properties to load.</param>
-        public void Load(params PropertyDefinitionBase[] additionalProperties)
+        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(params PropertyDefinitionBase[] additionalProperties)
         {
-            this.InternalLoad(
+            return this.InternalLoad(
                 null /* bodyType */,
                 additionalProperties);
         }
@@ -194,9 +195,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads this attachment.
         /// </summary>
         /// <param name="additionalProperties">The optional additional properties to load.</param>
-        public void Load(IEnumerable<PropertyDefinitionBase> additionalProperties)
+        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(IEnumerable<PropertyDefinitionBase> additionalProperties)
         {
-            this.InternalLoad(
+            return this.InternalLoad(
                 null /* bodyType */,
                 additionalProperties);
         }
@@ -206,9 +207,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="bodyType">The body type to load.</param>
         /// <param name="additionalProperties">The optional additional properties to load.</param>
-        public void Load(BodyType bodyType, params PropertyDefinitionBase[] additionalProperties)
+        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(BodyType bodyType, params PropertyDefinitionBase[] additionalProperties)
         {
-            this.InternalLoad(
+            return this.InternalLoad(
                 bodyType,
                 additionalProperties);
         }
@@ -218,9 +219,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="bodyType">The body type to load.</param>
         /// <param name="additionalProperties">The optional additional properties to load.</param>
-        public void Load(BodyType bodyType, IEnumerable<PropertyDefinitionBase> additionalProperties)
+        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(BodyType bodyType, IEnumerable<PropertyDefinitionBase> additionalProperties)
         {
-            this.InternalLoad(
+            return this.InternalLoad(
                 bodyType,
                 additionalProperties);
         }

@@ -263,7 +263,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="folder">The folder.</param>
         /// <param name="propertySet">The property set.</param>
-        internal System.Threading.Tasks.Task LoadPropertiesForFolder(
+        internal Task<ServiceResponseCollection<ServiceResponse>> LoadPropertiesForFolder(
             Folder folder,
             PropertySet propertySet)
         {
@@ -1821,12 +1821,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="attachment">The attachment.</param>
         /// <param name="bodyType">Type of the body.</param>
         /// <param name="additionalProperties">The additional properties.</param>
-        internal void GetAttachment(
+        internal Task<ServiceResponseCollection<GetAttachmentResponse>> GetAttachment(
             Attachment attachment,
             BodyType? bodyType,
             IEnumerable<PropertyDefinitionBase> additionalProperties)
         {
-            this.InternalGetAttachments(
+            return this.InternalGetAttachments(
                 new Attachment[] { attachment },
                 bodyType,
                 additionalProperties,

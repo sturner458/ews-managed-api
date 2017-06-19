@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.ObjectModel;
     using System.Reflection;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents the base abstract class for all item and folder types.
@@ -289,7 +290,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the specified set of properties on the object.
         /// </summary>
         /// <param name="propertySet">The properties to load.</param>
-        internal abstract void InternalLoad(PropertySet propertySet);
+        internal abstract Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet);
 
         /// <summary>
         /// Deletes the object.
@@ -306,17 +307,17 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the specified set of properties. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="propertySet">The properties to load.</param>
-        public void Load(PropertySet propertySet)
+        public Task<ServiceResponseCollection<ServiceResponse>> Load(PropertySet propertySet)
         {
-            this.InternalLoad(propertySet);
+            return this.InternalLoad(propertySet);
         }
 
         /// <summary>
         /// Loads the first class properties. Calling this method results in a call to EWS.
         /// </summary>
-        public void Load()
+        public Task<ServiceResponseCollection<ServiceResponse>> Load()
         {
-            this.InternalLoad(PropertySet.FirstClassProperties);
+            return this.InternalLoad(PropertySet.FirstClassProperties);
         }
 
         /// <summary>

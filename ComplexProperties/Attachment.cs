@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents an attachment to an item.
@@ -303,9 +304,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="bodyType">Type of the body.</param>
         /// <param name="additionalProperties">The additional properties.</param>
-        internal void InternalLoad(BodyType? bodyType, IEnumerable<PropertyDefinitionBase> additionalProperties)
+        internal Task<ServiceResponseCollection<GetAttachmentResponse>> InternalLoad(BodyType? bodyType, IEnumerable<PropertyDefinitionBase> additionalProperties)
         {
-            this.service.GetAttachment(
+            return this.service.GetAttachment(
                 this,
                 bodyType,
                 additionalProperties);
@@ -322,9 +323,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Loads the attachment. Calling this method results in a call to EWS.
         /// </summary>
-        public void Load()
+        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load()
         {
-            this.InternalLoad(null, null);
+            return this.InternalLoad(null, null);
         }
     }
 }

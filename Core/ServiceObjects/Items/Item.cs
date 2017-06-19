@@ -136,12 +136,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the specified set of properties on the object.
         /// </summary>
         /// <param name="propertySet">The properties to load.</param>
-        internal override void InternalLoad(PropertySet propertySet)
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet)
         {
             this.ThrowIfThisIsNew();
             this.ThrowIfThisIsAttachment();
 
-            this.Service.InternalLoadPropertiesForItems(
+            return this.Service.InternalLoadPropertiesForItems(
                 new Item[] { this },
                 propertySet,
                 ServiceErrorHandling.ThrowOnError);
