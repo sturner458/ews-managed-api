@@ -153,12 +153,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="sendCancellationsMode">Indicates whether meeting cancellation messages should be sent.</param>
         /// <param name="affectedTaskOccurrences">Indicate which occurrence of a recurring task should be deleted.</param>
-        internal override void InternalDelete(
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences)
         {
-            this.InternalDelete(deleteMode, sendCancellationsMode, affectedTaskOccurrences, false);
+            return this.InternalDelete(deleteMode, sendCancellationsMode, affectedTaskOccurrences, false);
         }
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="sendCancellationsMode">Indicates whether meeting cancellation messages should be sent.</param>
         /// <param name="affectedTaskOccurrences">Indicate which occurrence of a recurring task should be deleted.</param>
         /// <param name="suppressReadReceipts">Whether to suppress read receipts</param>
-        internal void InternalDelete(
+        internal Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences,
@@ -189,7 +189,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 affectedTaskOccurrences = this.DefaultAffectedTaskOccurrences;
             }
 
-            this.Service.DeleteItem(
+            return this.Service.DeleteItem(
                 this.Id,
                 deleteMode,
                 sendCancellationsMode,
@@ -321,9 +321,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Deletes the item. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="deleteMode">The deletion mode.</param>
-        public void Delete(DeleteMode deleteMode)
+        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode)
         {
-            this.Delete(deleteMode, false);
+            return this.Delete(deleteMode, false);
         }
 
         /// <summary>
@@ -331,9 +331,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="suppressReadReceipts">Whether to suppress read receipts</param>
-        public void Delete(DeleteMode deleteMode, bool suppressReadReceipts)
+        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode, bool suppressReadReceipts)
         {
-            this.InternalDelete(deleteMode, null, null, suppressReadReceipts);
+            return this.InternalDelete(deleteMode, null, null, suppressReadReceipts);
         }
 
         /// <summary>
@@ -381,9 +381,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Mutliple calls to EWS might be made if attachments have been added or removed.
         /// </summary>
         /// <param name="conflictResolutionMode">The conflict resolution mode.</param>
-        public void Update(ConflictResolutionMode conflictResolutionMode)
+        public Task<Item> Update(ConflictResolutionMode conflictResolutionMode)
         {
-            this.Update(conflictResolutionMode, false);
+            return this.Update(conflictResolutionMode, false);
         }
 
         /// <summary>
@@ -392,7 +392,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="conflictResolutionMode">The conflict resolution mode.</param>
         /// <param name="suppressReadReceipts">Whether to suppress read receipts</param>
-        public System.Threading.Tasks.Task Update(ConflictResolutionMode conflictResolutionMode, bool suppressReadReceipts)
+        public Task<Item> Update(ConflictResolutionMode conflictResolutionMode, bool suppressReadReceipts)
         {
             return this.InternalUpdate(
                 null /* parentFolder */,

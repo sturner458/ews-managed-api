@@ -184,23 +184,23 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="sendCancellationsMode">Indicates whether meeting cancellation messages should be sent.</param>
         /// <param name="affectedTaskOccurrences">Indicate which occurrence of a recurring task should be deleted.</param>
-        internal override void InternalDelete(
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences)
         {
             this.ThrowIfThisIsNew();
 
-            this.Service.DeleteFolder( this.Id, deleteMode);
+            return this.Service.DeleteFolder( this.Id, deleteMode);
         }
 
         /// <summary>
         /// Deletes the folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="deleteMode">Deletion mode.</param>
-        public void Delete(DeleteMode deleteMode)
+        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode)
         {
-            this.InternalDelete(deleteMode, null, null);
+            return this.InternalDelete(deleteMode, null, null);
         }
 
         /// <summary>

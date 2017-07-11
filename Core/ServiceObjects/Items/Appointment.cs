@@ -398,11 +398,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="conflictResolutionMode">Specifies how conflicts should be resolved.</param>
         /// <param name="sendInvitationsOrCancellationsMode">Specifies if and how invitations or cancellations should be sent if this appointment is a meeting.</param>
-        public void Update(
+        public Task<Item> Update(
             ConflictResolutionMode conflictResolutionMode,
             SendInvitationsOrCancellationsMode sendInvitationsOrCancellationsMode)
         {
-            this.InternalUpdate(
+            return this.InternalUpdate(
                 null,
                 conflictResolutionMode,
                 null,
@@ -414,9 +414,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="sendCancellationsMode">Specifies if and how cancellations should be sent if this appointment is a meeting.</param>
-        public void Delete(DeleteMode deleteMode, SendCancellationsMode sendCancellationsMode)
+        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode, SendCancellationsMode sendCancellationsMode)
         {
-            this.InternalDelete(
+            return this.InternalDelete(
                 deleteMode,
                 sendCancellationsMode,
                 null);
