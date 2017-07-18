@@ -147,13 +147,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="bodyPrefix">The prefix to prepend to the original body of the post item.</param>
         /// <param name="replyAll">Indicates whether the reply should be sent to everyone involved in the thread.</param>
-        public void Reply(MessageBody bodyPrefix, bool replyAll)
+        public System.Threading.Tasks.Task Reply(MessageBody bodyPrefix, bool replyAll)
         {
             ResponseMessage responseMessage = this.CreateReply(replyAll);
 
             responseMessage.BodyPrefix = bodyPrefix;
 
-            responseMessage.SendAndSaveCopy();
+            return responseMessage.SendAndSaveCopy();
         }
 
         /// <summary>
@@ -172,9 +172,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="bodyPrefix">The prefix to prepend to the original body of the post item.</param>
         /// <param name="toRecipients">The recipients to forward the post item to.</param>
-        public void Forward(MessageBody bodyPrefix, params EmailAddress[] toRecipients)
+        public System.Threading.Tasks.Task Forward(MessageBody bodyPrefix, params EmailAddress[] toRecipients)
         {
-            this.Forward(bodyPrefix, (IEnumerable<EmailAddress>)toRecipients);
+            return this.Forward(bodyPrefix, (IEnumerable<EmailAddress>)toRecipients);
         }
 
         /// <summary>
@@ -182,14 +182,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="bodyPrefix">The prefix to prepend to the original body of the post item.</param>
         /// <param name="toRecipients">The recipients to forward the post item to.</param>
-        public void Forward(MessageBody bodyPrefix, IEnumerable<EmailAddress> toRecipients)
+        public System.Threading.Tasks.Task Forward(MessageBody bodyPrefix, IEnumerable<EmailAddress> toRecipients)
         {
             ResponseMessage responseMessage = this.CreateForward();
 
             responseMessage.BodyPrefix = bodyPrefix;
             responseMessage.ToRecipients.AddRange(toRecipients);
 
-            responseMessage.SendAndSaveCopy();
+            return responseMessage.SendAndSaveCopy();
         }
 
         #region Properties

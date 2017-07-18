@@ -124,9 +124,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// values of the task. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="deleteMode">The deletion mode.</param>
-        public void DeleteCurrentOccurrence(DeleteMode deleteMode)
+        public Task<ServiceResponseCollection<ServiceResponse>> DeleteCurrentOccurrence(DeleteMode deleteMode)
         {
-            this.InternalDelete(
+            return this.InternalDelete(
                 deleteMode,
                 null,
                 AffectedTaskOccurrence.SpecifiedOccurrenceOnly);

@@ -153,12 +153,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="sendCancellationsMode">Indicates whether meeting cancellation messages should be sent.</param>
         /// <param name="affectedTaskOccurrences">Indicate which occurrence of a recurring task should be deleted.</param>
-        internal override void InternalDelete(
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences)
         {
-            this.InternalDelete(deleteMode, sendCancellationsMode, affectedTaskOccurrences, false);
+            return this.InternalDelete(deleteMode, sendCancellationsMode, affectedTaskOccurrences, false);
         }
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="sendCancellationsMode">Indicates whether meeting cancellation messages should be sent.</param>
         /// <param name="affectedTaskOccurrences">Indicate which occurrence of a recurring task should be deleted.</param>
         /// <param name="suppressReadReceipts">Whether to suppress read receipts</param>
-        internal void InternalDelete(
+        internal Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences,
@@ -189,7 +189,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 affectedTaskOccurrences = this.DefaultAffectedTaskOccurrences;
             }
 
-            this.Service.DeleteItem(
+            return this.Service.DeleteItem(
                 this.Id,
                 deleteMode,
                 sendCancellationsMode,

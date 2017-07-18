@@ -81,7 +81,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="sendCancellationsMode">Indicates whether meeting cancellation messages should be sent.</param>
         /// <param name="affectedTaskOccurrences">Indicate which occurrence of a recurring task should be deleted.</param>
-        internal override void InternalDelete(
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences)
@@ -139,37 +139,37 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Sends this response without saving a copy. Calling this method results in a call to EWS.
         /// </summary>
-        public void Send()
+        public System.Threading.Tasks.Task Send()
         {
-            this.InternalCreate(null, MessageDisposition.SendOnly);
+            return this.InternalCreate(null, MessageDisposition.SendOnly);
         }
 
         /// <summary>
         /// Sends this response and saves a copy in the specified folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to save the copy of the message.</param>
-        public void SendAndSaveCopy(FolderId destinationFolderId)
+        public System.Threading.Tasks.Task SendAndSaveCopy(FolderId destinationFolderId)
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            this.InternalCreate(destinationFolderId, MessageDisposition.SendAndSaveCopy);
+            return this.InternalCreate(destinationFolderId, MessageDisposition.SendAndSaveCopy);
         }
 
         /// <summary>
         /// Sends this response and saves a copy in the specified folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to save the copy of the message.</param>
-        public void SendAndSaveCopy(WellKnownFolderName destinationFolderName)
+        public System.Threading.Tasks.Task SendAndSaveCopy(WellKnownFolderName destinationFolderName)
         {
-            this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy);
+            return this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy);
         }
 
         /// <summary>
         /// Sends this response and saves a copy in the Sent Items folder. Calling this method results in a call to EWS.
         /// </summary>
-        public void SendAndSaveCopy()
+        public System.Threading.Tasks.Task SendAndSaveCopy()
         {
-            this.InternalCreate(
+            return this.InternalCreate(
                 null,
                 MessageDisposition.SendAndSaveCopy);
         }

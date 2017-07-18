@@ -184,23 +184,23 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="sendCancellationsMode">Indicates whether meeting cancellation messages should be sent.</param>
         /// <param name="affectedTaskOccurrences">Indicate which occurrence of a recurring task should be deleted.</param>
-        internal override void InternalDelete(
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences)
         {
             this.ThrowIfThisIsNew();
 
-            this.Service.DeleteFolder( this.Id, deleteMode);
+            return this.Service.DeleteFolder( this.Id, deleteMode);
         }
 
         /// <summary>
         /// Deletes the folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="deleteMode">Deletion mode.</param>
-        public void Delete(DeleteMode deleteMode)
+        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode)
         {
-            this.InternalDelete(deleteMode, null, null);
+            return this.InternalDelete(deleteMode, null, null);
         }
 
         /// <summary>
@@ -208,12 +208,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="deleteSubFolders">Indicates whether sub-folders should also be deleted.</param>
-        public void Empty(
+        public Task<ServiceResponseCollection<ServiceResponse>> Empty(
             DeleteMode deleteMode,
             bool deleteSubFolders)
         {
             this.ThrowIfThisIsNew();
-            this.Service.EmptyFolder(
+            return this.Service.EmptyFolder(
                 this.Id,
                 deleteMode,
                 deleteSubFolders);
@@ -223,10 +223,10 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Marks all items in folder as read. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="suppressReadReceipts">If true, suppress sending read receipts for items.</param>
-        public void MarkAllItemsAsRead(bool suppressReadReceipts)
+        public Task<ServiceResponseCollection<ServiceResponse>> MarkAllItemsAsRead(bool suppressReadReceipts)
         {
             this.ThrowIfThisIsNew();
-            this.Service.MarkAllItemsAsRead(
+            return this.Service.MarkAllItemsAsRead(
                 this.Id,
                 true,
                 suppressReadReceipts);
@@ -236,10 +236,10 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Marks all items in folder as read. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="suppressReadReceipts">If true, suppress sending read receipts for items.</param>
-        public void MarkAllItemsAsUnread(bool suppressReadReceipts)
+        public Task<ServiceResponseCollection<ServiceResponse>> MarkAllItemsAsUnread(bool suppressReadReceipts)
         {
             this.ThrowIfThisIsNew();
-            this.Service.MarkAllItemsAsRead(
+            return this.Service.MarkAllItemsAsRead(
                 this.Id,
                 false,
                 suppressReadReceipts);
@@ -249,7 +249,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Saves this folder in a specific folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="parentFolderId">The Id of the folder in which to save this folder.</param>
-        public void Save(FolderId parentFolderId)
+        public async System.Threading.Tasks.Task Save(FolderId parentFolderId)
         {
             this.ThrowIfThisIsNotNew();
 
@@ -257,7 +257,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             if (this.IsDirty)
             {
-                this.Service.CreateFolder(this, parentFolderId);
+                await this.Service.CreateFolder(this, parentFolderId);
             }
         }
 
@@ -265,21 +265,21 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Saves this folder in a specific folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="parentFolderName">The name of the folder in which to save this folder.</param>
-        public void Save(WellKnownFolderName parentFolderName)
+        public System.Threading.Tasks.Task Save(WellKnownFolderName parentFolderName)
         {
-            this.Save(new FolderId(parentFolderName));
+            return this.Save(new FolderId(parentFolderName));
         }
 
         /// <summary>
         /// Applies the local changes that have been made to this folder. Calling this method results in a call to EWS.
         /// </summary>
-        public void Update()
+        public async System.Threading.Tasks.Task Update()
         {
             if (this.IsDirty)
             {
                 if (this.PropertyBag.GetIsUpdateCallNecessary())
                 {
-                    this.Service.UpdateFolder(this);
+                    await this.Service.UpdateFolder(this);
                 }
             }
         }

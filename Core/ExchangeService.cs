@@ -369,7 +369,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="folderId">The folder id.</param>
         /// <param name="deleteMode">The delete mode.</param>
-        internal System.Threading.Tasks.Task DeleteFolder(
+        internal Task<ServiceResponseCollection<ServiceResponse>> DeleteFolder(
             FolderId folderId,
             DeleteMode deleteMode)
         {
@@ -389,7 +389,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="folderId">The folder id.</param>
         /// <param name="deleteMode">The delete mode.</param>
         /// <param name="deleteSubFolders">if set to <c>true</c> empty folder should also delete sub folders.</param>
-        internal System.Threading.Tasks.Task EmptyFolder(
+        internal Task<ServiceResponseCollection<ServiceResponse>> EmptyFolder(
             FolderId folderId,
             DeleteMode deleteMode,
             bool deleteSubFolders)
@@ -411,7 +411,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="folderId">The folder id.</param>
         /// <param name="readFlag">If true, items marked as read, otherwise unread.</param>
         /// <param name="suppressReadReceipts">If true, suppress read receipts for items.</param>
-        internal System.Threading.Tasks.Task MarkAllItemsAsRead(
+        internal Task<ServiceResponseCollection<ServiceResponse>> MarkAllItemsAsRead(
             FolderId folderId,
             bool readFlag,
             bool suppressReadReceipts)
@@ -1480,13 +1480,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="sendCancellationsMode">Indicates whether cancellation messages should be sent. Required if the item Id represents an Appointment.</param>
         /// <param name="affectedTaskOccurrences">Indicates which instance of a recurring task should be deleted. Required if item Id represents a Task.</param>
-        internal void DeleteItem(
+        internal Task<ServiceResponseCollection<ServiceResponse>> DeleteItem(
             ItemId itemId,
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences)
         {
-            this.DeleteItem(itemId, deleteMode, sendCancellationsMode, affectedTaskOccurrences, false);
+            return this.DeleteItem(itemId, deleteMode, sendCancellationsMode, affectedTaskOccurrences, false);
         }
 
         /// <summary>
@@ -1497,7 +1497,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="sendCancellationsMode">Indicates whether cancellation messages should be sent. Required if the item Id represents an Appointment.</param>
         /// <param name="affectedTaskOccurrences">Indicates which instance of a recurring task should be deleted. Required if item Id represents a Task.</param>
         /// <param name="suppressReadReceipts">Whether to suppress read receipts</param>
-        internal void DeleteItem(
+        internal Task<ServiceResponseCollection<ServiceResponse>> DeleteItem(
             ItemId itemId,
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
@@ -1506,7 +1506,7 @@ namespace Microsoft.Exchange.WebServices.Data
         {
             EwsUtilities.ValidateParam(itemId, "itemId");
 
-            this.InternalDeleteItems(
+            return this.InternalDeleteItems(
                 new ItemId[] { itemId },
                 deleteMode,
                 sendCancellationsMode,

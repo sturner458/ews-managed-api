@@ -304,13 +304,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="bodyPrefix">The prefix to prepend to the body of the meeting.</param>
         /// <param name="replyAll">Indicates whether the reply should go to the organizer only or to all the attendees.</param>
-        public void Reply(MessageBody bodyPrefix, bool replyAll)
+        public System.Threading.Tasks.Task Reply(MessageBody bodyPrefix, bool replyAll)
         {
             ResponseMessage responseMessage = this.CreateReply(replyAll);
 
             responseMessage.BodyPrefix = bodyPrefix;
 
-            responseMessage.SendAndSaveCopy();
+            return responseMessage.SendAndSaveCopy();
         }
 
         /// <summary>
@@ -329,9 +329,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="bodyPrefix">The prefix to prepend to the original body of the message.</param>
         /// <param name="toRecipients">The recipients to forward the appointment to.</param>
-        public void Forward(MessageBody bodyPrefix, params EmailAddress[] toRecipients)
+        public System.Threading.Tasks.Task Forward(MessageBody bodyPrefix, params EmailAddress[] toRecipients)
         {
-            this.Forward(bodyPrefix, (IEnumerable<EmailAddress>)toRecipients);
+            return this.Forward(bodyPrefix, (IEnumerable<EmailAddress>)toRecipients);
         }
 
         /// <summary>
@@ -339,14 +339,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="bodyPrefix">The prefix to prepend to the original body of the message.</param>
         /// <param name="toRecipients">The recipients to forward the appointment to.</param>
-        public void Forward(MessageBody bodyPrefix, IEnumerable<EmailAddress> toRecipients)
+        public System.Threading.Tasks.Task Forward(MessageBody bodyPrefix, IEnumerable<EmailAddress> toRecipients)
         {
             ResponseMessage responseMessage = this.CreateForward();
 
             responseMessage.BodyPrefix = bodyPrefix;
             responseMessage.ToRecipients.AddRange(toRecipients);
 
-            responseMessage.SendAndSaveCopy();
+            return responseMessage.SendAndSaveCopy();
         }
 
         /// <summary>
@@ -414,9 +414,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="sendCancellationsMode">Specifies if and how cancellations should be sent if this appointment is a meeting.</param>
-        public void Delete(DeleteMode deleteMode, SendCancellationsMode sendCancellationsMode)
+        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode, SendCancellationsMode sendCancellationsMode)
         {
-            this.InternalDelete(
+            return this.InternalDelete(
                 deleteMode,
                 sendCancellationsMode,
                 null);
