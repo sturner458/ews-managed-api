@@ -34,7 +34,7 @@ namespace Microsoft.Exchange.WebServices.Data
     /// <summary>
     /// Represents a time zone as defined by the EWS schema.
     /// </summary>
-    internal class TimeZoneDefinition : ComplexProperty
+    public class TimeZoneDefinition : ComplexProperty
     {
         /// <summary>
         /// Prefix for generated ids.
@@ -520,7 +520,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Gets or sets the Id of this time zone definition.
         /// </summary>
-        internal string Id
+        public string Id
         {
             get { return this.id; }
             set { this.id = value; }

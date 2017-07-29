@@ -604,7 +604,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Gets a time zone definition generated from the time zone info to which this service is scoped.
         /// </summary>
-        internal TimeZoneDefinition TimeZoneDefinition
+        public TimeZoneDefinition TimeZoneDefinition
         {
             get
             {
