@@ -222,7 +222,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// SearchFilter.SearchFilterCollection</param>
         /// <param name="view">The view controlling the number of folders returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public ServiceResponseCollection<FindFolderResponse> FindFolders(IEnumerable<FolderId> parentFolderIds, SearchFilter searchFilter, FolderView view)
+        public Task<ServiceResponseCollection<FindFolderResponse>> FindFolders(IEnumerable<FolderId> parentFolderIds, SearchFilter searchFilter, FolderView view)
         {
             EwsUtilities.ValidateParam(parentFolderIds, "parentFolderIds");
             EwsUtilities.ValidateParam(view, "view");
