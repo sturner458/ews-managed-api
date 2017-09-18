@@ -6,7 +6,6 @@ This is a NET Standard 1.4 port of EWS API. Here are some tips to take into acco
 - Almost all functions involving HTTP requests are now async
 - Outdated async Begin/End functions were removed
 - NET Standard: LDAP Autodiscovery feature will not work
-- NET Standard: Authorization using login/password only. PartnerTokenCredentials, X509CertificateCredentials, WSSecurityUtilityIdSignedXml excluded
 - NET Standard on Linux: DNS Autodiscovery feature will not work
 - Nuget package can be found here: https://www.nuget.org/packages/Microsoft.Exchange.WebServices.NETStandard/
 

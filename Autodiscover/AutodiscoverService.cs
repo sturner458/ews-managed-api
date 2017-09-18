@@ -1226,7 +1226,6 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     }
                 }
                 //todo: implement PartnerTokenCredentials and X509CertificateCredentials
-#if !NETSTANDARD2_0
                 else if (this.Credentials is PartnerTokenCredentials)
                 {
                     if ((endpoints & AutodiscoverEndpoints.WSSecuritySymmetricKey) != AutodiscoverEndpoints.WSSecuritySymmetricKey)
@@ -1257,7 +1256,6 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                         url = new Uri(string.Format(AutodiscoverSoapWsSecurityX509CertHttpsUrl, host));
                     }
                 }
-#endif
                 else if (this.Credentials is OAuthCredentials)
                 {
                     // If the credential is OAuthCredentials, no matter whether we have
@@ -1804,10 +1802,6 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             out ExchangeCredentials partnerAccessCredentials,
             out Uri targetTenantAutodiscoverUrl)
         {
-#if NETSTANDARD2_0
-            //todo: implement PartnerTokenCredentials
-            throw new NotImplementedException();
-#else
             EwsUtilities.ValidateNonBlankStringParam(targetTenantDomain, "targetTenantDomain");
 
             // the user should set the url to its own tenant's autodiscover url.
@@ -1887,7 +1881,6 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 targetTenantAutodiscoverUrl);
 
             return true;
-#endif
         }
         #endregion
 
