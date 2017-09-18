@@ -86,6 +86,7 @@ namespace Microsoft.Exchange.WebServices.Data
             XmlReaderSettings settings = new XmlReaderSettings()
             {
                 Async = true,
+                CheckCharacters = false,
                 ConformanceLevel = ConformanceLevel.Auto,
                 DtdProcessing = DtdProcessing.Prohibit,
                 IgnoreComments = true,

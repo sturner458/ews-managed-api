@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Xml;
@@ -71,6 +72,7 @@ namespace Microsoft.Exchange.WebServices.Data
             XmlReaderSettings settings = new XmlReaderSettings()
             {
                 Async = true,
+                CheckCharacters = false,
                 ConformanceLevel = ConformanceLevel.Auto,
                 DtdProcessing = DtdProcessing.Prohibit,
                 IgnoreComments = true,
@@ -492,6 +494,8 @@ namespace Microsoft.Exchange.WebServices.Data
                     break;
                 }
             }
+            if (result.Any(x => char.IsControl(x)))
+                result = new string(result.Where(c => !char.IsControl(c)).ToArray());
             return result;
         }
 
