@@ -1226,7 +1226,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     }
                 }
                 //todo: implement PartnerTokenCredentials and X509CertificateCredentials
-#if !NETSTANDARD1_3
+#if !NETSTANDARD2_0
                 else if (this.Credentials is PartnerTokenCredentials)
                 {
                     if ((endpoints & AutodiscoverEndpoints.WSSecuritySymmetricKey) != AutodiscoverEndpoints.WSSecuritySymmetricKey)
@@ -1284,7 +1284,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <returns></returns>
         private ICollection<string> DefaultGetScpUrlsForDomain(string domainName)
         {
-#if NETSTANDARD1_3
+#if NETSTANDARD2_0
             //todo: implement ldap autodiscover
             return new string[0];
 #else
@@ -1804,7 +1804,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             out ExchangeCredentials partnerAccessCredentials,
             out Uri targetTenantAutodiscoverUrl)
         {
-#if NETSTANDARD1_3
+#if NETSTANDARD2_0
             //todo: implement PartnerTokenCredentials
             throw new NotImplementedException();
 #else

@@ -7,24 +7,6 @@ namespace Microsoft.Exchange.WebServices.Data.Misc
 {
     public struct TransitionTime
     {
-#if NETSTANDARD1_3
-        public int Day { get;  }
-        public DayOfWeek DayOfWeek { get;  }
-        public bool IsFixedDateRule { get;  }
-        public int Month { get;  }
-        public DateTime TimeOfDay { get;  }
-        public int Week { get;  }
-
-        internal static TransitionTime CreateFixedDateRule(DateTime dateTime, int month, int dayOrder)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static TransitionTime CreateFloatingDateRule(DateTime dateTime, int month, int dayOrder, DayOfWeek dayOfWeek)
-        {
-            throw new NotImplementedException();
-        }
-#else
         public int Day { get;  }
         public DayOfWeek DayOfWeek { get;  }
         public bool IsFixedDateRule { get;  }
@@ -54,6 +36,5 @@ namespace Microsoft.Exchange.WebServices.Data.Misc
         {
             return new TransitionTime(TimeZoneInfo.TransitionTime.CreateFloatingDateRule(dateTime, month, dayOrder, dayOfWeek));
         }
-#endif
     }
 }

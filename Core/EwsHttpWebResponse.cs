@@ -130,11 +130,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>System.Version that contains the HTTP protocol version of the response.</returns>
         Version IEwsHttpWebResponse.ProtocolVersion
         {
-#if NETSTANDARD1_3
-            get { return new Version("1.1"); }
-#else
             get { return this.response.ProtocolVersion; }
-#endif
         }
         #endregion
 
