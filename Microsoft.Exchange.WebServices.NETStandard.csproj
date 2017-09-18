@@ -12,6 +12,11 @@
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>sherlock1982</Authors>
+    <RepositoryUrl>https://github.com/sherlock1982/ews-managed-api</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>ews exchange office365</PackageTags>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
