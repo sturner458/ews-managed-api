@@ -494,8 +494,9 @@ namespace Microsoft.Exchange.WebServices.Data
                     break;
                 }
             }
-            if (result.Any(x => char.IsControl(x)))
-                result = new string(result.Where(c => !char.IsControl(c)).ToArray());
+            Func<char, bool> filteredChar = (x) => x != '\r' && x != '\n' && char.IsControl(x);
+            if (result.Any(filteredChar))
+                result = new string(result.Where(c => !filteredChar(c)).ToArray());
             return result;
         }
 
