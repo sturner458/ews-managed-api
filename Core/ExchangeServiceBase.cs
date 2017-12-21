@@ -32,6 +32,9 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+#if NETSTANDARD2_0
+    using System.Runtime.InteropServices;
+#endif
     using System.Security.Cryptography;
     using System.Xml;
 
@@ -183,6 +186,12 @@ namespace Microsoft.Exchange.WebServices.Data
                     throw new ServiceLocalException(Strings.CredentialsRequired);
                 }
 
+#if NETSTANDARD2_0
+                // Temporary fix for authentication on Linux platform
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    serviceCredentials = AdjustLinuxAuthentication(url, serviceCredentials);
+#endif
+
                 // Make sure that credentials have been authenticated if required
                 serviceCredentials.PreAuthenticate();
 
@@ -197,6 +206,25 @@ namespace Microsoft.Exchange.WebServices.Data
 
             return request;
         }        
+
+        internal ExchangeCredentials AdjustLinuxAuthentication(Uri url, ExchangeCredentials serviceCredentials)
+        {
+            if (!(serviceCredentials is WebCredentials))
+                // Nothing to adjust
+                return serviceCredentials;
+
+            var networkCredentials = ((WebCredentials)serviceCredentials).Credentials as NetworkCredential;
+            if (networkCredentials != null)
+            {
+                CredentialCache credentialCache = new CredentialCache();
+                credentialCache.Add(url, "NTLM", networkCredentials);
+                credentialCache.Add(url, "Digest", networkCredentials);
+                credentialCache.Add(url, "Basic", networkCredentials);
+
+                serviceCredentials = credentialCache;
+            }
+            return serviceCredentials;
+        }
 
         internal virtual void SetContentType(IEwsHttpWebRequest request)
         {
