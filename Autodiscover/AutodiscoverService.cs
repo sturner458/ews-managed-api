@@ -1294,13 +1294,8 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <returns></returns>
         private ICollection<string> DefaultGetScpUrlsForDomain(string domainName)
         {
-#if NETSTANDARD2_0
-            //todo: implement ldap autodiscover
-            return new string[0];
-#else
             DirectoryHelper helper = new DirectoryHelper(this);
             return helper.GetAutodiscoverScpUrlsForDomain(domainName);
-#endif
         }
 
         /// <summary>
