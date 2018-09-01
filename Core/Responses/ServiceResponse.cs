@@ -30,6 +30,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.Net;
+    using System.Net.Http.Headers;
 
     /// <summary>
     /// Represents the standard response to an Exchange Web Services operation.
@@ -218,7 +219,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Reads the headers from a HTTP response
         /// </summary>
         /// <param name="responseHeaders">a collection of response headers</param>
-        internal virtual void ReadHeader(WebHeaderCollection responseHeaders)
+        internal virtual void ReadHeader(HttpResponseHeaders responseHeaders)
         {
         }
 

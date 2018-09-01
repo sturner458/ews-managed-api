@@ -142,49 +142,51 @@ namespace Microsoft.Exchange.WebServices.Data
             }
 
             IEwsHttpWebRequest request = this.HttpWebRequestFactory.CreateRequest(url);
-
-            request.PreAuthenticate = this.PreAuthenticate;
-            request.Timeout = this.Timeout;
-            this.SetContentType(request);
-            request.Method = "POST";
-            request.UserAgent = this.UserAgent;
-            request.AllowAutoRedirect = allowAutoRedirect;
-            request.CookieContainer = this.CookieContainer;
-            request.KeepAlive = this.keepAlive;
-            request.ConnectionGroupName = this.connectionGroupName;
-
-            if (acceptGzipEncoding)
+            try
             {
-                request.Headers[HttpRequestHeader.AcceptEncoding] = "gzip,deflate";
-            }
 
-            if (!string.IsNullOrEmpty(this.clientRequestId))
-            {
-                request.Headers["client-request-id"] = this.clientRequestId;
-                if (this.returnClientRequestId)
+                request.PreAuthenticate = this.PreAuthenticate;
+                request.Timeout = this.Timeout;
+                this.SetContentType(request);
+                request.Method = "POST";
+                request.UserAgent = this.UserAgent;
+                request.AllowAutoRedirect = allowAutoRedirect;
+                request.CookieContainer = this.CookieContainer;
+                request.KeepAlive = this.keepAlive;
+                request.ConnectionGroupName = this.connectionGroupName;
+
+                if (acceptGzipEncoding)
                 {
-                    request.Headers["return-client-request-id"] = "true";
+                    request.Headers.AcceptEncoding.ParseAdd("gzip,deflate");
                 }
-            }
 
-            if (this.webProxy != null)
-            {
-                request.Proxy = this.webProxy;
-            }
-
-            if (this.HttpHeaders.Count > 0)
-            {
-                this.HttpHeaders.ForEach((kv) => request.Headers[kv.Key] = kv.Value);
-            }
-
-            request.UseDefaultCredentials = this.UseDefaultCredentials;
-            if (!request.UseDefaultCredentials)
-            {
-                ExchangeCredentials serviceCredentials = this.Credentials;
-                if (serviceCredentials == null)
+                if (!string.IsNullOrEmpty(this.clientRequestId))
                 {
-                    throw new ServiceLocalException(Strings.CredentialsRequired);
+                    request.Headers.TryAddWithoutValidation("client-request-id", this.clientRequestId);
+                    if (this.returnClientRequestId)
+                    {
+                        request.Headers.TryAddWithoutValidation("return-client-request-id", "true");
+                    }
                 }
+
+                if (this.webProxy != null)
+                {
+                    request.Proxy = this.webProxy;
+                }
+
+                if (this.HttpHeaders.Count > 0)
+                {
+                    this.HttpHeaders.ForEach((kv) => request.Headers.TryAddWithoutValidation(kv.Key, kv.Value));
+                }
+
+                request.UseDefaultCredentials = this.UseDefaultCredentials;
+                if (!request.UseDefaultCredentials)
+                {
+                    ExchangeCredentials serviceCredentials = this.Credentials;
+                    if (serviceCredentials == null)
+                    {
+                        throw new ServiceLocalException(Strings.CredentialsRequired);
+                    }
 
 #if NETSTANDARD2_0
                 // Temporary fix for authentication on Linux platform
@@ -192,20 +194,26 @@ namespace Microsoft.Exchange.WebServices.Data
                     serviceCredentials = AdjustLinuxAuthentication(url, serviceCredentials);
 #endif
 
-                // Make sure that credentials have been authenticated if required
-                serviceCredentials.PreAuthenticate();
+                    // Make sure that credentials have been authenticated if required
+                    serviceCredentials.PreAuthenticate();
 
-                // Apply credentials to the request
-                serviceCredentials.PrepareWebRequest(request);
+                    // Apply credentials to the request
+                    serviceCredentials.PrepareWebRequest(request);
+                }
+
+                lock (this.httpResponseHeaders)
+                {
+                    this.httpResponseHeaders.Clear();
+                }
+
+                return request;
             }
-
-            lock (this.httpResponseHeaders)
+            catch (Exception)
             {
-                this.httpResponseHeaders.Clear();
+                request.Dispose();
+                throw;
             }
-
-            return request;
-        }        
+        }
 
         internal ExchangeCredentials AdjustLinuxAuthentication(Uri url, ExchangeCredentials serviceCredentials)
         {
@@ -246,7 +254,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </remarks>
         internal void InternalProcessHttpErrorResponse(
                             IEwsHttpWebResponse httpWebResponse,
-                            WebException webException,
+                            EwsHttpClientException webException,
                             TraceFlags responseHeadersTraceFlag,
                             TraceFlags responseTraceFlag)
         {
@@ -283,7 +291,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="httpWebResponse">The HTTP web response.</param>
         /// <param name="webException">The web exception.</param>
-        internal abstract void ProcessHttpErrorResponse(IEwsHttpWebResponse httpWebResponse, WebException webException);
+        internal abstract void ProcessHttpErrorResponse(IEwsHttpWebResponse httpWebResponse, EwsHttpClientException webException);
 
         /// <summary>
         /// Determines whether tracing is enabled for specified trace flag(s).
@@ -374,23 +382,24 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Save the HTTP response headers.
         /// </summary>
         /// <param name="headers">The response headers</param>
-        private void SaveHttpResponseHeaders(WebHeaderCollection headers)
+        private void SaveHttpResponseHeaders(HttpResponseHeaders headers)
         {
             lock (this.httpResponseHeaders)
             {
                 this.httpResponseHeaders.Clear();
 
-                foreach (string key in headers.AllKeys)
+                foreach (var item in headers)
                 {
+                    var key = item.Key;
                     string existingValue;
 
                     if (this.httpResponseHeaders.TryGetValue(key, out existingValue))
                     {
-                        this.httpResponseHeaders[key] = existingValue + "," + headers[key];
+                        this.httpResponseHeaders[key] = existingValue + "," + string.Join(",", item.Value);
                     }
                     else
                     {
-                        this.httpResponseHeaders.Add(key, headers[key]);
+                        this.httpResponseHeaders.Add(key, string.Join(",", item.Value));
                     }
                 }
             }

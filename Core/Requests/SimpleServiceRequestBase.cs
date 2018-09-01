@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.IO;
     using System.IO.Compression;
     using System.Net;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using System.Xml;
 
@@ -53,7 +54,15 @@ namespace Microsoft.Exchange.WebServices.Data
         internal async Task<object> InternalExecuteAsync()
         {
             var tuple = await this.ValidateAndEmitRequest().ConfigureAwait(false);
-            return this.ReadResponse(tuple.Item2);
+            try
+            {
+                return await this.ReadResponse(tuple.Item2);
+            }
+            finally
+            {
+                tuple.Item1.Dispose();
+                tuple.Item2.Dispose();
+            }
         }
 
         /// <summary>
@@ -82,7 +91,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="response">The response.</param>
         /// <returns>Service response.</returns>
-        private object ReadResponse(IEwsHttpWebResponse response)
+        private async Task<object> ReadResponse(IEwsHttpWebResponse response)
         {
             object serviceResponse;
 
@@ -97,7 +106,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 {
                     using (MemoryStream memoryStream = new MemoryStream())
                     {
-                        using (Stream serviceResponseStream = ServiceRequestBase.GetResponseStream(response))
+                        using (Stream serviceResponseStream = await ServiceRequestBase.GetResponseStream(response))
                         {
                             // Copy response to in-memory stream and reset position to start.
                             EwsUtilities.CopyStream(serviceResponseStream, memoryStream);
@@ -111,13 +120,13 @@ namespace Microsoft.Exchange.WebServices.Data
                 }
                 else
                 {
-                    using (Stream responseStream = ServiceRequestBase.GetResponseStream(response))
+                    using (Stream responseStream = await ServiceRequestBase.GetResponseStream(response))
                     {
                         serviceResponse = this.ReadResponseXml(responseStream, response.Headers);
                     }
                 }
             }
-            catch (WebException e)
+            catch (EwsHttpClientException e)
             {
                 if (e.Response != null)
                 {
@@ -159,7 +168,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="responseStream">The response stream.</param>
         /// <param name="responseHeaders">The HTTP response headers</param>
         /// <returns></returns>
-        private object ReadResponseXml(Stream responseStream, WebHeaderCollection responseHeaders)
+        private object ReadResponseXml(Stream responseStream, HttpResponseHeaders responseHeaders)
         {
             object serviceResponse;
             EwsServiceXmlReader ewsXmlReader = new EwsServiceXmlReader(responseStream, this.Service);

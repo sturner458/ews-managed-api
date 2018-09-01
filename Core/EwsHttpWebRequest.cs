@@ -28,6 +28,8 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.IO;
     using System.Net;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Net.Security;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
@@ -41,7 +43,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Underlying HttpWebRequest.
         /// </summary>
-        private HttpWebRequest request;
+        readonly HttpClient _httpClient;
+        readonly HttpClientHandler _httpClientHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EwsHttpWebRequest"/> class.
@@ -49,7 +52,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="uri">The URI.</param>
         internal EwsHttpWebRequest(Uri uri)
         {
-            this.request = (HttpWebRequest)WebRequest.Create(uri);
+            Method = "GET";
+            RequestUri = uri;
+            _httpClientHandler = new HttpClientHandler() {
+                AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip
+            };
+            _httpClient = new HttpClient(_httpClientHandler);
         }
 
         #region IEwsHttpWebRequest Members
@@ -57,9 +65,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Aborts this instance.
         /// </summary>
-        void IEwsHttpWebRequest.Abort()
+        public void Abort()
         {
-            this.request.Abort();
+            _httpClient.CancelPendingRequests();
         }
 
         /// <summary>
@@ -68,10 +76,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.IO.Stream"/> to use to write request data.
         /// </returns>
-        Task<Stream> IEwsHttpWebRequest.GetRequestStream()
-        {
-            return this.request.GetRequestStreamAsync();
-        }
+        public string Content { get; set; }
 
         /// <summary>
         /// Returns a response from an Internet resource.
@@ -79,19 +84,53 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.Net.HttpWebResponse"/> that contains the response from the Internet resource.
         /// </returns>
-        async Task<IEwsHttpWebResponse> IEwsHttpWebRequest.GetResponse()
+        public async Task<IEwsHttpWebResponse> GetResponse()
         {
-            return new EwsHttpWebResponse(await request.GetResponseAsync() as HttpWebResponse);
+            var message = new HttpRequestMessage(new HttpMethod(Method), RequestUri);
+            message.Content = new StringContent(Content);
+            //if (!string.IsNullOrEmpty(ContentType))
+            //    message.Content.Headers.ContentType = new MediaTypeHeaderValue(ContentType);
+
+            if (!string.IsNullOrEmpty(UserAgent))
+            {
+                message.Headers.UserAgent.Clear();
+                message.Headers.UserAgent.ParseAdd(UserAgent);
+            }
+
+            if (!string.IsNullOrEmpty(Accept))
+            {
+                message.Headers.Accept.Clear();
+                message.Headers.Accept.ParseAdd(Accept);
+            }
+
+            HttpResponseMessage response = null;
+            try
+            {
+                response = await _httpClient.SendAsync(message);
+            }
+            catch(Exception exception)
+            {
+                throw new EwsHttpClientException(exception);
+            }
+            if (!response.IsSuccessStatusCode)
+                throw new EwsHttpClientException(response);
+
+            return new EwsHttpWebResponse(response);
+        }
+
+        public void Dispose()
+        {
+            _httpClient.Dispose();
         }
 
         /// <summary>
         /// Gets or sets the value of the Accept HTTP header.
         /// </summary>
         /// <returns>The value of the Accept HTTP header. The default value is null.</returns>
-        string IEwsHttpWebRequest.Accept
+        public string Accept
         {
-            get { return this.request.Accept; }
-            set { this.request.Accept = value; }
+            get;
+            set;
         }
 
         /// <summary>
@@ -103,8 +142,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </returns>
         bool IEwsHttpWebRequest.AllowAutoRedirect
         {
-            get { return request.AllowAutoRedirect; }
-            set { request.AllowAutoRedirect = value; }
+            get { return _httpClientHandler.AllowAutoRedirect; }
+            set { _httpClientHandler.AllowAutoRedirect = value; }
         }
 
         /// <summary>
@@ -112,50 +151,49 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <value></value>
         /// <returns>The collection of X509 client certificates.</returns>
-        X509CertificateCollection IEwsHttpWebRequest.ClientCertificates
+        public X509CertificateCollection ClientCertificates
         {
-            get { return request.ClientCertificates; }
-            set { request.ClientCertificates = value; }
+            get;
+            set;
         }
 
         /// <summary>
         /// Gets or sets the value of the Content-type HTTP header.
         /// </summary>
         /// <returns>The value of the Content-type HTTP header. The default value is null.</returns>
-        string IEwsHttpWebRequest.ContentType
+        public string ContentType
         {
-            get { return this.request.ContentType; }
-            set { this.request.ContentType = value; }
+            get;
+            set;
         }
 
         /// <summary>
         /// Gets or sets the cookie container.
         /// </summary>
         /// <value>The cookie container.</value>
-        CookieContainer IEwsHttpWebRequest.CookieContainer
+        public CookieContainer CookieContainer
         {
-            get { return this.request.CookieContainer; }
-            set { this.request.CookieContainer = value; }
+            get { return this._httpClientHandler.CookieContainer; }
+            set { this._httpClientHandler.CookieContainer = value; }
         }
 
         /// <summary>
         /// Gets or sets authentication information for the request.
         /// </summary>
         /// <returns>An <see cref="T:System.Net.ICredentials"/> that contains the authentication credentials associated with the request. The default is null.</returns>
-        ICredentials IEwsHttpWebRequest.Credentials
+        public ICredentials Credentials
         {
-            get { return this.request.Credentials; }
-            set { this.request.Credentials = value; }
+            get { return this._httpClientHandler.Credentials; }
+            set { this._httpClientHandler.Credentials = value; }
         }
 
         /// <summary>
         /// Specifies a collection of the name/value pairs that make up the HTTP headers.
         /// </summary>
         /// <returns>A <see cref="T:System.Net.WebHeaderCollection"/> that contains the name/value pairs that make up the headers for the HTTP request.</returns>
-        WebHeaderCollection IEwsHttpWebRequest.Headers
+        HttpRequestHeaders IEwsHttpWebRequest.Headers
         {
-            get { return this.request.Headers; }
-            set { this.request.Headers = value; }
+            get { return this._httpClient.DefaultRequestHeaders; }
         }
 
         /// <summary>
@@ -163,68 +201,68 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <returns>The request method to use to contact the Internet resource. The default value is GET.</returns>
         /// <exception cref="T:System.ArgumentException">No method is supplied.-or- The method string contains invalid characters. </exception>
-        string IEwsHttpWebRequest.Method
+        public string Method
         {
-            get { return this.request.Method; }
-            set { this.request.Method = value; }
+            get;
+            set;
         }
 
         /// <summary>
         /// Gets or sets proxy information for the request.
         /// </summary>
-        IWebProxy IEwsHttpWebRequest.Proxy
+        public IWebProxy Proxy
         {
-            get { return this.request.Proxy; }
-            set { this.request.Proxy = value; }
+            get { return _httpClientHandler.Proxy; }
+            set { _httpClientHandler.Proxy = value; }
         }
 
         /// <summary>
         /// Gets or sets a value that indicates whether to send an authenticate header with the request.
         /// </summary>
         /// <returns>true to send a WWW-authenticate HTTP header with requests after authentication has taken place; otherwise, false. The default is false.</returns>
-        bool IEwsHttpWebRequest.PreAuthenticate
+        public bool PreAuthenticate
         {
-            get { return request.PreAuthenticate; }
-            set { request.PreAuthenticate = value; }
+            get { return _httpClientHandler.PreAuthenticate; }
+            set { _httpClientHandler.PreAuthenticate = value; }
         }
 
         /// <summary>
         /// Gets the original Uniform Resource Identifier (URI) of the request.
         /// </summary>
         /// <returns>A <see cref="T:System.Uri"/> that contains the URI of the Internet resource passed to the <see cref="M:System.Net.WebRequest.Create(System.String)"/> method.</returns>
-        Uri IEwsHttpWebRequest.RequestUri
+        public Uri RequestUri
         {
-            get { return this.request.RequestUri; }
+            get;
         }
 
         /// <summary>
         /// Gets or sets the time-out value in milliseconds for the <see cref="M:System.Net.HttpWebRequest.GetResponse"/> and <see cref="M:System.Net.HttpWebRequest.GetRequestStream"/> methods.
         /// </summary>
         /// <returns>The number of milliseconds to wait before the request times out. The default is 100,000 milliseconds (100 seconds).</returns>
-        int IEwsHttpWebRequest.Timeout
+        public int Timeout
         {
-            get { return request.Timeout; }
-            set { request.Timeout = value; }
+            get { return _httpClient.Timeout.Milliseconds; }
+            set { _httpClient.Timeout = TimeSpan.FromMilliseconds(value); }
         }
 
         /// <summary>
         /// Gets or sets a <see cref="T:System.Boolean"/> value that controls whether default credentials are sent with requests.
         /// </summary>
         /// <returns>true if the default credentials are used; otherwise false. The default value is false.</returns>
-        bool IEwsHttpWebRequest.UseDefaultCredentials
+        public bool UseDefaultCredentials
         {
-            get { return this.request.UseDefaultCredentials; }
-            set { this.request.UseDefaultCredentials = value; }
+            get { return this._httpClientHandler.UseDefaultCredentials; }
+            set { this._httpClientHandler.UseDefaultCredentials = value; }
         }
 
         /// <summary>
         /// Gets or sets the value of the User-agent HTTP header.
         /// </summary>
         /// <returns>The value of the User-agent HTTP header. The default value is null.The value for this property is stored in <see cref="T:System.Net.WebHeaderCollection"/>. If WebHeaderCollection is set, the property value is lost.</returns>
-        string IEwsHttpWebRequest.UserAgent
+        public string UserAgent
         {
-            get { return request.UserAgent; }
-            set { request.UserAgent = value; }
+            get;
+            set;
         }
 
         /// <summary>
@@ -232,8 +270,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         public bool KeepAlive
         {
-            get { return request.KeepAlive; }
-            set { request.KeepAlive = value; }
+            get { return !(this._httpClient.DefaultRequestHeaders.ConnectionClose ?? false); }
+            set { this._httpClient.DefaultRequestHeaders.ConnectionClose = !value; }
         }
 
         /// <summary>
@@ -241,8 +279,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         public string ConnectionGroupName
         {
-            get { return request.ConnectionGroupName; }
-            set { request.ConnectionGroupName = value; }
+            get;
+            set;
         }
 
         #endregion

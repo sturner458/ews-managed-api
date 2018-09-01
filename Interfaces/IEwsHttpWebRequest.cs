@@ -28,13 +28,14 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.IO;
     using System.Net;
+    using System.Net.Http.Headers;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
     /// <summary>
     /// HttpWebRequest proxy interface.
     /// </summary>
-    internal interface IEwsHttpWebRequest 
+    internal interface IEwsHttpWebRequest : IDisposable 
     {
         /// <summary>
         /// Cancels request to an Internet resource.
@@ -47,7 +48,10 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.IO.Stream"/> to use to write request data.
         /// </returns>
-        Task<Stream> GetRequestStream();
+        string Content
+        {
+            get; set;
+        }
 
         /// <summary>
         /// Returns a response from an Internet resource.
@@ -115,9 +119,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Specifies a collection of the name/value pairs that make up the HTTP headers.
         /// </summary>
         /// <returns>A <see cref="T:System.Net.WebHeaderCollection"/> that contains the name/value pairs that make up the headers for the HTTP request.</returns>
-        WebHeaderCollection Headers
+        HttpRequestHeaders Headers
         { 
-            get; set; 
+            get; 
         }
 
         /// <summary>

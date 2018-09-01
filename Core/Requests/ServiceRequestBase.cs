@@ -29,7 +29,9 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
+    using System.Linq;
     using System.Net;
+    using System.Net.Http.Headers;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -86,10 +88,10 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="response">HttpWebResponse.</param>
         /// <returns>ResponseStream</returns>
-        protected static Stream GetResponseStream(IEwsHttpWebResponse response)
+        protected static async Task<Stream> GetResponseStream(IEwsHttpWebResponse response)
         {
             string contentEncoding = response.ContentEncoding;
-            Stream responseStream = response.GetResponseStream();
+            Stream responseStream = await response.GetResponseStream();
 
             return WrapStream(responseStream, response.ContentEncoding);
         }
@@ -100,9 +102,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="response">HttpWebResponse.</param>
         /// <param name="readTimeout">read timeout in milliseconds</param>
         /// <returns>ResponseStream</returns>
-        protected static Stream GetResponseStream(IEwsHttpWebResponse response, int readTimeout)
+        protected static async Task<Stream> GetResponseStream(IEwsHttpWebResponse response, int readTimeout)
         {
-            Stream responseStream = response.GetResponseStream();
+            Stream responseStream = await response.GetResponseStream();
 
             responseStream.ReadTimeout = readTimeout;
             return WrapStream(responseStream, response.ContentEncoding);
@@ -167,7 +169,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="responseHeaders">Response headers</param>
         /// <returns>Response object.</returns>
         /// <remarks>If this is overriden instead of the 1-parameter version, you can read response headers</remarks>
-        internal virtual object ParseResponse(EwsServiceXmlReader reader, WebHeaderCollection responseHeaders)
+        internal virtual object ParseResponse(EwsServiceXmlReader reader, HttpResponseHeaders responseHeaders)
         {
             return this.ParseResponse(reader);
         }
@@ -220,12 +222,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Allows the subclasses to add their own header information
         /// </summary>
         /// <param name="webHeaderCollection">The HTTP request headers</param>
-        internal virtual void AddHeaders(WebHeaderCollection webHeaderCollection)
+        internal virtual void AddHeaders(HttpRequestHeaders webHeaderCollection)
         {
             if (!string.IsNullOrEmpty(this.AnchorMailbox))
             {
-                webHeaderCollection[AnchorMailboxHeaderName] = this.AnchorMailbox;
-                webHeaderCollection[ExplicitLogonUserHeaderName] = this.AnchorMailbox;
+                webHeaderCollection.TryAddWithoutValidation(AnchorMailboxHeaderName, this.AnchorMailbox);
+                webHeaderCollection.TryAddWithoutValidation(ExplicitLogonUserHeaderName, this.AnchorMailbox);
             }
         }
 
@@ -393,14 +395,17 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Emits the request.
         /// </summary>
         /// <param name="request">The request.</param>
-        private async System.Threading.Tasks.Task EmitRequest(IEwsHttpWebRequest request)
+        private void EmitRequest(IEwsHttpWebRequest request)
         {
-            using (Stream requestStream = await this.GetWebRequestStream(request).ConfigureAwait(false))
+            using (var memoryStream = new MemoryStream())
             {
-                using (EwsServiceXmlWriter writer = new EwsServiceXmlWriter(this.Service, requestStream))
+                using (EwsServiceXmlWriter writer = new EwsServiceXmlWriter(this.Service, memoryStream))
                 {
                     this.WriteToXml(writer);
                 }
+                memoryStream.Position = 0;
+                using (StreamReader reader = new StreamReader(memoryStream, Encoding.UTF8, false, 4096, true))
+                    request.Content = reader.ReadToEnd();
             }
         }
 
@@ -410,7 +415,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="request">The request.</param>
         /// <param name="needSignature"></param>
         /// <param name="needTrace"></param>
-        private async System.Threading.Tasks.Task TraceAndEmitRequest(IEwsHttpWebRequest request, bool needSignature, bool needTrace)
+        private void TraceAndEmitRequest(IEwsHttpWebRequest request, bool needSignature, bool needTrace)
         {
             using (MemoryStream memoryStream = new MemoryStream())
             {
@@ -430,27 +435,10 @@ namespace Microsoft.Exchange.WebServices.Data
                     this.TraceXmlRequest(memoryStream);
                 }
 
-                using (Stream serviceRequestStream = await this.GetWebRequestStream(request).ConfigureAwait(false))
-                {
-                    EwsUtilities.CopyStream(memoryStream, serviceRequestStream);
-                }
+                memoryStream.Position = 0;
+                using (var reader = new StreamReader(memoryStream, Encoding.UTF8, false, 4096, true))
+                    request.Content = reader.ReadToEnd();
             }
-        }
-
-        /// <summary>
-        /// Get the request stream
-        /// </summary>
-        /// <param name="request">The request</param>
-        /// <returns>The Request stream</returns>
-        private Task<Stream> GetWebRequestStream(IEwsHttpWebRequest request)
-        {
-            // In the async case, although we can use async callback to make the entire worflow completely async, 
-            // there is little perf gain with this approach because of EWS's message nature.
-            // The overall latency of BeginGetRequestStream() is same as GetRequestStream() in this case.
-            // The overhead to implement a two-step async operation includes wait handle synchronization, exception handling and wrapping.
-            // Therefore, we only leverage BeginGetResponse() and EndGetResponse() to provide the async functionality.
-            // Reference: http://www.wintellect.com/CS/blogs/jeffreyr/archive/2009/02/08/httpwebrequest-its-request-stream-and-sending-data-in-chunks.aspx
-            return request.GetRequestStream();
         }
 
         /// <summary>
@@ -459,7 +447,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="ewsXmlReader">The XML reader.</param>
         /// <param name="responseHeaders">HTTP response headers</param>
         /// <returns>Service response.</returns>
-        protected object ReadResponse(EwsServiceXmlReader ewsXmlReader, WebHeaderCollection responseHeaders)
+        protected object ReadResponse(EwsServiceXmlReader ewsXmlReader, HttpResponseHeaders responseHeaders)
         {
             object serviceResponse;
 
@@ -492,7 +480,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="ewsXmlReader">The XML reader.</param>
         /// <param name="responseHeaders">HTTP response headers</param>
         /// <returns>Service response.</returns>
-        protected async Task<object> ReadResponseAsync(EwsServiceXmlReader ewsXmlReader, WebHeaderCollection responseHeaders, CancellationToken token)
+        protected async Task<object> ReadResponseAsync(EwsServiceXmlReader ewsXmlReader, HttpResponseHeaders responseHeaders, CancellationToken token)
         {
             object serviceResponse;
 
@@ -667,81 +655,77 @@ namespace Microsoft.Exchange.WebServices.Data
             this.Validate();
 
             var request = await this.BuildEwsHttpWebRequest().ConfigureAwait(false);
-
-            if (this.service.SendClientLatencies)
-            {
-                string clientStatisticsToAdd = null;
-
-                lock (clientStatisticsCache)
-                {
-                    if (clientStatisticsCache.Count > 0)
-                    {
-                        clientStatisticsToAdd = clientStatisticsCache[0];
-                        clientStatisticsCache.RemoveAt(0);
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(clientStatisticsToAdd))
-                {
-                    if (request.Headers[ClientStatisticsRequestHeader] != null)
-                    {
-                        request.Headers[ClientStatisticsRequestHeader] =
-                            request.Headers[ClientStatisticsRequestHeader]
-                            + clientStatisticsToAdd;
-                    }
-                    else
-                    {
-                        request.Headers[
-                            ClientStatisticsRequestHeader] = clientStatisticsToAdd;
-                    }
-                }
-            }
-
-            DateTime startTime = DateTime.UtcNow;
-            IEwsHttpWebResponse response = null;
-
             try
-            {
-                response = await this.GetEwsHttpWebResponse(request).ConfigureAwait(false);
-            }
-            finally
             {
                 if (this.service.SendClientLatencies)
                 {
-                    int clientSideLatency = (int)(DateTime.UtcNow - startTime).TotalMilliseconds;
-                    string requestId = string.Empty;
-                    string soapAction = this.GetType().Name.Replace("Request", string.Empty);
-
-                    if (response != null && response.Headers != null)
-                    {
-                        foreach (string requestIdHeader in ServiceRequestBase.RequestIdResponseHeaders)
-                        {
-                            string requestIdValue = response.Headers[requestIdHeader];
-                            if (!string.IsNullOrEmpty(requestIdValue))
-                            {
-                                requestId = requestIdValue;
-                                break;
-                            }
-                        }
-                    }
-
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append("MessageId=");
-                    sb.Append(requestId);
-                    sb.Append(",ResponseTime=");
-                    sb.Append(clientSideLatency);
-                    sb.Append(",SoapAction=");
-                    sb.Append(soapAction);
-                    sb.Append(";");
+                    string clientStatisticsToAdd = null;
 
                     lock (clientStatisticsCache)
                     {
-                        clientStatisticsCache.Add(sb.ToString());
+                        if (clientStatisticsCache.Count > 0)
+                        {
+                            clientStatisticsToAdd = clientStatisticsCache[0];
+                            clientStatisticsCache.RemoveAt(0);
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(clientStatisticsToAdd))
+                    {
+                        request.Headers.TryAddWithoutValidation(ClientStatisticsRequestHeader, clientStatisticsToAdd);
                     }
                 }
-            }
 
-            return Tuple.Create(request, response);
+                DateTime startTime = DateTime.UtcNow;
+                IEwsHttpWebResponse response = null;
+
+                try
+                {
+                    response = await this.GetEwsHttpWebResponse(request).ConfigureAwait(false);
+                }
+                finally
+                {
+                    if (this.service.SendClientLatencies)
+                    {
+                        int clientSideLatency = (int)(DateTime.UtcNow - startTime).TotalMilliseconds;
+                        string requestId = string.Empty;
+                        string soapAction = this.GetType().Name.Replace("Request", string.Empty);
+
+                        if (response != null && response.Headers != null)
+                        {
+                            foreach (string requestIdHeader in ServiceRequestBase.RequestIdResponseHeaders)
+                            {
+                                if (response.Headers.TryGetValues(requestIdHeader, out IEnumerable<string> values))
+                                {
+                                    requestId = values.First();
+                                    break;
+                                }
+                            }
+                        }
+
+                        StringBuilder sb = new StringBuilder();
+                        sb.Append("MessageId=");
+                        sb.Append(requestId);
+                        sb.Append(",ResponseTime=");
+                        sb.Append(clientSideLatency);
+                        sb.Append(",SoapAction=");
+                        sb.Append(soapAction);
+                        sb.Append(";");
+
+                        lock (clientStatisticsCache)
+                        {
+                            clientStatisticsCache.Add(sb.ToString());
+                        }
+                    }
+                }
+
+                return Tuple.Create(request, response);
+            }
+            catch (Exception)
+            {
+                request.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -750,9 +734,10 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>An IEwsHttpWebRequest instance</returns>
         protected async Task<IEwsHttpWebRequest> BuildEwsHttpWebRequest()
         {
+            IEwsHttpWebRequest request = null;
             try
             {
-                IEwsHttpWebRequest request = this.Service.PrepareHttpWebRequest(this.GetXmlElementName());
+                request = this.Service.PrepareHttpWebRequest(this.GetXmlElementName());
 
                 this.Service.TraceHttpRequestHeaders(TraceFlags.EwsRequestHttpHeaders, request);
 
@@ -767,27 +752,31 @@ namespace Microsoft.Exchange.WebServices.Data
                 // the request stream.
                 if (needSignature || needTrace)
                 {
-                    await this.TraceAndEmitRequest(request, needSignature, needTrace).ConfigureAwait(false);
+                    this.TraceAndEmitRequest(request, needSignature, needTrace);
                 }
                 else
                 {
-                    await this.EmitRequest(request).ConfigureAwait(false);
+                    this.EmitRequest(request);
                 }
 
                 return request;
             }
-            catch (WebException ex)
+            catch (EwsHttpClientException ex)
             {
-                if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
+                if (ex.IsProtocolError && ex.Response != null)
                 {
-                    this.ProcessWebException(ex);
+                    await this.ProcessEwsHttpClientException(ex);
                 }
+                if (request != null)
+                    request.Dispose();
 
                 // Wrap exception if the above code block didn't throw
                 throw new ServiceRequestException(string.Format(Strings.ServiceRequestFailed, ex.Message), ex);
             }
             catch (IOException e)
             {
+                if (request != null)
+                    request.Dispose();
                 // Wrap exception.
                 throw new ServiceRequestException(string.Format(Strings.ServiceRequestFailed, e.Message), e);
             }
@@ -804,11 +793,11 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 return await request.GetResponse().ConfigureAwait(false);
             }
-            catch (WebException ex)
+            catch (EwsHttpClientException ex)
             {
-                if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
+                if (ex.IsProtocolError && ex.Response != null)
                 {
-                    this.ProcessWebException(ex);
+                    await this.ProcessEwsHttpClientException(ex);
                 }
 
                 // Wrap exception if the above code block didn't throw
@@ -825,7 +814,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Processes the web exception.
         /// </summary>
         /// <param name="webException">The web exception.</param>
-        private void ProcessWebException(WebException webException)
+        private async System.Threading.Tasks.Task ProcessEwsHttpClientException(EwsHttpClientException webException)
         {
             if (webException.Response != null)
             {
@@ -844,7 +833,7 @@ namespace Microsoft.Exchange.WebServices.Data
                         {
                             using (MemoryStream memoryStream = new MemoryStream())
                             {
-                                using (Stream serviceResponseStream = ServiceRequestBase.GetResponseStream(httpWebResponse))
+                                using (Stream serviceResponseStream = await ServiceRequestBase.GetResponseStream(httpWebResponse))
                                 {
                                     // Copy response to in-memory stream and reset position to start.
                                     EwsUtilities.CopyStream(serviceResponseStream, memoryStream);
@@ -859,7 +848,7 @@ namespace Microsoft.Exchange.WebServices.Data
                         }
                         else
                         {
-                            using (Stream stream = ServiceRequestBase.GetResponseStream(httpWebResponse))
+                            using (Stream stream = await ServiceRequestBase.GetResponseStream(httpWebResponse))
                             {
                                 EwsServiceXmlReader reader = new EwsServiceXmlReader(stream, this.Service);
                                 soapFaultDetails = this.ReadSoapFault(reader);
@@ -888,7 +877,7 @@ namespace Microsoft.Exchange.WebServices.Data
                                     // This shouldn't happen. It indicates that a request wasn't valid for the version that was specified.
                                     EwsUtilities.Assert(
                                         false,
-                                        "ServiceRequestBase.ProcessWebException",
+                                        "ServiceRequestBase.ProcessEwsHttpClientException",
                                         "Exchange server supports requested version but request was invalid for that version");
                                     break;
 
@@ -914,7 +903,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
         /// <summary>
         /// Traces an XML request.  This should only be used for synchronous requests, or synchronous situations
-        /// (such as a WebException on an asynchrounous request).
+        /// (such as a EwsHttpClientException on an asynchrounous request).
         /// </summary>
         /// <param name="memoryStream">The request content in a MemoryStream.</param>
         protected void TraceXmlRequest(MemoryStream memoryStream)
@@ -924,7 +913,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
         /// <summary>
         /// Traces the response.  This should only be used for synchronous requests, or synchronous situations
-        /// (such as a WebException on an asynchrounous request).
+        /// (such as a EwsHttpClientException on an asynchrounous request).
         /// </summary>
         /// <param name="response">The response.</param>
         /// <param name="memoryStream">The response content in a MemoryStream.</param>

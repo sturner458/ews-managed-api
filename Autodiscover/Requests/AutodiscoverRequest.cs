@@ -33,7 +33,6 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
     using Microsoft.Exchange.WebServices.Data;
     using System.Threading.Tasks;
     using System.Net.Http;
-    using Data.Core;
     using System.Net.Http.Headers;
 
     /// <summary>
@@ -80,7 +79,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// Executes this instance.
         /// </summary>
         /// <returns></returns>
-        internal AutodiscoverResponse InternalExecute()
+        internal async Task<AutodiscoverResponse> InternalExecute()
         {
             this.Validate();
 
@@ -117,7 +116,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     }
 
                 using (var client = this.Service.PrepareHttpClient())
-                using (IEwsHttpWebResponse webResponse = new EwsHttpResponse(client.SendAsync(request).Result))
+                using (IEwsHttpWebResponse webResponse = new EwsHttpWebResponse(client.SendAsync(request).Result))
                 {
                     if (AutodiscoverRequest.IsRedirectionResponse(webResponse))
                     {
@@ -132,7 +131,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                         }
                     }
 
-                    using (Stream responseStream = AutodiscoverRequest.GetResponseStream(webResponse))
+                    using (Stream responseStream = await AutodiscoverRequest.GetResponseStream(webResponse))
                     {
                         using (MemoryStream memoryStream = new MemoryStream())
                         {
@@ -173,9 +172,9 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     }
                 }
             }
-            catch (WebException ex)
+            catch (EwsHttpClientException ex)
             {
-                if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
+                if (ex.IsProtocolError && ex.Response != null)
                 {
                     IEwsHttpWebResponse httpWebResponse = this.Service.HttpWebRequestFactory.CreateExceptionResponse(ex);
 
@@ -193,7 +192,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     }
                     else
                     {
-                        this.ProcessWebException(ex);
+                        await this.ProcessEwsHttpClientException(ex);
                     }
                 }
 
@@ -224,7 +223,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// Processes the web exception.
         /// </summary>
         /// <param name="webException">The web exception.</param>
-        private void ProcessWebException(WebException webException)
+        private async System.Threading.Tasks.Task ProcessEwsHttpClientException(EwsHttpClientException webException)
         {
             if (webException.Response != null)
             {
@@ -240,7 +239,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     {
                         using (MemoryStream memoryStream = new MemoryStream())
                         {
-                            using (Stream serviceResponseStream = AutodiscoverRequest.GetResponseStream(httpWebResponse))
+                            using (Stream serviceResponseStream = await AutodiscoverRequest.GetResponseStream(httpWebResponse))
                             {
                                 // Copy response to in-memory stream and reset position to start.
                                 EwsUtilities.CopyStream(serviceResponseStream, memoryStream);
@@ -255,7 +254,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     }
                     else
                     {
-                        using (Stream stream = AutodiscoverRequest.GetResponseStream(httpWebResponse))
+                        using (Stream stream = await AutodiscoverRequest.GetResponseStream(httpWebResponse))
                         {
                             EwsXmlReader reader = new EwsXmlReader(stream);
                             soapFaultDetails = this.ReadSoapFault(reader);
@@ -280,8 +279,8 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="httpWebResponse">The HTTP web response.</param>
         private AutodiscoverResponse CreateRedirectionResponse(IEwsHttpWebResponse httpWebResponse)
         {
-            string location = httpWebResponse.Headers[HttpResponseHeader.Location];
-            if (!string.IsNullOrEmpty(location))
+            var location = httpWebResponse.Headers.Location;
+            if (location != null)
             {
                 try
                 {
@@ -476,10 +475,10 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// </summary>
         /// <param name="response">HttpWebResponse.</param>
         /// <returns>ResponseStream</returns>
-        protected static Stream GetResponseStream(IEwsHttpWebResponse response)
+        protected static async Task<Stream> GetResponseStream(IEwsHttpWebResponse response)
         {
             string contentEncoding = response.ContentEncoding;
-            Stream responseStream = response.GetResponseStream();
+            Stream responseStream = await response.GetResponseStream();
 
             if (contentEncoding.ToLowerInvariant().Contains("gzip"))
             {

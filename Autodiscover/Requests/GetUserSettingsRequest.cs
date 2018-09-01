@@ -106,9 +106,9 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// Executes this instance.
         /// </summary>
         /// <returns></returns>
-        internal GetUserSettingsResponseCollection Execute()
+        internal async Task<GetUserSettingsResponseCollection> Execute()
         {
-            GetUserSettingsResponseCollection responses = (GetUserSettingsResponseCollection)this.InternalExecute();
+            GetUserSettingsResponseCollection responses = (GetUserSettingsResponseCollection)(await this.InternalExecute());
             if (responses.ErrorCode == AutodiscoverErrorCode.NoError)
             {
                 this.PostProcessResponses(responses);

@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.IO;
     using System.Net;
+    using System.Net.Http;
     using System.Text;
     using System.Threading.Tasks;
     using System.Xml;
@@ -269,7 +270,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="response">The response.</param>
         /// <param name="memoryStream">The response content in a MemoryStream.</param>
-        private void TraceResponse(HttpWebResponse response, MemoryStream memoryStream)
+        private void TraceResponse(HttpResponseMessage response, MemoryStream memoryStream)
         {
             EwsUtilities.Assert(
                 memoryStream != null,
@@ -281,23 +282,23 @@ namespace Microsoft.Exchange.WebServices.Data
                 return;
             }
             
-            if (!string.IsNullOrEmpty(response.ContentType) && 
-                (response.ContentType.StartsWith("text/", StringComparison.OrdinalIgnoreCase) ||
-                 response.ContentType.StartsWith("application/soap", StringComparison.OrdinalIgnoreCase)))
-            {
-                this.traceListener.Trace(
-                    "WindowsLiveResponse",
-                    EwsUtilities.FormatLogMessageWithXmlContent("WindowsLiveResponse", memoryStream));
-            }
-            else
-            {
-                this.traceListener.Trace(
-                    "WindowsLiveResponse",
-                    "Non-textual response");
-            }
+            //if (!string.IsNullOrEmpty(response.ContentType) && 
+            //    (response.ContentType.StartsWith("text/", StringComparison.OrdinalIgnoreCase) ||
+            //     response.ContentType.StartsWith("application/soap", StringComparison.OrdinalIgnoreCase)))
+            //{
+            //    this.traceListener.Trace(
+            //        "WindowsLiveResponse",
+            //        EwsUtilities.FormatLogMessageWithXmlContent("WindowsLiveResponse", memoryStream));
+            //}
+            //else
+            //{
+            //    this.traceListener.Trace(
+            //        "WindowsLiveResponse",
+            //        "Non-textual response");
+            //}
         }
 
-        private void TraceWebException(WebException e)
+        private void TraceWebException(EwsHttpClientException e)
         {
             // If there wasn't a response, there's nothing to trace.
             if (e.Response == null)
@@ -319,14 +320,14 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
-                    using (Stream responseStream = e.Response.GetResponseStream())
-                    {
-                        // Copy response to in-memory stream and reset position to start.
-                        EwsUtilities.CopyStream(responseStream, memoryStream);
-                        memoryStream.Position = 0;
-                    }
+                    //using (Stream responseStream = e.Response.Content.ReadAsStreamAsync())
+                    //{
+                    //    // Copy response to in-memory stream and reset position to start.
+                    //    EwsUtilities.CopyStream(responseStream, memoryStream);
+                    //    memoryStream.Position = 0;
+                    //}
 
-                    this.TraceResponse((HttpWebResponse) e.Response, memoryStream);
+                    //this.TraceResponse(e.Response, memoryStream);
                 }
             }
         }
@@ -345,9 +346,9 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 response = this.EmitTokenRequest(uriForTokenEndpointReference);
             }
-            catch (WebException e)
+            catch (EwsHttpClientException e)
             {
-                if (e.Status == WebExceptionStatus.ProtocolError && e.Response != null)
+                if (e.IsProtocolError && e.Response != null)
                 {
                     this.TraceWebException(e);
                 }
@@ -356,8 +357,7 @@ namespace Microsoft.Exchange.WebServices.Data
                     if (this.TraceEnabled)
                     {
                         string traceString = string.Format(
-                            "Error occurred sending request - status was {0}, exception {1}",
-                            e.Status,
+                            "Error occurred sending request - exception {0}",
                             e);
                         this.traceListener.Trace(
                             "WindowsLiveCredentials",
@@ -372,13 +372,12 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 this.ProcessTokenResponse(response);
             }
-            catch (WebException e)
+            catch (EwsHttpClientException e)
             {
                 if (this.TraceEnabled)
                 {
                     string traceString = string.Format(
-                        "Error occurred sending request - status was {0}, exception {1}",
-                        e.Status,
+                        "Error occurred sending request - exception {0}",
                         e);
                     this.traceListener.Trace(
                         "WindowsLiveCredentials",

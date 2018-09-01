@@ -47,6 +47,6 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="exception">The exception.</param>
         /// <returns></returns>
-        IEwsHttpWebResponse CreateExceptionResponse(WebException exception);
+        IEwsHttpWebResponse CreateExceptionResponse(EwsHttpClientException exception);
     }
 }

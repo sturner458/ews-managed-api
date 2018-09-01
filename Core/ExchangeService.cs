@@ -4320,9 +4320,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// calling the Autodiscover service.
         /// </summary>
         /// <param name="emailAddress">The email address to use.</param>
-        public void AutodiscoverUrl(string emailAddress)
+        public System.Threading.Tasks.Task AutodiscoverUrl(string emailAddress)
         {
-            this.AutodiscoverUrl(emailAddress, this.DefaultAutodiscoverRedirectionUrlValidationCallback);
+            return this.AutodiscoverUrl(emailAddress, this.DefaultAutodiscoverRedirectionUrlValidationCallback);
         }
 
         /// <summary>
@@ -4331,7 +4331,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="emailAddress">The email address to use.</param>
         /// <param name="validateRedirectionUrlCallback">The callback used to validate redirection URL.</param>
-        public void AutodiscoverUrl(string emailAddress, AutodiscoverRedirectionUrlValidationCallback validateRedirectionUrlCallback)
+        public async System.Threading.Tasks.Task AutodiscoverUrl(string emailAddress, AutodiscoverRedirectionUrlValidationCallback validateRedirectionUrlCallback)
         {
             Uri exchangeServiceUrl;
 
@@ -4339,7 +4339,7 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 try
                 {
-                    exchangeServiceUrl = this.GetAutodiscoverUrl(
+                    exchangeServiceUrl = await this.GetAutodiscoverUrl(
                         emailAddress,
                         this.RequestedServerVersion,
                         validateRedirectionUrlCallback);
@@ -4368,7 +4368,7 @@ namespace Microsoft.Exchange.WebServices.Data
             }
 
             // Try legacy Autodiscover provider
-            exchangeServiceUrl = this.GetAutodiscoverUrl(
+            exchangeServiceUrl = await this.GetAutodiscoverUrl(
                 emailAddress,
                 ExchangeVersion.Exchange2007_SP1,
                 validateRedirectionUrlCallback);
@@ -4399,7 +4399,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="requestedServerVersion">Exchange version.</param>
         /// <param name="validateRedirectionUrlCallback">The validate redirection URL callback.</param>
         /// <returns>Ews URL</returns>
-        private Uri GetAutodiscoverUrl(
+        private async Task<Uri> GetAutodiscoverUrl(
             string emailAddress,
             ExchangeVersion requestedServerVersion,
             AutodiscoverRedirectionUrlValidationCallback validateRedirectionUrlCallback)
@@ -4410,7 +4410,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 EnableScpLookup = this.EnableScpLookup
             };
 
-            GetUserSettingsResponse response = autodiscoverService.GetUserSettings(
+            GetUserSettingsResponse response = await autodiscoverService.GetUserSettings(
                 emailAddress,
                 UserSettingName.InternalEwsUrl,
                 UserSettingName.ExternalEwsUrl);
@@ -5049,7 +5049,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             if (!String.IsNullOrEmpty(this.TargetServerVersion))
             {
-                request.Headers[ExchangeService.TargetServerVersionHeaderName] = this.TargetServerVersion;
+                request.Headers.TryAddWithoutValidation(ExchangeService.TargetServerVersionHeaderName, this.TargetServerVersion);
             }
 
             return request;
@@ -5070,7 +5070,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="httpWebResponse">The HTTP web response.</param>
         /// <param name="webException">The web exception.</param>
-        internal override void ProcessHttpErrorResponse(IEwsHttpWebResponse httpWebResponse, WebException webException)
+        internal override void ProcessHttpErrorResponse(IEwsHttpWebResponse httpWebResponse, EwsHttpClientException webException)
         {
             this.InternalProcessHttpErrorResponse(
                 httpWebResponse,

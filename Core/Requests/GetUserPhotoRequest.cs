@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Net;
     using Microsoft.Exchange.WebServices.Data;
     using System.Threading.Tasks;
+    using System.Net.Http.Headers;
 
     /// <summary>
     /// Represents a request of a get user photo operation
@@ -118,7 +119,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Adds header values to the request
         /// </summary>
         /// <param name="webHeaderCollection">The collection of headers to add to</param>
-        internal override void AddHeaders(WebHeaderCollection webHeaderCollection)
+        internal override void AddHeaders(HttpRequestHeaders webHeaderCollection)
         {
             // Check if the ETag was specified
             if (!string.IsNullOrEmpty(this.EntityTag))
@@ -134,7 +135,7 @@ namespace Microsoft.Exchange.WebServices.Data
                     quotedETag = quotedETag + "\"";
                 }
 
-                webHeaderCollection[HttpRequestHeader.IfNoneMatch] = quotedETag;
+                webHeaderCollection.IfNoneMatch.ParseAdd(quotedETag);
             }
         }
 
@@ -144,7 +145,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="reader">The reader.</param>
         /// <param name="responseHeaders">The HTTP response headers</param>
         /// <returns>Response object.</returns>
-        internal override object ParseResponse(EwsServiceXmlReader reader, WebHeaderCollection responseHeaders)
+        internal override object ParseResponse(EwsServiceXmlReader reader, HttpResponseHeaders responseHeaders)
         {
             GetUserPhotoResponse response = new GetUserPhotoResponse();
             response.LoadFromXml(reader, XmlElementNames.GetUserPhotoResponse);
@@ -199,10 +200,10 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 // 404 is a valid return code in the case of GetUserPhoto when the photo is
                 // not found, so it is necessary to catch this exception here.
-                WebException webException = ex.InnerException as WebException;
+                EwsHttpClientException webException = ex.InnerException as EwsHttpClientException;
                 if (webException != null)
                 {
-                    HttpWebResponse errorResponse = webException.Response as HttpWebResponse;
+                    var errorResponse = webException.Response;
                     if (errorResponse != null && errorResponse.StatusCode == HttpStatusCode.NotFound)
                     {
                         return GetUserPhotoRequest.GetNotFoundResponse();

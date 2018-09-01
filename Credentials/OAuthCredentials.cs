@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Net;
+    using System.Net.Http.Headers;
     using System.Text.RegularExpressions;
 
     /// <summary>
@@ -121,7 +122,7 @@ namespace Microsoft.Exchange.WebServices.Data
             if (this.token != null)
             {
                 request.Headers.Remove(HttpRequestHeader.Authorization.ToString());
-                request.Headers[HttpRequestHeader.Authorization] = this.token;
+                request.Headers.Authorization = new AuthenticationHeaderValue(this.token);
             }
             else
             {

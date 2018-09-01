@@ -190,7 +190,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 {
                     bool traceEwsResponse = this.Service.IsTraceEnabledFor(TraceFlags.EwsResponse);
 
-                    using (Stream responseStream = this.response.GetResponseStream())
+                    using (Stream responseStream = await this.response.GetResponseStream())
                     {
                         tracingStream = new HangingTraceStream(responseStream, this.Service) { ReadTimeout = 2 * this.heartbeatFrequencyMilliseconds };
 
@@ -251,7 +251,7 @@ namespace Microsoft.Exchange.WebServices.Data
                     return;
                 }
                 */
-                catch (WebException ex)
+                catch (EwsHttpClientException ex)
                 {
                     // Stream is closed, so disconnect.
                     this.Disconnect(HangingRequestDisconnectReason.Exception, ex);

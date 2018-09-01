@@ -35,7 +35,6 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
     using Microsoft.Exchange.WebServices.Data;
     using System.Threading.Tasks;
     using System.Net.Http;
-    using Data.Core;
     using System.Net.Http.Headers;
 #if NETSTANDARD2_0
     using System.Runtime.InteropServices;
@@ -154,11 +153,11 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         private IPAddress dnsServerAddress;
         private bool enableScpLookup = true;
 
-        private delegate TGetSettingsResponseCollection GetSettingsMethod<TGetSettingsResponseCollection, TSettingName>(
+        private delegate Task<Tuple<TGetSettingsResponseCollection, Uri>> GetSettingsMethod<TGetSettingsResponseCollection, TSettingName>(
             List<string> smtpAddresses,
             List<TSettingName> settings,
             ExchangeVersion? requestedVersion,
-            ref Uri autodiscoverUrl);
+            Uri autodiscoverUrl);
 
         #endregion
 
@@ -182,7 +181,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="emailAddress">The email address to retrieve configuration settings for.</param>
         /// <param name="url">The URL of the Autodiscover service.</param>
         /// <returns>The requested configuration settings.</returns>
-        private TSettings GetLegacyUserSettingsAtUrl<TSettings>(string emailAddress, Uri url)
+        private async Task<TSettings> GetLegacyUserSettingsAtUrl<TSettings>(string emailAddress, Uri url)
             where TSettings : ConfigurationSettingsBase, new()
         {
             this.TraceMessage(
@@ -227,7 +226,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             }
 
             using (var client = this.PrepareHttpClient())
-            using (IEwsHttpWebResponse webResponse = new EwsHttpResponse(client.SendAsync(request).Result))
+            using (IEwsHttpWebResponse webResponse = new EwsHttpWebResponse(client.SendAsync(request).Result))
             {
                 Uri redirectUrl;
                 if (this.TryGetRedirectionResponse(webResponse, out redirectUrl))
@@ -236,7 +235,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     return settings;
                 }
 
-                using (Stream responseStream = webResponse.GetResponseStream())
+                using (Stream responseStream = await webResponse.GetResponseStream())
                 {
                     // If tracing is enabled, we read the entire response into a MemoryStream so that we
                     // can pass it along to the ITraceListener. Then we parse the response from the 
@@ -309,7 +308,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 })
                 {
                     var httpResponse = client.GetAsync(url).Result;
-                    response = new EwsHttpResponse(httpResponse);
+                    response = new EwsHttpWebResponse(httpResponse);
                 }
             }
             catch (Exception ex)
@@ -350,9 +349,9 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             if (AutodiscoverRequest.IsRedirectionResponse(response))
             {
                 // Get the redirect location and verify that it's valid.
-                string location = response.Headers[HttpResponseHeader.Location];
+                var location = response.Headers.Location;
 
-                if (!string.IsNullOrEmpty(location))
+                if (location != null)
                 {
                     try
                     {
@@ -389,7 +388,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <typeparam name="TSettings">The type of the settings to retrieve.</typeparam>
         /// <param name="emailAddress">The email address to retrieve configuration settings for.</param>
         /// <returns>The requested configuration settings.</returns>
-        internal TSettings GetLegacyUserSettings<TSettings>(string emailAddress)
+        internal async Task<TSettings> GetLegacyUserSettings<TSettings>(string emailAddress)
             where TSettings : ConfigurationSettingsBase, new()
         {
             // If Url is specified, call service directly.
@@ -398,29 +397,29 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 Match match = LegacyPathRegex.Match(this.Url.AbsolutePath);
                 if (match.Success)
                 {
-                    return this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, this.Url);
+                    return await this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, this.Url);
                 }
 
                 // this.Uri is intended for Autodiscover SOAP service, convert to Legacy endpoint URL.
                 Uri autodiscoverUrl = new Uri(this.Url, AutodiscoverLegacyPath);
-                return this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, autodiscoverUrl);
+                return await this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, autodiscoverUrl);
             }
 
             // If Domain is specified, figure out the endpoint Url and call service.
             else if (!string.IsNullOrEmpty(this.Domain))
             {
                 Uri autodiscoverUrl = new Uri(string.Format(AutodiscoverLegacyHttpsUrl, this.Domain));
-                return this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, autodiscoverUrl);
+                return await this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, autodiscoverUrl);
             }
             else
             {
                 // No Url or Domain specified, need to figure out which endpoint to use.
                 int currentHop = 1;
                 List<string> redirectionEmailAddresses = new List<string>();
-                return this.InternalGetLegacyUserSettings<TSettings>(
+                return (await this.InternalGetLegacyUserSettings<TSettings>(
                     emailAddress,
                     redirectionEmailAddresses,
-                    ref currentHop);
+                    currentHop)).Item1;
             }
         }
 
@@ -432,10 +431,10 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="redirectionEmailAddresses">List of previous email addresses.</param>
         /// <param name="currentHop">Current number of redirection urls/addresses attempted so far.</param>
         /// <returns>The requested configuration settings.</returns>
-        private TSettings InternalGetLegacyUserSettings<TSettings>(
+        private async Task<Tuple<TSettings, int>> InternalGetLegacyUserSettings<TSettings>(
             string emailAddress,
             List<string> redirectionEmailAddresses,
-            ref int currentHop)
+            int currentHop)
             where TSettings : ConfigurationSettingsBase, new()
         {
             string domainName = EwsUtilities.DomainFromEmailAddress(emailAddress);
@@ -466,7 +465,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
 
                 try
                 {
-                    settings = this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, autodiscoverUrl);
+                    settings = await this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, autodiscoverUrl);
 
                     switch (settings.ResponseType)
                     {
@@ -477,7 +476,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                                 this.IsExternal = false;
                             }
                             this.Url = autodiscoverUrl;
-                            return settings;
+                            return Tuple.Create(settings, currentHop);
                         case AutodiscoverResponseType.RedirectUrl:
                             if (currentHop < AutodiscoverMaxRedirections)
                             {
@@ -505,10 +504,10 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                                 // in SCP lookups. Disable consideration of SCP records.
                                 this.DisableScpLookupIfDuplicateRedirection(settings.RedirectTarget, redirectionEmailAddresses);
 
-                                return this.InternalGetLegacyUserSettings<TSettings>(
+                                return await this.InternalGetLegacyUserSettings<TSettings>(
                                                 settings.RedirectTarget,
                                                 redirectionEmailAddresses,
-                                                ref currentHop);
+                                                currentHop);
                             }
                             else
                             {
@@ -539,7 +538,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                             break;
                     }
                 }
-                catch (WebException ex)
+                catch (EwsHttpClientException ex)
                 {
                     if (ex.Response != null)
                     {
@@ -602,30 +601,29 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             // redirection URL to get the configuration settings for this email address. (This will be a common scenario for 
             // DataCenter deployments).
             Uri redirectionUrl = this.GetRedirectUrl(domainName);
-            if ((redirectionUrl != null) &&
-                this.TryLastChanceHostRedirection<TSettings>(
-                    emailAddress,
-                    redirectionUrl,
-                    out settings))
+            if (redirectionUrl != null)
             {
-                return settings;
+                var result = await this.TryLastChanceHostRedirection<TSettings>(
+                    emailAddress,
+                    redirectionUrl);
+                if (result.Item1)
+                    return Tuple.Create(settings, currentHop);
             }
-            else
             {
                 // Getting a redirection URL from an HTTP GET failed too. As a last chance, try to get an appropriate SRV Record
                 // using DnsQuery. If successful, use this redirection URL to get the configuration settings for this email address.
                 redirectionUrl = this.GetRedirectionUrlFromDnsSrvRecord(domainName);
-                if ((redirectionUrl != null) &&
-                    this.TryLastChanceHostRedirection<TSettings>(
-                        emailAddress,
-                        redirectionUrl,
-                        out settings))
+                if (redirectionUrl != null)
                 {
-                    return settings;
+                    var result = await this.TryLastChanceHostRedirection<TSettings>(
+                        emailAddress,
+                        redirectionUrl);
+                    if (result.Item1)
+                        return Tuple.Create(settings, currentHop);
                 }
 
                 // If there was an earlier exception, throw it.
-                else if (delayedException != null)
+                if (delayedException != null)
                 {
                     throw delayedException;
                 }
@@ -673,12 +671,11 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="emailAddress">The email address.</param>
         /// <param name="redirectionUrl">Redirection Url.</param>
         /// <param name="settings">The settings.</param>
-        private bool TryLastChanceHostRedirection<TSettings>(
+        private async Task<Tuple<bool, TSettings>> TryLastChanceHostRedirection<TSettings>(
             string emailAddress,
-            Uri redirectionUrl,
-            out TSettings settings) where TSettings : ConfigurationSettingsBase, new()
+            Uri redirectionUrl) where TSettings : ConfigurationSettingsBase, new()
         {
-            settings = null;
+            TSettings settings = null;
 
             List<string> redirectionEmailAddresses = new List<string>();
 
@@ -690,12 +687,12 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 {
                     try
                     {
-                        settings = this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, redirectionUrl);
+                        settings = await this.GetLegacyUserSettingsAtUrl<TSettings>(emailAddress, redirectionUrl);
 
                         switch (settings.ResponseType)
                         {
                             case AutodiscoverResponseType.Success:
-                                return true;
+                                return Tuple.Create(true, settings);
                             case AutodiscoverResponseType.Error:
                                 throw new AutodiscoverRemoteException(Strings.AutodiscoverError, settings.Error);
                             case AutodiscoverResponseType.RedirectAddress:
@@ -704,11 +701,13 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                                 // in SCP lookups. Disable consideration of SCP records.
                                 this.DisableScpLookupIfDuplicateRedirection(settings.RedirectTarget, redirectionEmailAddresses);
 
-                                settings = this.InternalGetLegacyUserSettings<TSettings>(
+                                var result = await this.InternalGetLegacyUserSettings<TSettings>(
                                     settings.RedirectTarget,
                                     redirectionEmailAddresses,
-                                    ref currentHop);
-                                return true;
+                                    currentHop);
+                                settings = result.Item1;
+                                currentHop = result.Item2;
+                                return Tuple.Create(true, settings);
                             case AutodiscoverResponseType.RedirectUrl:
                                 try
                                 {
@@ -721,7 +720,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                                         string.Format(
                                             "Service returned invalid redirection URL {0}",
                                             settings.RedirectTarget));
-                                    return false;
+                                    return Tuple.Create(false, settings);
                                 }
                                 break;
                             default:
@@ -731,10 +730,10 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                                     settings.ResponseType,
                                     settings.RedirectTarget);
                                 this.TraceMessage(TraceFlags.AutodiscoverConfiguration, failureMessage);
-                                return false;
+                                return Tuple.Create(false, settings);
                         }
                     }
-                    catch (WebException ex)
+                    catch (EwsHttpClientException ex)
                     {
                         if (ex.Response != null)
                         {
@@ -756,7 +755,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                             TraceFlags.AutodiscoverConfiguration,
                             string.Format("{0} failed: {1} ({2})", url, ex.GetType().Name, ex.Message));
 
-                        return false;
+                        return Tuple.Create(false, settings);
                     }
                     catch (XmlException ex)
                     {
@@ -764,19 +763,19 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                         this.TraceMessage(
                             TraceFlags.AutodiscoverConfiguration,
                             string.Format("{0} failed: XML parsing error: {1}", redirectionUrl, ex.Message));
-                        return false;
+                        return Tuple.Create(false, settings);
                     }
                     catch (Exception ex)
                     {
                         this.TraceMessage(
                             TraceFlags.AutodiscoverConfiguration,
                             string.Format("{0} failed: I/O error: {1}", redirectionUrl, ex.Message));
-                        return false;
+                        return Tuple.Create(false, settings);
                     }
                 }
             }
 
-            return false;
+            return Tuple.Create(false, settings);
         }
 
         /// <summary>
@@ -805,7 +804,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="emailAddress">The email address.</param>
         /// <param name="requestedSettings">The requested settings.</param>
         /// <returns>GetUserSettingsResponse</returns>
-        internal GetUserSettingsResponse InternalGetLegacyUserSettings(string emailAddress, List<UserSettingName> requestedSettings)
+        internal async Task<GetUserSettingsResponse> InternalGetLegacyUserSettings(string emailAddress, List<UserSettingName> requestedSettings)
         {
             // Cannot call legacy Autodiscover service with WindowsLive and other WSSecurity-based credentials
             if ((this.Credentials != null) && (this.Credentials is WSSecurityBasedCredentials))
@@ -813,7 +812,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 throw new AutodiscoverLocalException(Strings.WLIDCredentialsCannotBeUsedWithLegacyAutodiscover);
             }
 
-            OutlookConfigurationSettings settings = this.GetLegacyUserSettings<OutlookConfigurationSettings>(emailAddress);
+            OutlookConfigurationSettings settings = await this.GetLegacyUserSettings<OutlookConfigurationSettings>(emailAddress);
 
             return settings.ConvertSettings(emailAddress, requestedSettings);
         }
@@ -827,7 +826,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="smtpAddress">SMTP address.</param>
         /// <param name="requestedSettings">The requested settings.</param>
         /// <returns></returns>
-        internal GetUserSettingsResponse InternalGetSoapUserSettings(string smtpAddress, List<UserSettingName> requestedSettings)
+        internal async Task<GetUserSettingsResponse> InternalGetSoapUserSettings(string smtpAddress, List<UserSettingName> requestedSettings)
         {
             List<string> smtpAddresses = new List<string>();
             smtpAddresses.Add(smtpAddress);
@@ -837,7 +836,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
 
             for (int currentHop = 0; currentHop < AutodiscoverService.AutodiscoverMaxRedirections; currentHop++)
             {
-                GetUserSettingsResponse response = this.GetUserSettings(smtpAddresses, requestedSettings)[0];
+                GetUserSettingsResponse response = (await this.GetUserSettings(smtpAddresses, requestedSettings))[0];
 
                 switch (response.ErrorCode)
                 {
@@ -879,7 +878,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="smtpAddresses">The SMTP addresses of the users.</param>
         /// <param name="settings">The settings.</param>
         /// <returns></returns>
-        internal GetUserSettingsResponseCollection GetUserSettings(
+        internal Task<GetUserSettingsResponseCollection> GetUserSettings(
             List<string> smtpAddresses,
             List<UserSettingName> settings)
         {
@@ -905,7 +904,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="getSettingsMethod">The method to use.</param>
         /// <param name="getDomainMethod">The method to calculate the domain value.</param>
         /// <returns></returns>
-        private TGetSettingsResponseCollection GetSettings<TGetSettingsResponseCollection, TSettingName>(
+        private async Task<TGetSettingsResponseCollection> GetSettings<TGetSettingsResponseCollection, TSettingName>(
             List<string> identities,
             List<TSettingName> settings,
             ExchangeVersion? requestedVersion,
@@ -928,11 +927,13 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             {
                 Uri autodiscoverUrl = this.Url;
 
-                response = getSettingsMethod(
+                var result = await getSettingsMethod(
                             identities,
                             settings,
                             requestedVersion,
-                            ref autodiscoverUrl);
+                            autodiscoverUrl);
+                response = result.Item1;
+                autodiscoverUrl = result.Item2;
 
                 this.Url = autodiscoverUrl;
                 return response;
@@ -942,11 +943,13 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             else if (!string.IsNullOrEmpty(this.Domain))
             {
                 Uri autodiscoverUrl = this.GetAutodiscoverEndpointUrl(this.Domain);
-                response = getSettingsMethod(
+                var result = await getSettingsMethod(
                                 identities,
                                 settings,
                                 requestedVersion,
-                                ref autodiscoverUrl);
+                                autodiscoverUrl);
+                response = result.Item1;
+                autodiscoverUrl = result.Item2;
 
                 // If we got this far, response was successful, set Url.
                 this.Url = autodiscoverUrl;
@@ -981,11 +984,13 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     {
                         try
                         {
-                            response = getSettingsMethod(
+                            var result = await getSettingsMethod(
                                             identities,
                                             settings,
                                             requestedVersion,
-                                            ref autodiscoverUrl);
+                                            autodiscoverUrl);
+                            response = result.Item1;
+                            autodiscoverUrl = result.Item2;
 
                             // If we got this far, the response was successful, set Url.
                             this.Url = autodiscoverUrl;
@@ -1015,11 +1020,13 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     this.CallRedirectionUrlValidationCallback(autodiscoverUrl.ToString()) &&
                     this.TryGetAutodiscoverEndpointUrl(autodiscoverUrl.Host, out autodiscoverUrl))
                 {
-                    response = getSettingsMethod(
+                    var result = await getSettingsMethod(
                                     identities,
                                     settings,
                                     requestedVersion,
-                                    ref autodiscoverUrl);
+                                    autodiscoverUrl);
+                    response = result.Item1;
+                    autodiscoverUrl = result.Item2;
 
                     // If we got this far, the response was successful, set Url.
                     this.Url = autodiscoverUrl;
@@ -1034,11 +1041,13 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     this.CallRedirectionUrlValidationCallback(autodiscoverUrl.ToString()) &&
                         this.TryGetAutodiscoverEndpointUrl(autodiscoverUrl.Host, out autodiscoverUrl))
                 {
-                    response = getSettingsMethod(
+                    var result = await getSettingsMethod(
                                     identities,
                                     settings,
                                     requestedVersion,
-                                    ref autodiscoverUrl);
+                                    autodiscoverUrl);
+                    response = result.Item1;
+                    autodiscoverUrl = result.Item2;
 
                     // If we got this far, the response was successful, set Url.
                     this.Url = autodiscoverUrl;
@@ -1060,11 +1069,11 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="requestedVersion">Requested version of the Exchange service.</param>
         /// <param name="autodiscoverUrl">The autodiscover URL.</param>
         /// <returns>GetUserSettingsResponse collection.</returns>
-        private GetUserSettingsResponseCollection InternalGetUserSettings(
+        private async Task<Tuple<GetUserSettingsResponseCollection, Uri>> InternalGetUserSettings(
             List<string> smtpAddresses,
             List<UserSettingName> settings,
             ExchangeVersion? requestedVersion,
-            ref Uri autodiscoverUrl)
+            Uri autodiscoverUrl)
         {
             // The response to GetUserSettings can be a redirection. Execute GetUserSettings until we get back 
             // a valid response or we've followed too many redirections.
@@ -1073,7 +1082,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 GetUserSettingsRequest request = new GetUserSettingsRequest(this, autodiscoverUrl);
                 request.SmtpAddresses = smtpAddresses;
                 request.Settings = settings;
-                GetUserSettingsResponseCollection response = request.Execute();
+                GetUserSettingsResponseCollection response = await request.Execute();
 
                 // Did we get redirected?
                 if (response.ErrorCode == AutodiscoverErrorCode.RedirectUrl && response.RedirectionUrl != null)
@@ -1088,7 +1097,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 }
                 else
                 {
-                    return response;
+                    return Tuple.Create(response, autodiscoverUrl);
                 }
             }
 
@@ -1106,7 +1115,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="settings">The settings.</param>
         /// <param name="requestedVersion">Requested version of the Exchange service.</param>
         /// <returns>GetDomainSettingsResponse collection.</returns>
-        internal GetDomainSettingsResponseCollection GetDomainSettings(
+        internal Task<GetDomainSettingsResponseCollection> GetDomainSettings(
             List<string> domains,
             List<DomainSettingName> settings,
             ExchangeVersion? requestedVersion)
@@ -1130,11 +1139,11 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="requestedVersion">Requested version of the Exchange service.</param>
         /// <param name="autodiscoverUrl">The autodiscover URL.</param>
         /// <returns>GetDomainSettingsResponse collection.</returns>
-        private GetDomainSettingsResponseCollection InternalGetDomainSettings(
+        private async Task<Tuple<GetDomainSettingsResponseCollection, Uri>> InternalGetDomainSettings(
             List<string> domains,
             List<DomainSettingName> settings,
             ExchangeVersion? requestedVersion,
-            ref Uri autodiscoverUrl)
+            Uri autodiscoverUrl)
         {
             // The response to GetDomainSettings can be a redirection. Execute GetDomainSettings until we get back 
             // a valid response or we've followed too many redirections.
@@ -1144,7 +1153,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 request.Domains = domains;
                 request.Settings = settings;
                 request.RequestedVersion = requestedVersion;
-                GetDomainSettingsResponseCollection response = request.Execute();
+                GetDomainSettingsResponseCollection response = await request.Execute();
 
                 // Did we get redirected?
                 if (response.ErrorCode == AutodiscoverErrorCode.RedirectUrl && response.RedirectionUrl != null)
@@ -1153,7 +1162,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 }
                 else
                 {
-                    return response;
+                    return Tuple.Create(response, autodiscoverUrl);
                 }
             }
 
@@ -1371,7 +1380,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                     })
                     {
                         var httpResponse = client.GetAsync(autoDiscoverUrl).Result;
-                        response = new EwsHttpResponse(httpResponse);
+                        response = new EwsHttpWebResponse(httpResponse);
                     }
                 }
                 catch (Exception ex)
@@ -1427,23 +1436,23 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         private AutodiscoverEndpoints GetEndpointsFromHttpWebResponse(IEwsHttpWebResponse response)
         {
             AutodiscoverEndpoints endpoints = AutodiscoverEndpoints.Legacy;
-            if (!string.IsNullOrEmpty(response.Headers[AutodiscoverSoapEnabledHeaderName]))
+            if (response.Headers.TryGetValues(AutodiscoverSoapEnabledHeaderName, out _))
             {
                 endpoints |= AutodiscoverEndpoints.Soap;
             }
-            if (!string.IsNullOrEmpty(response.Headers[AutodiscoverWsSecurityEnabledHeaderName]))
+            if (response.Headers.TryGetValues(AutodiscoverWsSecurityEnabledHeaderName, out _))
             {
                 endpoints |= AutodiscoverEndpoints.WsSecurity;
             }
-            if (!string.IsNullOrEmpty(response.Headers[AutodiscoverWsSecuritySymmetricKeyEnabledHeaderName]))
+            if (response.Headers.TryGetValues(AutodiscoverWsSecuritySymmetricKeyEnabledHeaderName, out _))
             {
                 endpoints |= AutodiscoverEndpoints.WSSecuritySymmetricKey;
             }
-            if (!string.IsNullOrEmpty(response.Headers[AutodiscoverWsSecurityX509CertEnabledHeaderName]))
+            if (response.Headers.TryGetValues(AutodiscoverWsSecurityX509CertEnabledHeaderName, out _))
             {
                 endpoints |= AutodiscoverEndpoints.WSSecurityX509Cert;
             }
-            if (!string.IsNullOrEmpty(response.Headers[AutodiscoverOAuthEnabledHeaderName]))
+            if (response.Headers.TryGetValues(AutodiscoverOAuthEnabledHeaderName, out _))
             {
                 endpoints |= AutodiscoverEndpoints.OAuth;
             }
@@ -1495,7 +1504,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             var request = new HttpRequestMessage(HttpMethod.Post, url);
 
             request.Headers.Accept.ParseAdd("text/xml");
-            request.Headers.TryAddWithoutValidation("User-Agent", this.UserAgent);
+            request.Headers.UserAgent.ParseAdd(this.UserAgent);
 
             if (!string.IsNullOrEmpty(this.ClientRequestId))
             {
@@ -1583,7 +1592,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// </summary>
         /// <param name="httpWebResponse">The HTTP web response.</param>
         /// <param name="webException">The web exception.</param>
-        internal override void ProcessHttpErrorResponse(IEwsHttpWebResponse httpWebResponse, WebException webException)
+        internal override void ProcessHttpErrorResponse(IEwsHttpWebResponse httpWebResponse, EwsHttpClientException webException)
         {
             this.InternalProcessHttpErrorResponse(
                 httpWebResponse,
@@ -1716,7 +1725,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <remarks>
         /// This method handles will run the entire Autodiscover "discovery" algorithm and will follow address and URL redirections.
         /// </remarks>
-        public GetUserSettingsResponse GetUserSettings(
+        public async Task<GetUserSettingsResponse> GetUserSettings(
             string userSmtpAddress,
             params UserSettingName[] userSettingNames)
         {
@@ -1734,11 +1743,11 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
 
             if (this.RequestedServerVersion < MinimumRequestVersionForAutoDiscoverSoapService)
             {
-                return this.InternalGetLegacyUserSettings(userSmtpAddress, requestedSettings);
+                return await this.InternalGetLegacyUserSettings(userSmtpAddress, requestedSettings);
             }
             else
             {
-                return this.InternalGetSoapUserSettings(userSmtpAddress, requestedSettings);
+                return await this.InternalGetSoapUserSettings(userSmtpAddress, requestedSettings);
             }
         }
 
@@ -1748,7 +1757,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="userSmtpAddresses">The SMTP addresses of the users.</param>
         /// <param name="userSettingNames">The user setting names.</param>
         /// <returns>A GetUserSettingsResponseCollection object containing the responses for each individual user.</returns>
-        public GetUserSettingsResponseCollection GetUsersSettings(
+        public Task<GetUserSettingsResponseCollection> GetUsersSettings(
             IEnumerable<string> userSmtpAddresses,
             params UserSettingName[] userSettingNames)
         {
@@ -1771,7 +1780,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="requestedVersion">Requested version of the Exchange service.</param>
         /// <param name="domainSettingNames">The domain setting names.</param>
         /// <returns>A DomainResponse object containing the requested settings for the specified domain.</returns>
-        public GetDomainSettingsResponse GetDomainSettings(
+        public async Task<GetDomainSettingsResponse> GetDomainSettings(
             string domain,
             ExchangeVersion? requestedVersion,
             params DomainSettingName[] domainSettingNames)
@@ -1779,7 +1788,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             List<string> domains = new List<string>(1);
             domains.Add(domain);
             List<DomainSettingName> settings = new List<DomainSettingName>(domainSettingNames);
-            return this.GetDomainSettings(domains, settings, requestedVersion)[0];
+            return (await this.GetDomainSettings(domains, settings, requestedVersion))[0];
         }
 
         /// <summary>
@@ -1789,7 +1798,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="requestedVersion">Requested version of the Exchange service.</param>
         /// <param name="domainSettingNames">The domain setting names.</param>
         /// <returns>A GetDomainSettingsResponseCollection object containing the responses for each individual domain.</returns>
-        public GetDomainSettingsResponseCollection GetDomainSettings(
+        public Task<GetDomainSettingsResponseCollection> GetDomainSettings(
             IEnumerable<string> domains,
             ExchangeVersion? requestedVersion,
             params DomainSettingName[] domainSettingNames)
@@ -1806,10 +1815,8 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
         /// <param name="partnerAccessCredentials">The partner access credentials.</param>
         /// <param name="targetTenantAutodiscoverUrl">The autodiscover url for the given tenant.</param>
         /// <returns>True if the partner access information was retrieved, false otherwise.</returns>
-        public bool TryGetPartnerAccess(
-            string targetTenantDomain,
-            out ExchangeCredentials partnerAccessCredentials,
-            out Uri targetTenantAutodiscoverUrl)
+        public async Task<Tuple<bool, ExchangeCredentials, Uri>> TryGetPartnerAccess(
+            string targetTenantDomain)
         {
             EwsUtilities.ValidateNonBlankStringParam(targetTenantDomain, "targetTenantDomain");
 
@@ -1828,8 +1835,8 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                         ExchangeVersion.Exchange2010_SP1));
             }
 
-            partnerAccessCredentials = null;
-            targetTenantAutodiscoverUrl = null;
+            ExchangeCredentials partnerAccessCredentials = null;
+            Uri targetTenantAutodiscoverUrl = null;
 
             string smtpAddress = targetTenantDomain;
             if (!smtpAddress.Contains("@"))
@@ -1844,21 +1851,21 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             GetUserSettingsResponseCollection response = null;
             try
             {
-                response = request.Execute();
+                response = await request.Execute();
             }
             catch (ServiceRequestException)
             {
-                return false;
+                return Tuple.Create(false, partnerAccessCredentials, targetTenantAutodiscoverUrl);
             }
             catch (ServiceRemoteException)
             {
-                return false;
+                return Tuple.Create(false, partnerAccessCredentials, targetTenantAutodiscoverUrl);
             }
 
             if (string.IsNullOrEmpty(request.PartnerToken)
                 || string.IsNullOrEmpty(request.PartnerTokenReference))
             {
-                return false;
+                return Tuple.Create(false, partnerAccessCredentials, targetTenantAutodiscoverUrl);
             }
 
             if (response.ErrorCode == AutodiscoverErrorCode.NoError)
@@ -1874,12 +1881,12 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 }
                 else
                 {
-                    return false;
+                    return Tuple.Create(false, partnerAccessCredentials, targetTenantAutodiscoverUrl);
                 }
             }
             else
             {
-                return false;
+                return Tuple.Create(false, partnerAccessCredentials, targetTenantAutodiscoverUrl);
             }
 
             partnerAccessCredentials = new PartnerTokenCredentials(
@@ -1889,7 +1896,7 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
             targetTenantAutodiscoverUrl = partnerAccessCredentials.AdjustUrl(
                 targetTenantAutodiscoverUrl);
 
-            return true;
+            return Tuple.Create(true, partnerAccessCredentials, targetTenantAutodiscoverUrl);
         }
         #endregion
 

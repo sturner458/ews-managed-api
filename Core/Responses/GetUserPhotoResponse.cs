@@ -29,7 +29,9 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
+    using System.Linq;
     using System.Net;
+    using System.Net.Http.Headers;
     using System.Xml;
 
     /// <summary>
@@ -90,12 +92,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Read Photo response headers
         /// </summary>
         /// <param name="responseHeaders">The response header.</param>
-        internal override void ReadHeader(WebHeaderCollection responseHeaders)
+        internal override void ReadHeader(HttpResponseHeaders responseHeaders)
         {
             // Parse out the ETag, trimming the quotes
-            string etag = responseHeaders[HttpResponseHeader.ETag];
-            if (etag != null)
+            if (responseHeaders.TryGetValues("ETag", out IEnumerable<string> etagValues))
             {
+                var etag = etagValues.First();
                 etag = etag.Replace("\"", "");
 
                 if (etag.Length > 0)
@@ -105,10 +107,13 @@ namespace Microsoft.Exchange.WebServices.Data
             }
 
             // Parse the Expires tag, leaving it in UTC
-            string expires = responseHeaders[HttpResponseHeader.Expires];
-            if (expires != null && expires.Length > 0)
+            if (responseHeaders.TryGetValues("Expires", out IEnumerable<string> expiresValues))
             {
-                this.Results.Expires = DateTime.Parse(expires, null, DateTimeStyles.RoundtripKind);
+                var expires = expiresValues.First();
+                if (expires != null && expires.Length > 0)
+                {
+                    this.Results.Expires = DateTime.Parse(expires, null, DateTimeStyles.RoundtripKind);
+                }
             }
         }
     }
