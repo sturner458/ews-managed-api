@@ -187,13 +187,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the content of the file attachment into the specified stream. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="stream">The stream to load the content of the attachment into.</param>
-        public void Load(Stream stream)
+        public async System.Threading.Tasks.Task Load(Stream stream)
         {
             this.loadToStream = stream;
 
             try
             {
-                this.Load();
+                await this.Load();
             }
             finally
             {
@@ -205,13 +205,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the content of the file attachment into the specified file. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="fileName">The name of the file to load the content of the attachment into. If the file already exists, it is overwritten.</param>
-        public void Load(string fileName)
+        public async System.Threading.Tasks.Task Load(string fileName)
         {
             this.loadToStream = new FileStream(fileName, FileMode.Create);
 
             try
             {
-                this.Load();
+                await this.Load();
             }
             finally
             {
