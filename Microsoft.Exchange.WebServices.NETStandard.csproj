@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>1.1.3</VersionPrefix>
+    <VersionPrefix>2.0.0</VersionPrefix>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <AssemblyName>Microsoft.Exchange.WebServices.NETStandard</AssemblyName>
     <PackageId>Microsoft.Exchange.WebServices.NETStandard</PackageId>
@@ -20,6 +20,9 @@
     <PackageProjectUrl>https://github.com/sherlock1982/ews-managed-api</PackageProjectUrl>
     <Title>Microsoft.Exchange.WebServices.NETStandard</Title>
     <Description>The Exchange Web Services (EWS) Managed API provides a managed interface for developing .NET client applications that use EWS. By using the EWS Managed API, you can access almost all the information stored in an Office 365, Exchange Online, or Exchange Server mailbox.</Description>
+    <PackageReleaseNotes>removed obsolete WebRequests and switched to HttpClient internally
+fixed issue with file attachements downloads
+restored ldap autodiscover functionality</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">

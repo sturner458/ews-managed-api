@@ -10,10 +10,14 @@ This is a NET Standard 1.4 port of EWS API. Here are some tips to take into acco
 - Nuget package can be found here: https://www.nuget.org/packages/Microsoft.Exchange.WebServices.NETStandard/
 
 # Getting Started with the EWS Managed API
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/OfficeDev/ews-managed-api?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Gitter](https://badges.gitter.im/JoinChat.svg)](https://gitter.im/OfficeDev/ews-managed-api?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 The Exchange Web Services (EWS) Managed API provides a managed interface for developing .NET client applications that use EWS.
-By using the EWS Managed API, you can access almost all the information stored in an Office 365, Exchange Online, or Exchange Server mailbox.
+By using the EWS Managed API, you can access almost all the information stored in an Office 365, Exchange Online, or Exchange Server mailbox. However, this API is in sustaining mode, the recommended access pattern for Office 365 and Exchange online data is [Microsoft Graph](https://graph.microsoft.com)
+
+## Support statement
+
+Starting July 19th 2018, Exchange Web Services (EWS) will no longer receive feature updates. While the service will continue to receive security updates and certain non-security updates, product design and features will remain unchanged. This change also applies to the EWS SDKs for Java and .NET. More information here: https://developer.microsoft.com/en-us/graph/blogs/upcoming-changes-to-exchange-web-services-ews-api-for-office-365/
 
 ## Download options
 
@@ -48,3 +52,6 @@ You need the following to work with the EWS Managed API:
 ## Community
 
 Exchange has an active developer community that you can turn to when you need help. We recommend using the [Exchange Server Development forum on MSDN](http://social.msdn.microsoft.com/Forums/en-US/home?category=exchangeserver&filter=alltypes&sort=lastpostdesc), or using the [ews] tag on [StackOverflow](http://stackoverflow.com/questions/tagged/ews).
+
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information, see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
