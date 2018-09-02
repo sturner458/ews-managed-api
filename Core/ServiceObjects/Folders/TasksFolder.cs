@@ -70,12 +70,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the tasks folder.</param>
         /// <param name="id">The Id of the tasks folder to bind to.</param>
         /// <returns>A TasksFolder instance representing the task folder corresponding to the specified Id.</returns>
-        public static new Task<TasksFolder> Bind(ExchangeService service, FolderId id)
+        public static new Task<TasksFolder> Bind(ExchangeService service, FolderId id, CancellationToken token = default(CancellationToken))
         {
             return TasksFolder.Bind(
                 service,
                 id,
-                PropertySet.FirstClassProperties);
+                PropertySet.FirstClassProperties,
+                token);
         }
 
         /// <summary>
@@ -89,12 +90,14 @@ namespace Microsoft.Exchange.WebServices.Data
         public static new Task<TasksFolder> Bind(
             ExchangeService service,
             WellKnownFolderName name,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
             return TasksFolder.Bind(
                 service,
                 new FolderId(name),
-                propertySet);
+                propertySet,
+                token);
         }
 
         /// <summary>
@@ -104,12 +107,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the tasks folder.</param>
         /// <param name="name">The name of the tasks folder to bind to.</param>
         /// <returns>A TasksFolder instance representing the tasks folder with the specified name.</returns>
-        public static new Task<TasksFolder> Bind(ExchangeService service, WellKnownFolderName name)
+        public static new Task<TasksFolder> Bind(ExchangeService service, WellKnownFolderName name, CancellationToken token = default(CancellationToken))
         {
             return TasksFolder.Bind(
                 service,
                 new FolderId(name),
-                PropertySet.FirstClassProperties);
+                PropertySet.FirstClassProperties,
+                token);
         }
 
         /// <summary>

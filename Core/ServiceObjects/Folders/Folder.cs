@@ -68,12 +68,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the folder.</param>
         /// <param name="id">The Id of the folder to bind to.</param>
         /// <returns>A Folder instance representing the folder corresponding to the specified Id.</returns>
-        public static Task<Folder> Bind(ExchangeService service, FolderId id)
+        public static Task<Folder> Bind(ExchangeService service, FolderId id, CancellationToken token = default(CancellationToken))
         {
             return Folder.Bind(
                 service,
                 id,
-                PropertySet.FirstClassProperties);
+                PropertySet.FirstClassProperties, 
+                token);
         }
 
         /// <summary>
@@ -87,12 +88,14 @@ namespace Microsoft.Exchange.WebServices.Data
         public static Task<Folder> Bind(
             ExchangeService service,
             WellKnownFolderName name,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
             return Folder.Bind(
                 service,
                 new FolderId(name),
-                propertySet);
+                propertySet,
+                token);
         }
 
         /// <summary>
@@ -102,12 +105,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="service">The service to use to bind to the folder.</param>
         /// <param name="name">The name of the folder to bind to.</param>
         /// <returns>A Folder instance representing the folder with the specified name.</returns>
-        public static Task<Folder> Bind(ExchangeService service, WellKnownFolderName name)
+        public static Task<Folder> Bind(ExchangeService service, WellKnownFolderName name, CancellationToken token = default(CancellationToken))
         {
             return Folder.Bind(
                 service,
                 new FolderId(name),
-                PropertySet.FirstClassProperties);
+                PropertySet.FirstClassProperties,
+                token);
         }
 
         /// <summary>
