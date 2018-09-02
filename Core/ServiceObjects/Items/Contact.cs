@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -69,9 +70,10 @@ namespace Microsoft.Exchange.WebServices.Data
         public static new Task<Contact> Bind(
             ExchangeService service,
             ItemId id,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
-            return service.BindToItem<Contact>(id, propertySet);
+            return service.BindToItem<Contact>(id, propertySet, token);
         }
 
         /// <summary>

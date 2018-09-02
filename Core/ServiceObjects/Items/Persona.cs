@@ -26,6 +26,7 @@
 namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -77,9 +78,10 @@ namespace Microsoft.Exchange.WebServices.Data
         public static new Task<Persona> Bind(
             ExchangeService service,
             ItemId id,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
-            return service.BindToItem<Persona>(id, propertySet);
+            return service.BindToItem<Persona>(id, propertySet, token);
         }
 
         /// <summary>

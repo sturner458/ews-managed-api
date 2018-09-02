@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -98,9 +99,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<GetDiscoverySearchConfigurationResponse> Execute()
+        internal async Task<GetDiscoverySearchConfigurationResponse> Execute(CancellationToken token)
         {
-            GetDiscoverySearchConfigurationResponse serviceResponse = (GetDiscoverySearchConfigurationResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            GetDiscoverySearchConfigurationResponse serviceResponse = (GetDiscoverySearchConfigurationResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
             return serviceResponse;
         }
 

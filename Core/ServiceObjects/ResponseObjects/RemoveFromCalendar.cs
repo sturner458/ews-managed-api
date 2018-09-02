@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -77,7 +78,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the specified set of properties on the object.
         /// </summary>
         /// <param name="propertySet">The properties to load.</param>
-        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet)
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet, CancellationToken token)
         {
             throw new NotSupportedException();
         }
@@ -91,7 +92,8 @@ namespace Microsoft.Exchange.WebServices.Data
         internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
-            AffectedTaskOccurrence? affectedTaskOccurrences)
+            AffectedTaskOccurrence? affectedTaskOccurrences,
+            CancellationToken token)
         {
             throw new NotSupportedException();
         }
@@ -102,14 +104,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The parent folder id.</param>
         /// <param name="messageDisposition">The message disposition.</param>
         /// <returns>A list of items that were created or modified as a results of this operation.</returns>
-        internal Task<List<Item>> InternalCreate(FolderId parentFolderId, MessageDisposition? messageDisposition)
+        internal Task<List<Item>> InternalCreate(FolderId parentFolderId, MessageDisposition? messageDisposition, CancellationToken token)
         {
             ((ItemId)this.PropertyBag[ResponseObjectSchema.ReferenceItemId]).Assign(this.referenceItem.Id);
 
             return this.Service.InternalCreateResponseObject(
                 this,
                 parentFolderId,
-                messageDisposition);
+                messageDisposition,
+                token);
         }
     }
 }

@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -124,9 +125,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<GetUserOofSettingsResponse> Execute()
+        internal async Task<GetUserOofSettingsResponse> Execute(CancellationToken token)
         {
-            GetUserOofSettingsResponse serviceResponse = (GetUserOofSettingsResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            GetUserOofSettingsResponse serviceResponse = (GetUserOofSettingsResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
 
             serviceResponse.ThrowIfNecessary();
 

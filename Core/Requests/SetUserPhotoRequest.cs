@@ -30,6 +30,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Net;
     using System.Net.Http.Headers;
+    using System.Threading;
     using Microsoft.Exchange.WebServices.Data;
 
     /// <summary>
@@ -151,9 +152,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal SetUserPhotoResponse Execute()
+        internal SetUserPhotoResponse Execute(CancellationToken token)
         {
-            return SetUserPhotoRequest.SetResultOrDefault(this.InternalExecuteAsync);
+            return SetUserPhotoRequest.SetResultOrDefault(() => this.InternalExecuteAsync(token));
         }
 
         private static SetUserPhotoResponse SetResultOrDefault(Func<object> serviceResponseFactory)

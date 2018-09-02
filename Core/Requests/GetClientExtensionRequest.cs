@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -199,9 +200,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<GetClientExtensionResponse> Execute()
+        internal async Task<GetClientExtensionResponse> Execute(CancellationToken token)
         {
-            GetClientExtensionResponse serviceResponse = (GetClientExtensionResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            GetClientExtensionResponse serviceResponse = (GetClientExtensionResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

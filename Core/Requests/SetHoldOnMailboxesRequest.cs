@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -133,9 +134,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<SetHoldOnMailboxesResponse> Execute()
+        internal async Task<SetHoldOnMailboxesResponse> Execute(CancellationToken token)
         {
-            SetHoldOnMailboxesResponse serviceResponse = (SetHoldOnMailboxesResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            SetHoldOnMailboxesResponse serviceResponse = (SetHoldOnMailboxesResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
             return serviceResponse;
         }
 

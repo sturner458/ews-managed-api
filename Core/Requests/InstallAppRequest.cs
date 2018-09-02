@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -121,9 +122,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<InstallAppResponse> Execute()
+        internal async Task<InstallAppResponse> Execute(CancellationToken token)
         {
-            InstallAppResponse serviceResponse = (InstallAppResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            InstallAppResponse serviceResponse = (InstallAppResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -80,7 +81,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the specified set of properties on the object.
         /// </summary>
         /// <param name="propertySet">The properties to load.</param>
-        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet)
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet, CancellationToken token)
         {
             throw new NotSupportedException();
         }
@@ -92,7 +93,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="sendCancellationsMode">Indicates whether meeting cancellation messages should be sent.</param>
         /// <param name="affectedTaskOccurrences">Indicate which occurrence of a recurring task should be deleted.</param>
-        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(DeleteMode deleteMode, SendCancellationsMode? sendCancellationsMode, AffectedTaskOccurrence? affectedTaskOccurrences)
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(DeleteMode deleteMode, SendCancellationsMode? sendCancellationsMode, AffectedTaskOccurrence? affectedTaskOccurrences, CancellationToken token)
         {
             throw new NotSupportedException();
         }

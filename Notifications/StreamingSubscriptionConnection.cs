@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
 
     /// <summary>
     /// Represents a connection to an ongoing stream of events.
@@ -202,7 +203,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// This results in a long-standing call to EWS.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when Open is called while connected.</exception>
-        public void Open()
+        public void Open(CancellationToken token = default(CancellationToken))
         {
             lock (this.lockObject)
             {
@@ -223,7 +224,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
                 this.currentHangingRequest.OnDisconnect += new HangingServiceRequestBase.HangingRequestDisconnectHandler(this.OnRequestDisconnect);
 
-                this.currentHangingRequest.InternalExecute();
+                this.currentHangingRequest.InternalExecute(token);
             }
         }
 

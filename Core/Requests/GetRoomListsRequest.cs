@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -96,9 +97,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<GetRoomListsResponse> Execute()
+        internal async Task<GetRoomListsResponse> Execute(CancellationToken token)
         {
-            GetRoomListsResponse serviceResponse = (GetRoomListsResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            GetRoomListsResponse serviceResponse = (GetRoomListsResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

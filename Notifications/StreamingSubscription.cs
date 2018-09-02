@@ -26,6 +26,7 @@
 namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
+    using System.Threading;
 
     /// <summary>
     /// Represents a streaming subscription.
@@ -55,9 +56,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Unsubscribes from the streaming subscription.
         /// </summary>
-        public System.Threading.Tasks.Task Unsubscribe()
+        public System.Threading.Tasks.Task Unsubscribe(CancellationToken token = default(CancellationToken))
         {
-            return this.Service.Unsubscribe(this.Id);
+            return this.Service.Unsubscribe(this.Id, token);
         }
 
         /// <summary>

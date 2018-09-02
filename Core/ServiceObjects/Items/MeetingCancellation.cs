@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -65,9 +66,10 @@ namespace Microsoft.Exchange.WebServices.Data
         public static new Task<MeetingCancellation> Bind(
             ExchangeService service,
             ItemId id, 
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
-            return service.BindToItem<MeetingCancellation>(id, propertySet);
+            return service.BindToItem<MeetingCancellation>(id, propertySet, token);
         }
 
         /// <summary>
@@ -101,9 +103,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public async Task<CalendarActionResults> RemoveMeetingFromCalendar()
+        public async Task<CalendarActionResults> RemoveMeetingFromCalendar(CancellationToken token = default(CancellationToken))
         {
-            return new CalendarActionResults(await new RemoveFromCalendar(this).InternalCreate(null, null).ConfigureAwait(false));
+            return new CalendarActionResults(await new RemoveFromCalendar(this).InternalCreate(null, null, token).ConfigureAwait(false));
         }
 
         /// <summary>

@@ -30,6 +30,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Net;
     using System.Net.Http.Headers;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -59,7 +60,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.Net.HttpWebResponse"/> that contains the response from the Internet resource.
         /// </returns>
-        Task<IEwsHttpWebResponse> GetResponse();
+        Task<IEwsHttpWebResponse> GetResponse(CancellationToken token);
 
         /// <summary>
         /// Gets or sets the value of the Accept HTTP header.

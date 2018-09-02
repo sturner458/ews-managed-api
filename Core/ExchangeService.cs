@@ -39,6 +39,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using Microsoft.Exchange.WebServices.Data.Enumerations;
     using Microsoft.Exchange.WebServices.Data.Groups;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Represents a binding to the Exchange Web Services.
@@ -79,7 +80,8 @@ namespace Microsoft.Exchange.WebServices.Data
         internal async Task<List<Item>> InternalCreateResponseObject(
             ServiceObject responseObject,
             FolderId parentFolderId,
-            MessageDisposition? messageDisposition)
+            MessageDisposition? messageDisposition,
+            CancellationToken token)
         {
             CreateResponseObjectRequest request = new CreateResponseObjectRequest(this, ServiceErrorHandling.ThrowOnError);
 
@@ -87,7 +89,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.Items = new ServiceObject[] { responseObject };
             request.MessageDisposition = messageDisposition;
 
-            ServiceResponseCollection<CreateResponseObjectResponse> responses = await request.ExecuteAsync().ConfigureAwait(false);
+            ServiceResponseCollection<CreateResponseObjectResponse> responses = await request.ExecuteAsync(token).ConfigureAwait(false);
 
             return responses[0].Items;
         }
@@ -103,27 +105,27 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The parent folder id.</param>
         internal System.Threading.Tasks.Task CreateFolder(
             Folder folder,
-            FolderId parentFolderId)
+            FolderId parentFolderId, CancellationToken token)
         {
             CreateFolderRequest request = new CreateFolderRequest(this, ServiceErrorHandling.ThrowOnError);
 
             request.Folders = new Folder[] { folder };
             request.ParentFolderId = parentFolderId;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
         /// Updates a folder.
         /// </summary>
         /// <param name="folder">The folder.</param>
-        internal System.Threading.Tasks.Task UpdateFolder(Folder folder)
+        internal System.Threading.Tasks.Task UpdateFolder(Folder folder, CancellationToken token)
         {
             UpdateFolderRequest request = new UpdateFolderRequest(this, ServiceErrorHandling.ThrowOnError);
 
             request.Folders.Add(folder);
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -134,14 +136,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>Copy of folder.</returns>
         internal async Task<Folder> CopyFolder(
             FolderId folderId,
-            FolderId destinationFolderId)
+            FolderId destinationFolderId,
+            CancellationToken token)
         {
             CopyFolderRequest request = new CopyFolderRequest(this, ServiceErrorHandling.ThrowOnError);
 
             request.DestinationFolderId = destinationFolderId;
             request.FolderIds.Add(folderId);
 
-            ServiceResponseCollection<MoveCopyFolderResponse> responses = await request.ExecuteAsync().ConfigureAwait(false);
+            ServiceResponseCollection<MoveCopyFolderResponse> responses = await request.ExecuteAsync(token).ConfigureAwait(false);
 
             return responses[0].Folder;
         }
@@ -154,14 +157,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>Moved folder.</returns>
         internal async Task<Folder> MoveFolder(
             FolderId folderId,
-            FolderId destinationFolderId)
+            FolderId destinationFolderId,
+            CancellationToken token)
         {
             MoveFolderRequest request = new MoveFolderRequest(this, ServiceErrorHandling.ThrowOnError);
 
             request.DestinationFolderId = destinationFolderId;
             request.FolderIds.Add(folderId);
 
-            ServiceResponseCollection<MoveCopyFolderResponse> responses = await request.ExecuteAsync().ConfigureAwait(false);
+            ServiceResponseCollection<MoveCopyFolderResponse> responses = await request.ExecuteAsync(token).ConfigureAwait(false);
 
             return responses[0].Folder;
         }
@@ -180,7 +184,8 @@ namespace Microsoft.Exchange.WebServices.Data
             IEnumerable<FolderId> parentFolderIds,
             SearchFilter searchFilter,
             FolderView view,
-            ServiceErrorHandling errorHandlingMode)
+            ServiceErrorHandling errorHandlingMode,
+            CancellationToken token)
         {
             FindFolderRequest request = new FindFolderRequest(this, errorHandlingMode);
 
@@ -188,7 +193,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.SearchFilter = searchFilter;
             request.View = view;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -200,7 +205,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// SearchFilter.SearchFilterCollection</param>
         /// <param name="view">The view controlling the number of folders returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public async Task<FindFoldersResults> FindFolders(FolderId parentFolderId, SearchFilter searchFilter, FolderView view)
+        public async Task<FindFoldersResults> FindFolders(FolderId parentFolderId, SearchFilter searchFilter, FolderView view, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(parentFolderId, "parentFolderId");
             EwsUtilities.ValidateParam(view, "view");
@@ -210,7 +215,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 new FolderId[] { parentFolderId },
                 searchFilter,
                 view,
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
+                ServiceErrorHandling.ThrowOnError, token).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -224,7 +229,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// SearchFilter.SearchFilterCollection</param>
         /// <param name="view">The view controlling the number of folders returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public Task<ServiceResponseCollection<FindFolderResponse>> FindFolders(IEnumerable<FolderId> parentFolderIds, SearchFilter searchFilter, FolderView view)
+        public Task<ServiceResponseCollection<FindFolderResponse>> FindFolders(IEnumerable<FolderId> parentFolderIds, SearchFilter searchFilter, FolderView view,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(parentFolderIds, "parentFolderIds");
             EwsUtilities.ValidateParam(view, "view");
@@ -234,7 +240,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 parentFolderIds,
                 searchFilter,
                 view,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -243,7 +250,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The Id of the folder in which to search for folders.</param>
         /// <param name="view">The view controlling the number of folders returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public async Task<FindFoldersResults> FindFolders(FolderId parentFolderId, FolderView view)
+        public async Task<FindFoldersResults> FindFolders(FolderId parentFolderId, FolderView view, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(parentFolderId, "parentFolderId");
             EwsUtilities.ValidateParam(view, "view");
@@ -252,7 +259,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 new FolderId[] { parentFolderId },
                 null, /* searchFilter */
                 view,
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
+                ServiceErrorHandling.ThrowOnError,
+                token).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -289,7 +297,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="propertySet">The property set.</param>
         internal Task<ServiceResponseCollection<ServiceResponse>> LoadPropertiesForFolder(
             Folder folder,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token)
         {
             EwsUtilities.ValidateParam(folder, "folder");
             EwsUtilities.ValidateParam(propertySet, "propertySet");
@@ -299,7 +308,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.FolderIds.Add(folder);
             request.PropertySet = propertySet;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -308,7 +317,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="folderId">The folder id.</param>
         /// <param name="propertySet">The property set.</param>
         /// <returns>Folder</returns>
-        internal async Task<Folder> BindToFolder(FolderId folderId, PropertySet propertySet)
+        internal async Task<Folder> BindToFolder(FolderId folderId, PropertySet propertySet, CancellationToken token)
         {
             EwsUtilities.ValidateParam(folderId, "folderId");
             EwsUtilities.ValidateParam(propertySet, "propertySet");
@@ -316,7 +325,8 @@ namespace Microsoft.Exchange.WebServices.Data
             ServiceResponseCollection<GetFolderResponse> responses = await this.InternalBindToFolders(
                 new[] { folderId },
                 propertySet,
-                ServiceErrorHandling.ThrowOnError
+                ServiceErrorHandling.ThrowOnError,
+                token
             );
 
             return responses[0].Folder;
@@ -329,10 +339,10 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="folderId">The folder id.</param>
         /// <param name="propertySet">The property set.</param>
         /// <returns>Folder</returns>
-        internal async Task<TFolder> BindToFolder<TFolder>(FolderId folderId, PropertySet propertySet)
+        internal async Task<TFolder> BindToFolder<TFolder>(FolderId folderId, PropertySet propertySet, CancellationToken token)
             where TFolder : Folder
         {
-            Folder result = await this.BindToFolder(folderId, propertySet);
+            Folder result = await this.BindToFolder(folderId, propertySet, token);
 
             if (result is TFolder)
             {
@@ -356,7 +366,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A ServiceResponseCollection providing results for each of the specified folder Ids.</returns>
         public Task<ServiceResponseCollection<GetFolderResponse>> BindToFolders(
             IEnumerable<FolderId> folderIds,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamCollection(folderIds, "folderIds");
             EwsUtilities.ValidateParam(propertySet, "propertySet");
@@ -364,7 +375,8 @@ namespace Microsoft.Exchange.WebServices.Data
             return this.InternalBindToFolders(
                 folderIds,
                 propertySet,
-                ServiceErrorHandling.ReturnErrors
+                ServiceErrorHandling.ReturnErrors,
+                token
             );
         }
 
@@ -378,14 +390,15 @@ namespace Microsoft.Exchange.WebServices.Data
         private Task<ServiceResponseCollection<GetFolderResponse>> InternalBindToFolders(
             IEnumerable<FolderId> folderIds,
             PropertySet propertySet,
-            ServiceErrorHandling errorHandling)
+            ServiceErrorHandling errorHandling,
+            CancellationToken token)
         {
             GetFolderRequest request = new GetFolderRequest(this, errorHandling);
 
             request.FolderIds.AddRange(folderIds);
             request.PropertySet = propertySet;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -395,7 +408,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="deleteMode">The delete mode.</param>
         internal Task<ServiceResponseCollection<ServiceResponse>> DeleteFolder(
             FolderId folderId,
-            DeleteMode deleteMode)
+            DeleteMode deleteMode,
+            CancellationToken token)
         {
             EwsUtilities.ValidateParam(folderId, "folderId");
 
@@ -404,7 +418,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.FolderIds.Add(folderId);
             request.DeleteMode = deleteMode;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -416,7 +430,8 @@ namespace Microsoft.Exchange.WebServices.Data
         internal Task<ServiceResponseCollection<ServiceResponse>> EmptyFolder(
             FolderId folderId,
             DeleteMode deleteMode,
-            bool deleteSubFolders)
+            bool deleteSubFolders,
+            CancellationToken token)
         {
             EwsUtilities.ValidateParam(folderId, "folderId");
 
@@ -426,7 +441,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.DeleteMode = deleteMode;
             request.DeleteSubFolders = deleteSubFolders;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -438,7 +453,8 @@ namespace Microsoft.Exchange.WebServices.Data
         internal Task<ServiceResponseCollection<ServiceResponse>> MarkAllItemsAsRead(
             FolderId folderId,
             bool readFlag,
-            bool suppressReadReceipts)
+            bool suppressReadReceipts,
+            CancellationToken token)
         {
             EwsUtilities.ValidateParam(folderId, "folderId");
             EwsUtilities.ValidateMethodVersion(this, ExchangeVersion.Exchange2013, "MarkAllItemsAsRead");
@@ -449,7 +465,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.ReadFlag = readFlag;
             request.SuppressReadReceipts = suppressReadReceipts;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         #endregion
@@ -471,7 +487,8 @@ namespace Microsoft.Exchange.WebServices.Data
             FolderId parentFolderId,
             MessageDisposition? messageDisposition,
             SendInvitationsMode? sendInvitationsMode,
-            ServiceErrorHandling errorHandling)
+            ServiceErrorHandling errorHandling,
+            CancellationToken token)
         {
             CreateItemRequest request = new CreateItemRequest(this, errorHandling);
 
@@ -480,7 +497,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.MessageDisposition = messageDisposition;
             request.SendInvitationsMode = sendInvitationsMode;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -496,7 +513,8 @@ namespace Microsoft.Exchange.WebServices.Data
             IEnumerable<Item> items,
             FolderId parentFolderId,
             MessageDisposition? messageDisposition,
-            SendInvitationsMode? sendInvitationsMode)
+            SendInvitationsMode? sendInvitationsMode,
+            CancellationToken token = default(CancellationToken))
         {
             // All items have to be new.
             if (!items.TrueForAll((item) => item.IsNew))
@@ -515,7 +533,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 parentFolderId,
                 messageDisposition,
                 sendInvitationsMode,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -529,14 +548,16 @@ namespace Microsoft.Exchange.WebServices.Data
             Item item,
             FolderId parentFolderId,
             MessageDisposition? messageDisposition,
-            SendInvitationsMode? sendInvitationsMode)
+            SendInvitationsMode? sendInvitationsMode,
+            CancellationToken token)
         {
             return this.InternalCreateItems(
                 new Item[] { item },
                 parentFolderId,
                 messageDisposition,
                 sendInvitationsMode,
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError,
+                token);
         }
 
         /// <summary>
@@ -557,7 +578,8 @@ namespace Microsoft.Exchange.WebServices.Data
             MessageDisposition? messageDisposition,
             SendInvitationsOrCancellationsMode? sendInvitationsOrCancellationsMode,
             ServiceErrorHandling errorHandling,
-            bool suppressReadReceipt)
+            bool suppressReadReceipt,
+            CancellationToken token)
         {
             UpdateItemRequest request = new UpdateItemRequest(this, errorHandling);
 
@@ -568,7 +590,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.SendInvitationsOrCancellationsMode = sendInvitationsOrCancellationsMode;
             request.SuppressReadReceipts = suppressReadReceipt;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -606,7 +628,8 @@ namespace Microsoft.Exchange.WebServices.Data
             ConflictResolutionMode conflictResolution,
             MessageDisposition? messageDisposition,
             SendInvitationsOrCancellationsMode? sendInvitationsOrCancellationsMode,
-            bool suppressReadReceipts)
+            bool suppressReadReceipts,
+            CancellationToken token = default(CancellationToken))
         {
             // All items have to exist on the server (!new) and modified (dirty)
             if (!items.TrueForAll((item) => (!item.IsNew && item.IsDirty)))
@@ -627,7 +650,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 messageDisposition,
                 sendInvitationsOrCancellationsMode,
                 ServiceErrorHandling.ReturnErrors,
-                suppressReadReceipts);
+                suppressReadReceipts,
+                token);
         }
 
         /// <summary>
@@ -644,9 +668,10 @@ namespace Microsoft.Exchange.WebServices.Data
             FolderId savedItemsDestinationFolderId,
             ConflictResolutionMode conflictResolution,
             MessageDisposition? messageDisposition,
-            SendInvitationsOrCancellationsMode? sendInvitationsOrCancellationsMode)
+            SendInvitationsOrCancellationsMode? sendInvitationsOrCancellationsMode,
+            CancellationToken token)
         {
-            return this.UpdateItem(item, savedItemsDestinationFolderId, conflictResolution, messageDisposition, sendInvitationsOrCancellationsMode, false);
+            return this.UpdateItem(item, savedItemsDestinationFolderId, conflictResolution, messageDisposition, sendInvitationsOrCancellationsMode, false, token);
         }
 
         /// <summary>
@@ -665,7 +690,8 @@ namespace Microsoft.Exchange.WebServices.Data
             ConflictResolutionMode conflictResolution,
             MessageDisposition? messageDisposition,
             SendInvitationsOrCancellationsMode? sendInvitationsOrCancellationsMode,
-            bool suppressReadReceipts)
+            bool suppressReadReceipts,
+            CancellationToken token)
         {
             ServiceResponseCollection<UpdateItemResponse> responses = await this.InternalUpdateItems(
                 new Item[] { item },
@@ -674,7 +700,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 messageDisposition,
                 sendInvitationsOrCancellationsMode,
                 ServiceErrorHandling.ThrowOnError,
-                suppressReadReceipts).ConfigureAwait(false);
+                suppressReadReceipts,
+                token).ConfigureAwait(false);
 
             return responses[0].ReturnedItem;
         }
@@ -686,14 +713,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="savedCopyDestinationFolderId">The saved copy destination folder id.</param>
         internal System.Threading.Tasks.Task SendItem(
             Item item,
-            FolderId savedCopyDestinationFolderId)
+            FolderId savedCopyDestinationFolderId,
+            CancellationToken token)
         {
             SendItemRequest request = new SendItemRequest(this, ServiceErrorHandling.ThrowOnError);
 
             request.Items = new Item[] { item };
             request.SavedCopyDestinationFolderId = savedCopyDestinationFolderId;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -708,14 +736,15 @@ namespace Microsoft.Exchange.WebServices.Data
             IEnumerable<ItemId> itemIds,
             FolderId destinationFolderId,
             bool? returnNewItemIds,
-            ServiceErrorHandling errorHandling)
+            ServiceErrorHandling errorHandling,
+            CancellationToken token)
         {
             CopyItemRequest request = new CopyItemRequest(this, errorHandling);
             request.ItemIds.AddRange(itemIds);
             request.DestinationFolderId = destinationFolderId;
             request.ReturnNewItemIds = returnNewItemIds;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -726,13 +755,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A ServiceResponseCollection providing copy results for each of the specified item Ids.</returns>
         public Task<ServiceResponseCollection<MoveCopyItemResponse>> CopyItems(
             IEnumerable<ItemId> itemIds,
-            FolderId destinationFolderId)
+            FolderId destinationFolderId,
+            CancellationToken token = default(CancellationToken))
         {
             return this.InternalCopyItems(
                 itemIds,
                 destinationFolderId,
                 null,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -745,7 +776,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<MoveCopyItemResponse>> CopyItems(
             IEnumerable<ItemId> itemIds,
             FolderId destinationFolderId,
-            bool returnNewItemIds)
+            bool returnNewItemIds,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateMethodVersion(
                 this,
@@ -756,7 +788,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 itemIds,
                 destinationFolderId,
                 returnNewItemIds,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -767,13 +800,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>The copy of the item.</returns>
         internal async Task<Item> CopyItem(
             ItemId itemId,
-            FolderId destinationFolderId)
+            FolderId destinationFolderId,
+            CancellationToken token)
         {
             return (await this.InternalCopyItems(
                 new ItemId[] { itemId },
                 destinationFolderId,
                 null,
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false))[0].Item;
+                ServiceErrorHandling.ThrowOnError,
+                token).ConfigureAwait(false))[0].Item;
         }
 
         /// <summary>
@@ -788,7 +823,8 @@ namespace Microsoft.Exchange.WebServices.Data
             IEnumerable<ItemId> itemIds,
             FolderId destinationFolderId,
             bool? returnNewItemIds,
-            ServiceErrorHandling errorHandling)
+            ServiceErrorHandling errorHandling, 
+            CancellationToken token)
         {
             MoveItemRequest request = new MoveItemRequest(this, errorHandling);
 
@@ -796,7 +832,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.DestinationFolderId = destinationFolderId;
             request.ReturnNewItemIds = returnNewItemIds;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -807,13 +843,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A ServiceResponseCollection providing copy results for each of the specified item Ids.</returns>
         public Task<ServiceResponseCollection<MoveCopyItemResponse>> MoveItems(
             IEnumerable<ItemId> itemIds,
-            FolderId destinationFolderId)
+            FolderId destinationFolderId,
+            CancellationToken token = default(CancellationToken))
         {
             return this.InternalMoveItems(
                 itemIds,
                 destinationFolderId,
                 null,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -826,7 +864,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<MoveCopyItemResponse>> MoveItems(
             IEnumerable<ItemId> itemIds,
             FolderId destinationFolderId,
-            bool returnNewItemIds)
+            bool returnNewItemIds,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateMethodVersion(
                 this,
@@ -837,7 +876,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 itemIds,
                 destinationFolderId,
                 returnNewItemIds,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -848,13 +888,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>The moved item.</returns>
         internal async Task<Item> MoveItem(
             ItemId itemId,
-            FolderId destinationFolderId)
+            FolderId destinationFolderId,
+            CancellationToken token)
         {
             return (await this.InternalMoveItems(
                 new ItemId[] { itemId },
                 destinationFolderId,
                 null,
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false))[0].Item;
+                ServiceErrorHandling.ThrowOnError,
+                token).ConfigureAwait(false))[0].Item;
         }
 
         /// <summary>
@@ -865,14 +907,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A ServiceResponseCollection providing copy results for each of the specified item Ids.</returns>
         public Task<ServiceResponseCollection<ArchiveItemResponse>> ArchiveItems(
             IEnumerable<ItemId> itemIds,
-            FolderId sourceFolderId)
+            FolderId sourceFolderId,
+            CancellationToken token = default(CancellationToken))
         {
             ArchiveItemRequest request = new ArchiveItemRequest(this, ServiceErrorHandling.ReturnErrors);
 
             request.Ids.AddRange(itemIds);
             request.SourceFolderId = sourceFolderId;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -894,7 +937,8 @@ namespace Microsoft.Exchange.WebServices.Data
             string queryString,
             ViewBase view,
             Grouping groupBy,
-            ServiceErrorHandling errorHandlingMode)
+            ServiceErrorHandling errorHandlingMode,
+            CancellationToken token)
             where TItem : Item
         {
             EwsUtilities.ValidateParamCollection(parentFolderIds, "parentFolderIds");
@@ -911,7 +955,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.View = view;
             request.GroupBy = groupBy;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -921,7 +965,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="queryString">the search string to be used for indexed search, if any.</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public async Task<FindItemsResults<Item>> FindItems(FolderId parentFolderId, string queryString, ViewBase view)
+        public async Task<FindItemsResults<Item>> FindItems(FolderId parentFolderId, string queryString, ViewBase view, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
 
@@ -931,7 +975,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 queryString,
                 view,
                 null,   /* groupBy */
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
+                ServiceErrorHandling.ThrowOnError,
+                token).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -946,7 +991,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="returnHighlightTerms">Flag indicating if highlight terms should be returned in the response</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public async Task<FindItemsResults<Item>> FindItems(FolderId parentFolderId, string queryString, bool returnHighlightTerms, ViewBase view)
+        public async Task<FindItemsResults<Item>> FindItems(FolderId parentFolderId, string queryString, bool returnHighlightTerms, ViewBase view,
+            CancellationToken token = default(CancellationToken))
         {
             FolderId[] parentFolderIds = new FolderId[] { parentFolderId };
 
@@ -963,7 +1009,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.ReturnHighlightTerms = returnHighlightTerms;
             request.View = view;
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = await request.ExecuteAsync().ConfigureAwait(false);
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await request.ExecuteAsync(token).ConfigureAwait(false);
             return responses[0].Results;
         }
 
@@ -978,7 +1024,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The group by clause.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public async Task<GroupedFindItemsResults<Item>> FindItems(FolderId parentFolderId, string queryString, bool returnHighlightTerms, ViewBase view, Grouping groupBy)
+        public async Task<GroupedFindItemsResults<Item>> FindItems(FolderId parentFolderId, string queryString, bool returnHighlightTerms, ViewBase view, Grouping groupBy, CancellationToken token = default(CancellationToken))
         {
             FolderId[] parentFolderIds = new FolderId[] { parentFolderId };
 
@@ -997,7 +1043,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.View = view;
             request.GroupBy = groupBy;
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = await request.ExecuteAsync().ConfigureAwait(false);
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await request.ExecuteAsync(token).ConfigureAwait(false);
             return responses[0].GroupedFindResults;
         }
 
@@ -1010,7 +1056,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// SearchFilter.SearchFilterCollection</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public async Task<FindItemsResults<Item>> FindItems(FolderId parentFolderId, SearchFilter searchFilter, ViewBase view)
+        public async Task<FindItemsResults<Item>> FindItems(FolderId parentFolderId, SearchFilter searchFilter, ViewBase view, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
 
@@ -1020,7 +1066,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null, /* queryString */
                 view,
                 null,   /* groupBy */
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
+                ServiceErrorHandling.ThrowOnError,
+                token).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -1031,7 +1078,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The Id of the folder in which to search for items.</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public async Task<FindItemsResults<Item>> FindItems(FolderId parentFolderId, ViewBase view)
+        public async Task<FindItemsResults<Item>> FindItems(FolderId parentFolderId, ViewBase view, CancellationToken token = default(CancellationToken))
         {
             ServiceResponseCollection<FindItemResponse<Item>> responses = await this.FindItems<Item>(
                 new FolderId[] { parentFolderId },
@@ -1039,7 +1086,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null, /* queryString */
                 view,
                 null, /* groupBy */
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
+                ServiceErrorHandling.ThrowOnError,
+                token).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -1079,12 +1127,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderName">The name of the folder in which to search for items.</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public Task<FindItemsResults<Item>> FindItems(WellKnownFolderName parentFolderName, ViewBase view)
+        public Task<FindItemsResults<Item>> FindItems(WellKnownFolderName parentFolderName, ViewBase view, CancellationToken token = default(CancellationToken))
         {
             return this.FindItems(
                 new FolderId(parentFolderName),
                 (SearchFilter)null,
-                view);
+                view,
+                token);
         }
 
         /// <summary>
@@ -1099,7 +1148,8 @@ namespace Microsoft.Exchange.WebServices.Data
             FolderId parentFolderId,
             string queryString,
             ViewBase view,
-            Grouping groupBy)
+            Grouping groupBy,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(groupBy, "groupBy");
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
@@ -1110,7 +1160,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 queryString,
                 view,
                 groupBy,
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
+                ServiceErrorHandling.ThrowOnError,
+                token).ConfigureAwait(false);
 
             return responses[0].GroupedFindResults;
         }
@@ -1129,7 +1180,8 @@ namespace Microsoft.Exchange.WebServices.Data
             FolderId parentFolderId,
             SearchFilter searchFilter,
             ViewBase view,
-            Grouping groupBy)
+            Grouping groupBy,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(groupBy, "groupBy");
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
@@ -1140,7 +1192,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null, /* queryString */
                 view,
                 groupBy,
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
+                ServiceErrorHandling.ThrowOnError,
+                token).ConfigureAwait(false);
 
             return responses[0].GroupedFindResults;
         }
@@ -1155,7 +1208,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public async Task<GroupedFindItemsResults<Item>> FindItems(
             FolderId parentFolderId,
             ViewBase view,
-            Grouping groupBy)
+            Grouping groupBy,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(groupBy, "groupBy");
 
@@ -1165,7 +1219,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null, /* queryString */
                 view,
                 groupBy,
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
+                ServiceErrorHandling.ThrowOnError,
+                token).ConfigureAwait(false);
 
             return responses[0].GroupedFindResults;
         }
@@ -1185,7 +1240,8 @@ namespace Microsoft.Exchange.WebServices.Data
             FolderId parentFolderId,
             SearchFilter searchFilter,
             ViewBase view,
-            Grouping groupBy)
+            Grouping groupBy,
+            CancellationToken token)
             where TItem : Item
         {
             return this.FindItems<TItem>(
@@ -1194,7 +1250,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null, /* queryString */
                 view,
                 groupBy,
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError,
+                token);
         }
 
         /// <summary>
@@ -1209,7 +1266,8 @@ namespace Microsoft.Exchange.WebServices.Data
             WellKnownFolderName parentFolderName,
             string queryString,
             ViewBase view,
-            Grouping groupBy)
+            Grouping groupBy,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(groupBy, "groupBy");
 
@@ -1217,7 +1275,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 new FolderId(parentFolderName),
                 queryString,
                 view,
-                groupBy);
+                groupBy,
+                token);
         }
 
         /// <summary>
@@ -1234,13 +1293,15 @@ namespace Microsoft.Exchange.WebServices.Data
             WellKnownFolderName parentFolderName,
             SearchFilter searchFilter,
             ViewBase view,
-            Grouping groupBy)
+            Grouping groupBy,
+            CancellationToken token = default(CancellationToken))
         {
             return this.FindItems(
                 new FolderId(parentFolderName),
                 searchFilter,
                 view,
-                groupBy);
+                groupBy,
+                token);
         }
 
         /// <summary>
@@ -1249,7 +1310,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The id of the calendar folder in which to search for items.</param>
         /// <param name="calendarView">The calendar view controlling the number of appointments returned.</param>
         /// <returns>A collection of appointments representing the contents of the specified folder.</returns>
-        public async Task<FindItemsResults<Appointment>> FindAppointments(FolderId parentFolderId, CalendarView calendarView)
+        public async Task<FindItemsResults<Appointment>> FindAppointments(FolderId parentFolderId, CalendarView calendarView, CancellationToken token = default(CancellationToken))
         {
             ServiceResponseCollection<FindItemResponse<Appointment>> response = await this.FindItems<Appointment>(
                 new FolderId[] { parentFolderId },
@@ -1257,7 +1318,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null, /* queryString */
                 calendarView,
                 null, /* groupBy */
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
+                ServiceErrorHandling.ThrowOnError,
+                token).ConfigureAwait(false);
 
             return response[0].Results;
         }
@@ -1268,9 +1330,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderName">The name of the calendar folder in which to search for items.</param>
         /// <param name="calendarView">The calendar view controlling the number of appointments returned.</param>
         /// <returns>A collection of appointments representing the contents of the specified folder.</returns>
-        public Task<FindItemsResults<Appointment>> FindAppointments(WellKnownFolderName parentFolderName, CalendarView calendarView)
+        public Task<FindItemsResults<Appointment>> FindAppointments(WellKnownFolderName parentFolderName, CalendarView calendarView, CancellationToken token = default(CancellationToken))
         {
-            return this.FindAppointments(new FolderId(parentFolderName), calendarView);
+            return this.FindAppointments(new FolderId(parentFolderName), calendarView, token);
         }
 
         /// <summary>
@@ -1279,7 +1341,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="items">The items to load the properties of.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A ServiceResponseCollection providing results for each of the specified items.</returns>
-        public Task<ServiceResponseCollection<ServiceResponse>> LoadPropertiesForItems(IEnumerable<Item> items, PropertySet propertySet)
+        public Task<ServiceResponseCollection<ServiceResponse>> LoadPropertiesForItems(IEnumerable<Item> items, PropertySet propertySet, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamCollection(items, "items");
             EwsUtilities.ValidateParam(propertySet, "propertySet");
@@ -1287,7 +1349,8 @@ namespace Microsoft.Exchange.WebServices.Data
             return this.InternalLoadPropertiesForItems(
                 items,
                 propertySet,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -1300,14 +1363,15 @@ namespace Microsoft.Exchange.WebServices.Data
         internal Task<ServiceResponseCollection<ServiceResponse>> InternalLoadPropertiesForItems(
             IEnumerable<Item> items,
             PropertySet propertySet,
-            ServiceErrorHandling errorHandling)
+            ServiceErrorHandling errorHandling,
+            CancellationToken token)
         {
             GetItemRequestForLoad request = new GetItemRequestForLoad(this, errorHandling);
 
             request.ItemIds.AddRange(items);
             request.PropertySet = propertySet;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -1322,7 +1386,8 @@ namespace Microsoft.Exchange.WebServices.Data
             IEnumerable<ItemId> itemIds,
             PropertySet propertySet,
             string anchorMailbox,
-            ServiceErrorHandling errorHandling)
+            ServiceErrorHandling errorHandling,
+            CancellationToken token)
         {
             GetItemRequest request = new GetItemRequest(this, errorHandling);
 
@@ -1330,7 +1395,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.PropertySet = propertySet;
             request.AnchorMailbox = anchorMailbox;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -1339,7 +1404,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="itemIds">The Ids of the items to bind to.</param>
         /// <param name="propertySet">The set of properties to load.</param>
         /// <returns>A ServiceResponseCollection providing results for each of the specified item Ids.</returns>
-        public Task<ServiceResponseCollection<GetItemResponse>> BindToItems(IEnumerable<ItemId> itemIds, PropertySet propertySet)
+        public Task<ServiceResponseCollection<GetItemResponse>> BindToItems(IEnumerable<ItemId> itemIds, PropertySet propertySet, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamCollection(itemIds, "itemIds");
             EwsUtilities.ValidateParam(propertySet, "propertySet");
@@ -1348,7 +1413,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 itemIds,
                 propertySet,
                 null, /* anchorMailbox */
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -1365,7 +1431,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<GetItemResponse>> BindToGroupItems(
             IEnumerable<ItemId> itemIds,
             PropertySet propertySet,
-            string anchorMailbox)
+            string anchorMailbox,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamCollection(itemIds, "itemIds");
             EwsUtilities.ValidateParam(propertySet, "propertySet");
@@ -1375,7 +1442,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 itemIds,
                 propertySet,
                 anchorMailbox,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -1384,7 +1452,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="itemId">The item id.</param>
         /// <param name="propertySet">The property set.</param>
         /// <returns>Item.</returns>
-        internal async Task<Item> BindToItem(ItemId itemId, PropertySet propertySet)
+        internal async Task<Item> BindToItem(ItemId itemId, PropertySet propertySet, CancellationToken token)
         {
             EwsUtilities.ValidateParam(itemId, "itemId");
             EwsUtilities.ValidateParam(propertySet, "propertySet");
@@ -1393,7 +1461,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 new ItemId[] { itemId },
                 propertySet,
                 null, /* anchorMailbox */
-                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false);
+                ServiceErrorHandling.ThrowOnError,
+                token).ConfigureAwait(false);
 
             return responses[0].Item;
         }
@@ -1405,10 +1474,10 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="itemId">The item id.</param>
         /// <param name="propertySet">The property set.</param>
         /// <returns>Item</returns>
-        internal async Task<TItem> BindToItem<TItem>(ItemId itemId, PropertySet propertySet)
+        internal async Task<TItem> BindToItem<TItem>(ItemId itemId, PropertySet propertySet, CancellationToken token)
             where TItem : Item
         {
-            Item result = await this.BindToItem(itemId, propertySet).ConfigureAwait(false);
+            Item result = await this.BindToItem(itemId, propertySet, token).ConfigureAwait(false);
 
             if (result is TItem)
             {
@@ -1440,7 +1509,8 @@ namespace Microsoft.Exchange.WebServices.Data
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences,
             ServiceErrorHandling errorHandling,
-            bool suppressReadReceipts)
+            bool suppressReadReceipts,
+            CancellationToken token)
         {
             DeleteItemRequest request = new DeleteItemRequest(this, errorHandling);
 
@@ -1450,7 +1520,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.AffectedTaskOccurrences = affectedTaskOccurrences;
             request.SuppressReadReceipts = suppressReadReceipts;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -1484,7 +1554,8 @@ namespace Microsoft.Exchange.WebServices.Data
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences,
-            bool suppressReadReceipt)
+            bool suppressReadReceipt,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamCollection(itemIds, "itemIds");
 
@@ -1494,7 +1565,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 sendCancellationsMode,
                 affectedTaskOccurrences,
                 ServiceErrorHandling.ReturnErrors,
-                suppressReadReceipt);
+                suppressReadReceipt,
+                token);
         }
 
         /// <summary>
@@ -1508,9 +1580,10 @@ namespace Microsoft.Exchange.WebServices.Data
             ItemId itemId,
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
-            AffectedTaskOccurrence? affectedTaskOccurrences)
+            AffectedTaskOccurrence? affectedTaskOccurrences,
+            CancellationToken token)
         {
-            return this.DeleteItem(itemId, deleteMode, sendCancellationsMode, affectedTaskOccurrences, false);
+            return this.DeleteItem(itemId, deleteMode, sendCancellationsMode, affectedTaskOccurrences, false, token);
         }
 
         /// <summary>
@@ -1526,7 +1599,8 @@ namespace Microsoft.Exchange.WebServices.Data
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences,
-            bool suppressReadReceipts)
+            bool suppressReadReceipts,
+            CancellationToken token)
         {
             EwsUtilities.ValidateParam(itemId, "itemId");
 
@@ -1536,7 +1610,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 sendCancellationsMode,
                 affectedTaskOccurrences,
                 ServiceErrorHandling.ThrowOnError,
-                suppressReadReceipts);
+                suppressReadReceipts,
+                token);
         }
 
         /// <summary>
@@ -1546,13 +1621,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="isJunk">Whether the items are junk.  If true, senders are add to blocked sender list. If false, senders are removed.</param>
         /// <param name="moveItem">Whether to move the item.  Items are moved to junk folder if isJunk is true, inbox if isJunk is false.</param>
         /// <returns>A ServiceResponseCollection providing itemIds for each of the moved items..</returns>
-        public Task<ServiceResponseCollection<MarkAsJunkResponse>> MarkAsJunk(IEnumerable<ItemId> itemIds, bool isJunk, bool moveItem)
+        public Task<ServiceResponseCollection<MarkAsJunkResponse>> MarkAsJunk(IEnumerable<ItemId> itemIds, bool isJunk, bool moveItem,
+            CancellationToken token = default(CancellationToken))
         {
             MarkAsJunkRequest request = new MarkAsJunkRequest(this, ServiceErrorHandling.ReturnErrors);
             request.ItemIds.AddRange(itemIds);
             request.IsJunk = isJunk;
             request.MoveItem = moveItem;
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         #endregion
@@ -1569,7 +1645,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view which defines the number of persona being returned</param>
         /// <param name="queryString">The query string for which the search is being performed</param>
         /// <returns>A collection of personas matching the search conditions</returns>
-        public async Task<ICollection<Persona>> FindPeople(FolderId folderId, SearchFilter searchFilter, ViewBase view, string queryString)
+        public async Task<ICollection<Persona>> FindPeople(FolderId folderId, SearchFilter searchFilter, ViewBase view, string queryString,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamAllowNull(folderId, "folderId");
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
@@ -1584,7 +1661,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.View = view;
             request.QueryString = queryString;
 
-            return (await request.Execute().ConfigureAwait(false)).Personas;
+            return (await request.Execute(token).ConfigureAwait(false)).Personas;
         }
 
         /// <summary>
@@ -1610,7 +1687,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="searchFilter">Search filter</param>
         /// <param name="view">The view which defines paging and the number of persona being returned</param>
         /// <returns>A result object containing resultset for browsing</returns>
-        public async Task<FindPeopleResults> FindPeople(FolderId folderId, SearchFilter searchFilter, ViewBase view)
+        public async Task<FindPeopleResults> FindPeople(FolderId folderId, SearchFilter searchFilter, ViewBase view,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamAllowNull(folderId, "folderId");
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
@@ -1623,7 +1701,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.SearchFilter = searchFilter;
             request.View = view;
 
-            return (await request.Execute().ConfigureAwait(false)).Results;
+            return (await request.Execute(token).ConfigureAwait(false)).Results;
         }
 
         /// <summary>
@@ -1655,9 +1733,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view which defines the number of personas being returned</param>
         /// <param name="context">The context for this query. See PeopleQueryContextKeys for keys</param>
         /// <returns>A collection of personas matching the query string</returns>
-        public Task<IPeopleQueryResults> BrowsePeople(ViewBase view, Dictionary<string, string> context)
+        public Task<IPeopleQueryResults> BrowsePeople(ViewBase view, Dictionary<string, string> context, CancellationToken token = default(CancellationToken))
         {
-            return this.PerformPeopleQuery(view, string.Empty, context, null);
+            return this.PerformPeopleQuery(view, string.Empty, context, null, token);
         }
 
         /// <summary>
@@ -1680,11 +1758,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="context">The context for this query. See PeopleQueryContextKeys for keys</param>
         /// <param name="queryMode">The scope of the query.</param>
         /// <returns>A collection of personas matching the query string</returns>
-        public Task<IPeopleQueryResults> SearchPeople(ViewBase view, string queryString, Dictionary<string, string> context, PeopleQueryMode queryMode)
+        public Task<IPeopleQueryResults> SearchPeople(ViewBase view, string queryString, Dictionary<string, string> context, PeopleQueryMode queryMode, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(queryString, "queryString");
 
-            return this.PerformPeopleQuery(view, queryString, context, queryMode);
+            return this.PerformPeopleQuery(view, queryString, context, queryMode, token);
         }
 
         /// <summary>
@@ -1695,7 +1773,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="context">The context for this query</param>
         /// <param name="queryMode">The scope of the query.</param>
         /// <returns></returns>
-        private async Task<IPeopleQueryResults> PerformPeopleQuery(ViewBase view, string queryString, Dictionary<string, string> context, PeopleQueryMode queryMode)
+        private async Task<IPeopleQueryResults> PerformPeopleQuery(ViewBase view, string queryString, Dictionary<string, string> context, PeopleQueryMode queryMode, CancellationToken token)
         {
             EwsUtilities.ValidateParam(view, "view");
             EwsUtilities.ValidateMethodVersion(this, ExchangeVersion.Exchange2015, "FindPeople");
@@ -1717,7 +1795,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.Context = context;
             request.QueryMode = queryMode;
 
-            FindPeopleResponse response = await request.Execute().ConfigureAwait(false);
+            FindPeopleResponse response = await request.Execute(token).ConfigureAwait(false);
 
             PeopleQueryResults results = new PeopleQueryResults();
             results.Personas = response.Personas.ToList();
@@ -1733,7 +1811,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="userPhotoSize">The desired size of the returned photo. Valid photo sizes are in UserPhotoSize</param>
         /// <param name="entityTag">A photo's cache ID which will allow the caller to ensure their cached photo is up to date</param>
         /// <returns>A result object containing the photo state</returns>
-        public async Task<GetUserPhotoResults> GetUserPhoto(string emailAddress, string userPhotoSize, string entityTag)
+        public async Task<GetUserPhotoResults> GetUserPhoto(string emailAddress, string userPhotoSize, string entityTag,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(emailAddress, "emailAddress");
             EwsUtilities.ValidateParam(userPhotoSize, "userPhotoSize");
@@ -1745,7 +1824,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.UserPhotoSize = userPhotoSize;
             request.EntityTag = entityTag;
 
-            return (await request.Execute().ConfigureAwait(false)).Results;
+            return (await request.Execute(token).ConfigureAwait(false)).Results;
         }
 
         #endregion
@@ -1757,12 +1836,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="emailAddresses">Specified eamiladdresses to retrieve</param>
         /// <returns>The collection of Person objects containing the insight info</returns>
-        public async Task<Collection<Person>> GetPeopleInsights(IEnumerable<string> emailAddresses)
+        public async Task<Collection<Person>> GetPeopleInsights(IEnumerable<string> emailAddresses, CancellationToken token = default(CancellationToken))
         {
             GetPeopleInsightsRequest request = new GetPeopleInsightsRequest(this);
             request.Emailaddresses.AddRange(emailAddresses);
 
-            return (await request.Execute().ConfigureAwait(false)).People;
+            return (await request.Execute(token).ConfigureAwait(false)).People;
         }
 
         #endregion
@@ -1780,7 +1859,8 @@ namespace Microsoft.Exchange.WebServices.Data
             IEnumerable<Attachment> attachments,
             BodyType? bodyType,
             IEnumerable<PropertyDefinitionBase> additionalProperties,
-            ServiceErrorHandling errorHandling)
+            ServiceErrorHandling errorHandling,
+            CancellationToken token)
         {
             GetAttachmentRequest request = new GetAttachmentRequest(this, errorHandling);
 
@@ -1792,7 +1872,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 request.AdditionalProperties.AddRange(additionalProperties);
             }
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -1805,13 +1885,15 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<GetAttachmentResponse>> GetAttachments(
             Attachment[] attachments,
             BodyType? bodyType,
-            IEnumerable<PropertyDefinitionBase> additionalProperties)
+            IEnumerable<PropertyDefinitionBase> additionalProperties,
+            CancellationToken token = default(CancellationToken))
         {
             return this.InternalGetAttachments(
                 attachments,
                 bodyType,
                 additionalProperties,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -1824,7 +1906,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<GetAttachmentResponse>> GetAttachments(
             string[] attachmentIds,
             BodyType? bodyType,
-            IEnumerable<PropertyDefinitionBase> additionalProperties)
+            IEnumerable<PropertyDefinitionBase> additionalProperties,
+            CancellationToken token = default(CancellationToken))
         {
             GetAttachmentRequest request = new GetAttachmentRequest(this, ServiceErrorHandling.ReturnErrors);
 
@@ -1836,7 +1919,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 request.AdditionalProperties.AddRange(additionalProperties);
             }
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -1848,13 +1931,15 @@ namespace Microsoft.Exchange.WebServices.Data
         internal Task<ServiceResponseCollection<GetAttachmentResponse>> GetAttachment(
             Attachment attachment,
             BodyType? bodyType,
-            IEnumerable<PropertyDefinitionBase> additionalProperties)
+            IEnumerable<PropertyDefinitionBase> additionalProperties,
+            CancellationToken token)
         {
             return this.InternalGetAttachments(
                 new Attachment[] { attachment },
                 bodyType,
                 additionalProperties,
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError,
+                token);
         }
 
         /// <summary>
@@ -1865,14 +1950,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>Service response collection.</returns>
         internal Task<ServiceResponseCollection<CreateAttachmentResponse>> CreateAttachments(
             string parentItemId,
-            IEnumerable<Attachment> attachments)
+            IEnumerable<Attachment> attachments,
+            CancellationToken token)
         {
             CreateAttachmentRequest request = new CreateAttachmentRequest(this, ServiceErrorHandling.ReturnErrors);
 
             request.ParentItemId = parentItemId;
             request.Attachments.AddRange(attachments);
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -1880,13 +1966,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="attachments">The attachments.</param>
         /// <returns>Service response collection.</returns>
-        internal Task<ServiceResponseCollection<DeleteAttachmentResponse>> DeleteAttachments(IEnumerable<Attachment> attachments)
+        internal Task<ServiceResponseCollection<DeleteAttachmentResponse>> DeleteAttachments(IEnumerable<Attachment> attachments, CancellationToken token)
         {
             DeleteAttachmentRequest request = new DeleteAttachmentRequest(this, ServiceErrorHandling.ReturnErrors);
 
             request.Attachments.AddRange(attachments);
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         #endregion
@@ -1945,7 +2031,8 @@ namespace Microsoft.Exchange.WebServices.Data
             IEnumerable<FolderId> parentFolderIds,
             ResolveNameSearchLocation searchScope,
             bool returnContactDetails,
-            PropertySet contactDataPropertySet)
+            PropertySet contactDataPropertySet,
+            CancellationToken token = default(CancellationToken))
         {
             if (contactDataPropertySet != null)
             {
@@ -1966,7 +2053,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.SearchLocation = searchScope;
             request.ContactDataPropertySet = contactDataPropertySet;
 
-            return (await request.ExecuteAsync().ConfigureAwait(false))[0].Resolutions;
+            return (await request.ExecuteAsync(token).ConfigureAwait(false))[0].Resolutions;
         }
 
         /// <summary>
@@ -2017,7 +2104,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="emailAddress">The e-mail address of the group.</param>
         /// <returns>An ExpandGroupResults containing the members of the group.</returns>
-        public async Task<ExpandGroupResults> ExpandGroup(EmailAddress emailAddress)
+        public async Task<ExpandGroupResults> ExpandGroup(EmailAddress emailAddress, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(emailAddress, "emailAddress");
 
@@ -2025,7 +2112,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             request.EmailAddress = emailAddress;
 
-            return (await request.ExecuteAsync().ConfigureAwait(false))[0].Members;
+            return (await request.ExecuteAsync(token).ConfigureAwait(false))[0].Members;
         }
 
         /// <summary>
@@ -2077,12 +2164,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="mailboxSmtpAddress">The e-mail address of the user.</param>
         /// <returns>The password expiration date.</returns>
-        public async Task<DateTime?> GetPasswordExpirationDate(string mailboxSmtpAddress)
+        public async Task<DateTime?> GetPasswordExpirationDate(string mailboxSmtpAddress, CancellationToken token = default(CancellationToken))
         {
             GetPasswordExpirationDateRequest request = new GetPasswordExpirationDateRequest(this);
             request.MailboxSmtpAddress = mailboxSmtpAddress;
 
-            return (await request.Execute().ConfigureAwait(false)).PasswordExpirationDate;
+            return (await request.Execute(token).ConfigureAwait(false)).PasswordExpirationDate;
         }
         #endregion
 
@@ -2100,6 +2187,7 @@ namespace Microsoft.Exchange.WebServices.Data
             IEnumerable<FolderId> folderIds,
             int timeout,
             string watermark,
+            CancellationToken token = default(CancellationToken),
             params EventType[] eventTypes)
         {
             EwsUtilities.ValidateParamCollection(folderIds, "folderIds");
@@ -2108,7 +2196,7 @@ namespace Microsoft.Exchange.WebServices.Data
                  folderIds,
                  timeout,
                  watermark,
-                 eventTypes).ExecuteAsync().ConfigureAwait(false))[0].Subscription;
+                 eventTypes).ExecuteAsync(token).ConfigureAwait(false))[0].Subscription;
         }
 
         /// <summary>
@@ -2121,7 +2209,9 @@ namespace Microsoft.Exchange.WebServices.Data
         public async Task<PullSubscription> SubscribeToPullNotificationsOnAllFolders(
             int timeout,
             string watermark,
-            params EventType[] eventTypes)
+            CancellationToken token = default(CancellationToken),
+            params EventType[] eventTypes
+            )
         {
             EwsUtilities.ValidateMethodVersion(
                 this,
@@ -2132,7 +2222,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 null,
                 timeout,
                 watermark,
-                eventTypes).ExecuteAsync().ConfigureAwait(false))[0].Subscription;
+                eventTypes).ExecuteAsync(token).ConfigureAwait(false))[0].Subscription;
         }
 
         /// <summary>
@@ -2174,9 +2264,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Unsubscribes from a subscription. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="subscriptionId">The Id of the pull subscription to unsubscribe from.</param>
-        internal System.Threading.Tasks.Task Unsubscribe(string subscriptionId)
+        internal System.Threading.Tasks.Task Unsubscribe(string subscriptionId, CancellationToken token)
         {
-            return this.BuildUnsubscribeRequest(subscriptionId).ExecuteAsync();
+            return this.BuildUnsubscribeRequest(subscriptionId).ExecuteAsync(token);
         }
 
         /// <summary>
@@ -2201,9 +2291,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="subscriptionId">The Id of the pull subscription for which to get the events.</param>
         /// <param name="watermark">The watermark representing the point in time where to start receiving events.</param>
         /// <returns>A GetEventsResults containing a list of events associated with the subscription.</returns>
-        internal async Task<GetEventsResults> GetEvents(string subscriptionId, string watermark)
+        internal async Task<GetEventsResults> GetEvents(string subscriptionId, string watermark, CancellationToken token)
         {
-            return (await this.BuildGetEventsRequest(subscriptionId, watermark).ExecuteAsync().ConfigureAwait(false))[0].Results;
+            return (await this.BuildGetEventsRequest(subscriptionId, watermark).ExecuteAsync(token).ConfigureAwait(false))[0].Results;
         }
 
         /// <summary>
@@ -2241,6 +2331,7 @@ namespace Microsoft.Exchange.WebServices.Data
             Uri url,
             int frequency,
             string watermark,
+            CancellationToken token = default(CancellationToken),
             params EventType[] eventTypes)
         {
             EwsUtilities.ValidateParamCollection(folderIds, "folderIds");
@@ -2252,7 +2343,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 watermark,
                 null,
                 null, // AnchorMailbox
-                eventTypes).ExecuteAsync().ConfigureAwait(false))[0].Subscription;
+                eventTypes).ExecuteAsync(token).ConfigureAwait(false))[0].Subscription;
         }
 
         /// <summary>
@@ -2267,6 +2358,7 @@ namespace Microsoft.Exchange.WebServices.Data
             Uri url,
             int frequency,
             string watermark,
+            CancellationToken token = default(CancellationToken),
             params EventType[] eventTypes)
         {
             EwsUtilities.ValidateMethodVersion(
@@ -2281,7 +2373,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 watermark,
                 null,
                 null, // AnchorMailbox
-                eventTypes).ExecuteAsync().ConfigureAwait(false))[0].Subscription;
+                eventTypes).ExecuteAsync(token).ConfigureAwait(false))[0].Subscription;
         }
 
         /// <summary>
@@ -2300,6 +2392,7 @@ namespace Microsoft.Exchange.WebServices.Data
             int frequency,
             string watermark,
             string callerData,
+            CancellationToken token = default(CancellationToken),
             params EventType[] eventTypes)
         {
             EwsUtilities.ValidateParamCollection(folderIds, "folderIds");
@@ -2311,7 +2404,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 watermark,
                 callerData,
                 null, // AnchorMailbox
-                eventTypes).ExecuteAsync().ConfigureAwait(false))[0].Subscription;
+                eventTypes).ExecuteAsync(token).ConfigureAwait(false))[0].Subscription;
         }
 
         /// <summary>
@@ -2330,6 +2423,7 @@ namespace Microsoft.Exchange.WebServices.Data
             int frequency,
             string watermark,
             string callerData,
+            CancellationToken token = default(CancellationToken),
             params EventType[] eventTypes)
         {
             var folderIds = new FolderId[] { new FolderId(WellKnownFolderName.Inbox, new Mailbox(groupMailboxSmtp)) };
@@ -2340,7 +2434,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 watermark,
                 callerData,
                 groupMailboxSmtp, // AnchorMailbox
-                eventTypes).ExecuteAsync().ConfigureAwait(false))[0].Subscription;
+                eventTypes).ExecuteAsync(token).ConfigureAwait(false))[0].Subscription;
         }
 
         /// <summary>
@@ -2357,6 +2451,7 @@ namespace Microsoft.Exchange.WebServices.Data
             int frequency,
             string watermark,
             string callerData,
+            CancellationToken token = default(CancellationToken),
             params EventType[] eventTypes)
         {
             EwsUtilities.ValidateMethodVersion(
@@ -2371,7 +2466,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 watermark,
                 callerData,
                 null, // AnchorMailbox
-                eventTypes).ExecuteAsync().ConfigureAwait(false))[0].Subscription;
+                eventTypes).ExecuteAsync(token).ConfigureAwait(false))[0].Subscription;
         }
 
         /// <summary>
@@ -2380,7 +2475,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="emailAddress">TeamMailbox email address</param>
         /// <param name="sharePointSiteUrl">SharePoint site URL</param>
         /// <param name="state">TeamMailbox lifecycle state</param>
-        public System.Threading.Tasks.Task SetTeamMailbox(EmailAddress emailAddress, Uri sharePointSiteUrl, TeamMailboxLifecycleState state)
+        public System.Threading.Tasks.Task SetTeamMailbox(EmailAddress emailAddress, Uri sharePointSiteUrl, TeamMailboxLifecycleState state,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateMethodVersion(this, ExchangeVersion.Exchange2013, "SetTeamMailbox");
 
@@ -2395,14 +2491,14 @@ namespace Microsoft.Exchange.WebServices.Data
             }
 
             SetTeamMailboxRequest request = new SetTeamMailboxRequest(this, emailAddress, sharePointSiteUrl, state);
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
         /// Unpin a TeamMailbox
         /// </summary>
         /// <param name="emailAddress">TeamMailbox email address</param>
-        public System.Threading.Tasks.Task UnpinTeamMailbox(EmailAddress emailAddress)
+        public System.Threading.Tasks.Task UnpinTeamMailbox(EmailAddress emailAddress, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateMethodVersion(this, ExchangeVersion.Exchange2013, "UnpinTeamMailbox");
 
@@ -2412,7 +2508,7 @@ namespace Microsoft.Exchange.WebServices.Data
             }
 
             UnpinTeamMailboxRequest request = new UnpinTeamMailboxRequest(this, emailAddress);
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -2469,6 +2565,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>A StreamingSubscription representing the new subscription.</returns>
         public async System.Threading.Tasks.Task<StreamingSubscription> SubscribeToStreamingNotifications(
             IEnumerable<FolderId> folderIds,
+            CancellationToken token = default(CancellationToken),
             params EventType[] eventTypes)
         {
             EwsUtilities.ValidateMethodVersion(
@@ -2478,7 +2575,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             EwsUtilities.ValidateParamCollection(folderIds, "folderIds");
 
-            return (await this.BuildSubscribeToStreamingNotificationsRequest(folderIds, eventTypes).ExecuteAsync().ConfigureAwait(false))[0].Subscription;
+            return (await this.BuildSubscribeToStreamingNotificationsRequest(folderIds, eventTypes).ExecuteAsync(token).ConfigureAwait(false))[0].Subscription;
         }
 
         /// <summary>
@@ -2487,6 +2584,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="eventTypes">The event types to subscribe to.</param>
         /// <returns>A StreamingSubscription representing the new subscription.</returns>
         public async Task<StreamingSubscription> SubscribeToStreamingNotificationsOnAllFolders(
+            CancellationToken token = default(CancellationToken),
             params EventType[] eventTypes)
         {
             EwsUtilities.ValidateMethodVersion(
@@ -2494,7 +2592,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 ExchangeVersion.Exchange2010_SP1,
                 "SubscribeToStreamingNotificationsOnAllFolders");
 
-            return (await this.BuildSubscribeToStreamingNotificationsRequest(null, eventTypes).ExecuteAsync().ConfigureAwait(false))[0].Subscription;
+            return (await this.BuildSubscribeToStreamingNotificationsRequest(null, eventTypes).ExecuteAsync(token).ConfigureAwait(false))[0].Subscription;
         }
 
         /// <summary>
@@ -2571,7 +2669,8 @@ namespace Microsoft.Exchange.WebServices.Data
             int maxChangesReturned,
             int numberOfDays,
             SyncFolderItemsScope syncScope,
-            string syncState)
+            string syncState,
+            CancellationToken token = default(CancellationToken))
         {
             return (await this.BuildSyncFolderItemsRequest(
                 syncFolderId,
@@ -2580,7 +2679,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 maxChangesReturned,
                 numberOfDays,
                 syncScope,
-                syncState).ExecuteAsync().ConfigureAwait(false))[0].Changes;
+                syncState).ExecuteAsync(token).ConfigureAwait(false))[0].Changes;
         }
 
         /// <summary>
@@ -2632,12 +2731,13 @@ namespace Microsoft.Exchange.WebServices.Data
         public async Task<ChangeCollection<FolderChange>> SyncFolderHierarchy(
             FolderId syncFolderId,
             PropertySet propertySet,
-            string syncState)
+            string syncState,
+            CancellationToken token = default(CancellationToken))
         {
             return (await this.BuildSyncFolderHierarchyRequest(
                 syncFolderId,
                 propertySet,
-                syncState).ExecuteAsync().ConfigureAwait(false))[0].Changes;
+                syncState).ExecuteAsync(token).ConfigureAwait(false))[0].Changes;
         }
 
         /// <summary>
@@ -2687,7 +2787,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="smtpAddress">The SMTP address of the user for which to retrieve OOF settings.</param>
         /// <returns>An OofSettings instance containing OOF information for the specified user.</returns>
-        public async Task<OofSettings> GetUserOofSettings(string smtpAddress)
+        public async Task<OofSettings> GetUserOofSettings(string smtpAddress, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(smtpAddress, "smtpAddress");
 
@@ -2695,7 +2795,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             request.SmtpAddress = smtpAddress;
 
-            return (await request.Execute().ConfigureAwait(false)).OofSettings;
+            return (await request.Execute(token).ConfigureAwait(false)).OofSettings;
         }
 
         /// <summary>
@@ -2703,7 +2803,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="smtpAddress">The SMTP address of the user for which to set OOF settings.</param>
         /// <param name="oofSettings">The OOF settings.</param>
-        public System.Threading.Tasks.Task SetUserOofSettings(string smtpAddress, OofSettings oofSettings)
+        public System.Threading.Tasks.Task SetUserOofSettings(string smtpAddress, OofSettings oofSettings, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(smtpAddress, "smtpAddress");
             EwsUtilities.ValidateParam(oofSettings, "oofSettings");
@@ -2713,7 +2813,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.SmtpAddress = smtpAddress;
             request.OofSettings = oofSettings;
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -2732,7 +2832,8 @@ namespace Microsoft.Exchange.WebServices.Data
             IEnumerable<AttendeeInfo> attendees,
             TimeWindow timeWindow,
             AvailabilityData requestedData,
-            AvailabilityOptions options)
+            AvailabilityOptions options,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamCollection(attendees, "attendees");
             EwsUtilities.ValidateParam(timeWindow, "timeWindow");
@@ -2745,7 +2846,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.RequestedData = requestedData;
             request.Options = options;
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -2775,11 +2876,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Retrieves a collection of all room lists in the organization.
         /// </summary>
         /// <returns>An EmailAddressCollection containing all the room lists in the organization.</returns>
-        public async Task<EmailAddressCollection> GetRoomLists()
+        public async Task<EmailAddressCollection> GetRoomLists(CancellationToken token = default(CancellationToken))
         {
             GetRoomListsRequest request = new GetRoomListsRequest(this);
 
-            return (await request.Execute().ConfigureAwait(false)).RoomLists;
+            return (await request.Execute(token).ConfigureAwait(false)).RoomLists;
         }
 
         /// <summary>
@@ -2787,7 +2888,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="emailAddress">The e-mail address of the room list.</param>
         /// <returns>A collection of EmailAddress objects representing all the rooms within the specifed room list.</returns>
-        public async Task<Collection<EmailAddress>> GetRooms(EmailAddress emailAddress)
+        public async Task<Collection<EmailAddress>> GetRooms(EmailAddress emailAddress, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(emailAddress, "emailAddress");
 
@@ -2795,7 +2896,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             request.RoomList = emailAddress;
 
-            return (await request.Execute().ConfigureAwait(false)).Rooms;
+            return (await request.Execute(token).ConfigureAwait(false)).Rooms;
         }
         #endregion
 
@@ -2806,7 +2907,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of conversations returned.</param>
         /// <param name="folderId">The Id of the folder in which to search for conversations.</param>
         /// <returns>Collection of conversations.</returns>
-        public async Task<ICollection<Conversation>> FindConversation(ViewBase view, FolderId folderId)
+        public async Task<ICollection<Conversation>> FindConversation(ViewBase view, FolderId folderId, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(view, "view");
             EwsUtilities.ValidateParam(folderId, "folderId");
@@ -2820,7 +2921,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.View = view;
             request.FolderId = new FolderIdWrapper(folderId);
 
-            return (await request.Execute().ConfigureAwait(false)).Conversations;
+            return (await request.Execute(token).ConfigureAwait(false)).Conversations;
         }
 
         /// <summary>
@@ -2837,7 +2938,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public async Task<Collection<Conversation>> FindGroupConversation(
             ViewBase view,
             FolderId folderId,
-            string anchorMailbox)
+            string anchorMailbox,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(view, "view");
             EwsUtilities.ValidateParam(folderId, "folderId");
@@ -2853,7 +2955,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.FolderId = new FolderIdWrapper(folderId);
             request.AnchorMailbox = anchorMailbox;
 
-            return (await request.Execute().ConfigureAwait(false)).Conversations;
+            return (await request.Execute(token).ConfigureAwait(false)).Conversations;
         }
 
         /// <summary>
@@ -2863,7 +2965,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="folderId">The Id of the folder in which to search for conversations.</param>
         /// <param name="queryString">The query string for which the search is being performed</param>
         /// <returns>Collection of conversations.</returns>
-        public async Task<ICollection<Conversation>> FindConversation(ViewBase view, FolderId folderId, string queryString)
+        public async Task<ICollection<Conversation>> FindConversation(ViewBase view, FolderId folderId, string queryString, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(view, "view");
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
@@ -2879,7 +2981,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.FolderId = new FolderIdWrapper(folderId);
             request.QueryString = queryString;
 
-            return (await request.Execute().ConfigureAwait(false)).Conversations;
+            return (await request.Execute(token).ConfigureAwait(false)).Conversations;
         }
 
         /// <summary>
@@ -2891,7 +2993,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="queryString">The query string for which the search is being performed</param>
         /// <param name="returnHighlightTerms">Flag indicating if highlight terms should be returned in the response</param>
         /// <returns>FindConversation results.</returns>
-        public async Task<FindConversationResults> FindConversation(ViewBase view, FolderId folderId, string queryString, bool returnHighlightTerms)
+        public async Task<FindConversationResults> FindConversation(ViewBase view, FolderId folderId, string queryString, bool returnHighlightTerms, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(view, "view");
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
@@ -2909,7 +3011,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.QueryString = queryString;
             request.ReturnHighlightTerms = returnHighlightTerms;
 
-            return (await request.Execute().ConfigureAwait(false)).Results;
+            return (await request.Execute(token).ConfigureAwait(false)).Results;
         }
 
         /// <summary>
@@ -2922,7 +3024,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="returnHighlightTerms">Flag indicating if highlight terms should be returned in the response</param>
         /// <param name="mailboxScope">The mailbox scope to reference.</param>
         /// <returns>FindConversation results.</returns>
-        public async Task<FindConversationResults> FindConversation(ViewBase view, FolderId folderId, string queryString, bool returnHighlightTerms, MailboxSearchLocation? mailboxScope)
+        public async Task<FindConversationResults> FindConversation(ViewBase view, FolderId folderId, string queryString, bool returnHighlightTerms, MailboxSearchLocation? mailboxScope, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(view, "view");
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
@@ -2942,7 +3044,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.ReturnHighlightTerms = returnHighlightTerms;
             request.MailboxScope = mailboxScope;
 
-            return (await request.Execute().ConfigureAwait(false)).Results;
+            return (await request.Execute(token).ConfigureAwait(false)).Results;
         }
 
         /// <summary>
@@ -2965,7 +3067,8 @@ namespace Microsoft.Exchange.WebServices.Data
                             MailboxSearchLocation? mailboxScope,
                             int? maxItemsToReturn,
                             string anchorMailbox,
-                            ServiceErrorHandling errorHandling)
+                            ServiceErrorHandling errorHandling,
+                            CancellationToken token)
         {
             EwsUtilities.ValidateParam(conversations, "conversations");
             EwsUtilities.ValidateParam(propertySet, "itemProperties");
@@ -2984,7 +3087,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.AnchorMailbox = anchorMailbox;
             request.Conversations = conversations.ToList();
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -2999,7 +3102,8 @@ namespace Microsoft.Exchange.WebServices.Data
                                                 IEnumerable<ConversationRequest> conversations,
                                                 PropertySet propertySet,
                                                 IEnumerable<FolderId> foldersToIgnore,
-                                                ConversationSortOrder? sortOrder)
+                                                ConversationSortOrder? sortOrder,
+                                                CancellationToken token = default(CancellationToken))
         {
             return this.InternalGetConversationItems(
                                 conversations,
@@ -3009,7 +3113,8 @@ namespace Microsoft.Exchange.WebServices.Data
                                 null,               /* mailboxScope */
                                 null,               /* maxItemsToReturn*/
                                 null, /* anchorMailbox */
-                                ServiceErrorHandling.ReturnErrors);
+                                ServiceErrorHandling.ReturnErrors,
+                                token);
         }
 
         /// <summary>
@@ -3026,7 +3131,8 @@ namespace Microsoft.Exchange.WebServices.Data
                                                 PropertySet propertySet,
                                                 string syncState,
                                                 IEnumerable<FolderId> foldersToIgnore,
-                                                ConversationSortOrder? sortOrder)
+                                                ConversationSortOrder? sortOrder,
+                                                CancellationToken token = default(CancellationToken))
         {
             List<ConversationRequest> conversations = new List<ConversationRequest>();
             conversations.Add(new ConversationRequest(conversationId, syncState));
@@ -3039,7 +3145,8 @@ namespace Microsoft.Exchange.WebServices.Data
                                 null,           /* mailboxScope */
                                 null,           /* maxItemsToReturn */
                                 null, /* anchorMailbox */
-                                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false))[0].Conversation;
+                                ServiceErrorHandling.ThrowOnError,
+                                token).ConfigureAwait(false))[0].Conversation;
         }
 
         /// <summary>
@@ -3062,7 +3169,8 @@ namespace Microsoft.Exchange.WebServices.Data
                                                 string syncState,
                                                 IEnumerable<FolderId> foldersToIgnore,
                                                 ConversationSortOrder? sortOrder,
-                                                string anchorMailbox)
+                                                string anchorMailbox,
+                                                CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(anchorMailbox, "anchorMailbox");
 
@@ -3077,7 +3185,8 @@ namespace Microsoft.Exchange.WebServices.Data
                                 null,           /* mailboxScope */
                                 null,           /* maxItemsToReturn */
                                 anchorMailbox, /* anchorMailbox */
-                                ServiceErrorHandling.ThrowOnError).ConfigureAwait(false))[0].Conversation;
+                                ServiceErrorHandling.ThrowOnError,
+                                token).ConfigureAwait(false))[0].Conversation;
         }
 
         /// <summary>
@@ -3094,7 +3203,8 @@ namespace Microsoft.Exchange.WebServices.Data
                                                 PropertySet propertySet,
                                                 IEnumerable<FolderId> foldersToIgnore,
                                                 ConversationSortOrder? sortOrder,
-                                                MailboxSearchLocation? mailboxScope)
+                                                MailboxSearchLocation? mailboxScope,
+                                                CancellationToken token = default(CancellationToken))
         {
             return this.InternalGetConversationItems(
                                 conversations,
@@ -3104,7 +3214,8 @@ namespace Microsoft.Exchange.WebServices.Data
                                 mailboxScope,
                                 null,               /* maxItemsToReturn*/
                                 null, /* anchorMailbox */
-                                ServiceErrorHandling.ReturnErrors);
+                                ServiceErrorHandling.ReturnErrors,
+                                token);
         }
 
         /// <summary>
@@ -3130,7 +3241,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 StringList categories,
                 bool enableAlwaysDelete,
                 FolderId destinationFolderId,
-                ServiceErrorHandling errorHandlingMode)
+                ServiceErrorHandling errorHandlingMode,
+                CancellationToken token)
         {
             EwsUtilities.Assert(
                 actionType == ConversationActionType.AlwaysCategorize ||
@@ -3161,7 +3273,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 request.ConversationActions.Add(action);
             }
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -3191,7 +3303,8 @@ namespace Microsoft.Exchange.WebServices.Data
             Guid? retentionPolicyTagId,
             Flag flag,
             bool? suppressReadReceipts,
-            ServiceErrorHandling errorHandlingMode)
+            ServiceErrorHandling errorHandlingMode,
+            CancellationToken token)
         {
             EwsUtilities.Assert(
                 actionType == ConversationActionType.Move ||
@@ -3230,7 +3343,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 request.ConversationActions.Add(action);
             }
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -3245,7 +3358,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<ServiceResponse>> EnableAlwaysCategorizeItemsInConversations(
             IEnumerable<ConversationId> conversationId,
             IEnumerable<String> categories,
-            bool processSynchronously)
+            bool processSynchronously,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamCollection(categories, "categories");
             return this.ApplyConversationAction(
@@ -3255,7 +3369,8 @@ namespace Microsoft.Exchange.WebServices.Data
                         new StringList(categories),
                         false,
                         null,
-                        ServiceErrorHandling.ReturnErrors);
+                        ServiceErrorHandling.ReturnErrors,
+                        token);
         }
 
         /// <summary>
@@ -3268,7 +3383,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns></returns>
         public Task<ServiceResponseCollection<ServiceResponse>> DisableAlwaysCategorizeItemsInConversations(
             IEnumerable<ConversationId> conversationId,
-            bool processSynchronously)
+            bool processSynchronously,
+            CancellationToken token = default(CancellationToken))
         {
             return this.ApplyConversationAction(
                         ConversationActionType.AlwaysCategorize,
@@ -3277,7 +3393,8 @@ namespace Microsoft.Exchange.WebServices.Data
                         null,
                         false,
                         null,
-                        ServiceErrorHandling.ReturnErrors);
+                        ServiceErrorHandling.ReturnErrors,
+                        token);
         }
 
         /// <summary>
@@ -3290,7 +3407,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns></returns>
         public Task<ServiceResponseCollection<ServiceResponse>> EnableAlwaysDeleteItemsInConversations(
             IEnumerable<ConversationId> conversationId,
-            bool processSynchronously)
+            bool processSynchronously,
+            CancellationToken token = default(CancellationToken))
         {
             return this.ApplyConversationAction(
                         ConversationActionType.AlwaysDelete,
@@ -3299,7 +3417,8 @@ namespace Microsoft.Exchange.WebServices.Data
                         null,
                         true,
                         null,
-                        ServiceErrorHandling.ReturnErrors);
+                        ServiceErrorHandling.ReturnErrors,
+                        token);
         }
 
         /// <summary>
@@ -3312,7 +3431,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns></returns>
         public Task<ServiceResponseCollection<ServiceResponse>> DisableAlwaysDeleteItemsInConversations(
             IEnumerable<ConversationId> conversationId,
-            bool processSynchronously)
+            bool processSynchronously,
+            CancellationToken token = default(CancellationToken))
         {
             return this.ApplyConversationAction(
                         ConversationActionType.AlwaysDelete,
@@ -3321,7 +3441,8 @@ namespace Microsoft.Exchange.WebServices.Data
                         null,
                         false,
                         null,
-                        ServiceErrorHandling.ReturnErrors);
+                        ServiceErrorHandling.ReturnErrors,
+                        token);
         }
 
         /// <summary>
@@ -3336,7 +3457,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<ServiceResponse>> EnableAlwaysMoveItemsInConversations(
             IEnumerable<ConversationId> conversationId,
             FolderId destinationFolderId,
-            bool processSynchronously)
+            bool processSynchronously,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
             return this.ApplyConversationAction(
@@ -3346,7 +3468,8 @@ namespace Microsoft.Exchange.WebServices.Data
                         null,
                         false,
                         destinationFolderId,
-                        ServiceErrorHandling.ReturnErrors);
+                        ServiceErrorHandling.ReturnErrors,
+                        token);
         }
 
         /// <summary>
@@ -3359,7 +3482,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns></returns>
         public Task<ServiceResponseCollection<ServiceResponse>> DisableAlwaysMoveItemsInConversations(
             IEnumerable<ConversationId> conversationIds,
-            bool processSynchronously)
+            bool processSynchronously,
+            CancellationToken token = default(CancellationToken))
         {
             return this.ApplyConversationAction(
                         ConversationActionType.AlwaysMove,
@@ -3368,7 +3492,8 @@ namespace Microsoft.Exchange.WebServices.Data
                         null,
                         false,
                         null,
-                        ServiceErrorHandling.ReturnErrors);
+                        ServiceErrorHandling.ReturnErrors,
+                        token);
         }
 
         /// <summary>
@@ -3384,7 +3509,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<ServiceResponse>> MoveItemsInConversations(
             IEnumerable<KeyValuePair<ConversationId, DateTime?>> idLastSyncTimePairs,
             FolderId contextFolderId,
-            FolderId destinationFolderId)
+            FolderId destinationFolderId,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
             return this.ApplyConversationOneTimeAction(
@@ -3398,7 +3524,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null,
                 null,
                 null,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -3414,7 +3541,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<ServiceResponse>> CopyItemsInConversations(
             IEnumerable<KeyValuePair<ConversationId, DateTime?>> idLastSyncTimePairs,
             FolderId contextFolderId,
-            FolderId destinationFolderId)
+            FolderId destinationFolderId,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
             return this.ApplyConversationOneTimeAction(
@@ -3428,7 +3556,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null,
                 null,
                 null,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -3443,7 +3572,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<ServiceResponse>> DeleteItemsInConversations(
             IEnumerable<KeyValuePair<ConversationId, DateTime?>> idLastSyncTimePairs,
             FolderId contextFolderId,
-            DeleteMode deleteMode)
+            DeleteMode deleteMode,
+            CancellationToken token = default(CancellationToken))
         {
             return this.ApplyConversationOneTimeAction(
                 ConversationActionType.Delete,
@@ -3456,7 +3586,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null,
                 null,
                 null,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -3472,7 +3603,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<ServiceResponse>> SetReadStateForItemsInConversations(
             IEnumerable<KeyValuePair<ConversationId, DateTime?>> idLastSyncTimePairs,
             FolderId contextFolderId,
-            bool isRead)
+            bool isRead,
+            CancellationToken token = default(CancellationToken))
         {
             return this.ApplyConversationOneTimeAction(
                 ConversationActionType.SetReadState,
@@ -3485,7 +3617,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null,
                 null,
                 null,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -3503,7 +3636,8 @@ namespace Microsoft.Exchange.WebServices.Data
             IEnumerable<KeyValuePair<ConversationId, DateTime?>> idLastSyncTimePairs,
             FolderId contextFolderId,
             bool isRead,
-            bool suppressReadReceipts)
+            bool suppressReadReceipts,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateMethodVersion(this, ExchangeVersion.Exchange2013, "SetReadStateForItemsInConversations");
 
@@ -3518,7 +3652,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null,
                 null,
                 suppressReadReceipts,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -3536,7 +3671,8 @@ namespace Microsoft.Exchange.WebServices.Data
             IEnumerable<KeyValuePair<ConversationId, DateTime?>> idLastSyncTimePairs,
             FolderId contextFolderId,
             RetentionType retentionPolicyType,
-            Guid? retentionPolicyTagId)
+            Guid? retentionPolicyTagId,
+            CancellationToken token = default(CancellationToken))
         {
             return this.ApplyConversationOneTimeAction(
                 ConversationActionType.SetRetentionPolicy,
@@ -3549,7 +3685,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 retentionPolicyTagId,
                 null,
                 null,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -3564,7 +3701,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<ServiceResponseCollection<ServiceResponse>> SetFlagStatusForItemsInConversations(
             IEnumerable<KeyValuePair<ConversationId, DateTime?>> idLastSyncTimePairs,
             FolderId contextFolderId,
-            Flag flagStatus)
+            Flag flagStatus,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateMethodVersion(this, ExchangeVersion.Exchange2013, "SetFlagStatusForItemsInConversations");
 
@@ -3579,7 +3717,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null,
                 flagStatus,
                 null,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         #endregion
@@ -3596,7 +3735,8 @@ namespace Microsoft.Exchange.WebServices.Data
         private Task<ServiceResponseCollection<ConvertIdResponse>> InternalConvertIds(
             IEnumerable<AlternateIdBase> ids,
             IdFormat destinationFormat,
-            ServiceErrorHandling errorHandling)
+            ServiceErrorHandling errorHandling,
+            CancellationToken token)
         {
             EwsUtilities.ValidateParamCollection(ids, "ids");
 
@@ -3605,7 +3745,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.Ids.AddRange(ids);
             request.DestinationFormat = destinationFormat;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -3614,14 +3754,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="ids">The Ids to convert.</param>
         /// <param name="destinationFormat">The destination format.</param>
         /// <returns>A ServiceResponseCollection providing conversion results for each specified Ids.</returns>
-        public Task<ServiceResponseCollection<ConvertIdResponse>> ConvertIds(IEnumerable<AlternateIdBase> ids, IdFormat destinationFormat)
+        public Task<ServiceResponseCollection<ConvertIdResponse>> ConvertIds(IEnumerable<AlternateIdBase> ids, IdFormat destinationFormat, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamCollection(ids, "ids");
 
             return this.InternalConvertIds(
                 ids,
                 destinationFormat,
-                ServiceErrorHandling.ReturnErrors);
+                ServiceErrorHandling.ReturnErrors,
+                token);
         }
 
         /// <summary>
@@ -3630,14 +3771,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">The Id to convert.</param>
         /// <param name="destinationFormat">The destination format.</param>
         /// <returns>The converted Id.</returns>
-        public async Task<AlternateIdBase> ConvertId(AlternateIdBase id, IdFormat destinationFormat)
+        public async Task<AlternateIdBase> ConvertId(AlternateIdBase id, IdFormat destinationFormat, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(id, "id");
 
             ServiceResponseCollection<ConvertIdResponse> responses = await this.InternalConvertIds(
                 new AlternateIdBase[] { id },
                 destinationFormat,
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError,
+                token);
 
             return responses[0].ConvertedId;
         }
@@ -3674,7 +3816,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public async Task<Collection<DelegateUserResponse>> AddDelegates(
             Mailbox mailbox,
             MeetingRequestsDeliveryScope? meetingRequestsDeliveryScope,
-            IEnumerable<DelegateUser> delegateUsers)
+            IEnumerable<DelegateUser> delegateUsers,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(mailbox, "mailbox");
             EwsUtilities.ValidateParamCollection(delegateUsers, "delegateUsers");
@@ -3685,7 +3828,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.DelegateUsers.AddRange(delegateUsers);
             request.MeetingRequestsDeliveryScope = meetingRequestsDeliveryScope;
 
-            DelegateManagementResponse response = await request.Execute().ConfigureAwait(false);
+            DelegateManagementResponse response = await request.Execute(token).ConfigureAwait(false);
             return response.DelegateUserResponses;
         }
 
@@ -3699,6 +3842,7 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<Collection<DelegateUserResponse>> UpdateDelegates(
             Mailbox mailbox,
             MeetingRequestsDeliveryScope? meetingRequestsDeliveryScope,
+            CancellationToken token = default(CancellationToken),
             params DelegateUser[] delegateUsers)
         {
             return this.UpdateDelegates(
@@ -3717,7 +3861,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public async Task<Collection<DelegateUserResponse>> UpdateDelegates(
             Mailbox mailbox,
             MeetingRequestsDeliveryScope? meetingRequestsDeliveryScope,
-            IEnumerable<DelegateUser> delegateUsers)
+            IEnumerable<DelegateUser> delegateUsers,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(mailbox, "mailbox");
             EwsUtilities.ValidateParamCollection(delegateUsers, "delegateUsers");
@@ -3728,7 +3873,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.DelegateUsers.AddRange(delegateUsers);
             request.MeetingRequestsDeliveryScope = meetingRequestsDeliveryScope;
 
-            DelegateManagementResponse response = await request.Execute().ConfigureAwait(false);
+            DelegateManagementResponse response = await request.Execute(token).ConfigureAwait(false);
             return response.DelegateUserResponses;
         }
 
@@ -3738,9 +3883,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="mailbox">The mailbox to remove delegates from.</param>
         /// <param name="userIds">The Ids of the delegate users to remove.</param>
         /// <returns>A collection of DelegateUserResponse objects providing the results of the operation.</returns>
-        public Task<Collection<DelegateUserResponse>> RemoveDelegates(Mailbox mailbox, params UserId[] userIds)
+        public Task<Collection<DelegateUserResponse>> RemoveDelegates(Mailbox mailbox, CancellationToken token = default(CancellationToken), params UserId[] userIds)
         {
-            return this.RemoveDelegates(mailbox, (IEnumerable<UserId>)userIds);
+            return this.RemoveDelegates(mailbox, (IEnumerable<UserId>)userIds, token);
         }
 
         /// <summary>
@@ -3749,7 +3894,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="mailbox">The mailbox to remove delegates from.</param>
         /// <param name="userIds">The Ids of the delegate users to remove.</param>
         /// <returns>A collection of DelegateUserResponse objects providing the results of the operation.</returns>
-        public async Task<Collection<DelegateUserResponse>> RemoveDelegates(Mailbox mailbox, IEnumerable<UserId> userIds)
+        public async Task<Collection<DelegateUserResponse>> RemoveDelegates(Mailbox mailbox, IEnumerable<UserId> userIds, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(mailbox, "mailbox");
             EwsUtilities.ValidateParamCollection(userIds, "userIds");
@@ -3759,7 +3904,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.Mailbox = mailbox;
             request.UserIds.AddRange(userIds);
 
-            DelegateManagementResponse response = await request.Execute().ConfigureAwait(false);
+            DelegateManagementResponse response = await request.Execute(token).ConfigureAwait(false);
             return response.DelegateUserResponses;
         }
 
@@ -3773,6 +3918,7 @@ namespace Microsoft.Exchange.WebServices.Data
         public Task<DelegateInformation> GetDelegates(
             Mailbox mailbox,
             bool includePermissions,
+            CancellationToken token = default(CancellationToken),
             params UserId[] userIds)
         {
             return this.GetDelegates(
@@ -3791,7 +3937,8 @@ namespace Microsoft.Exchange.WebServices.Data
         public async Task<DelegateInformation> GetDelegates(
             Mailbox mailbox,
             bool includePermissions,
-            IEnumerable<UserId> userIds)
+            IEnumerable<UserId> userIds,
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(mailbox, "mailbox");
 
@@ -3801,7 +3948,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.UserIds.AddRange(userIds);
             request.IncludePermissions = includePermissions;
 
-            GetDelegateResponse response = await request.Execute().ConfigureAwait(false);
+            GetDelegateResponse response = await request.Execute(token).ConfigureAwait(false);
             DelegateInformation delegateInformation = new DelegateInformation(
                 response.DelegateUserResponses,
                 response.MeetingRequestsDeliveryScope);
@@ -3817,7 +3964,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Creates a UserConfiguration.
         /// </summary>
         /// <param name="userConfiguration">The UserConfiguration.</param>
-        internal System.Threading.Tasks.Task CreateUserConfiguration(UserConfiguration userConfiguration)
+        internal System.Threading.Tasks.Task CreateUserConfiguration(UserConfiguration userConfiguration, CancellationToken token)
         {
             EwsUtilities.ValidateParam(userConfiguration, "userConfiguration");
 
@@ -3825,7 +3972,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             request.UserConfiguration = userConfiguration;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -3833,7 +3980,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="name">Name of the UserConfiguration to retrieve.</param>
         /// <param name="parentFolderId">Id of the folder containing the UserConfiguration.</param>
-        internal System.Threading.Tasks.Task DeleteUserConfiguration(string name, FolderId parentFolderId)
+        internal System.Threading.Tasks.Task DeleteUserConfiguration(string name, FolderId parentFolderId, CancellationToken token)
         {
             EwsUtilities.ValidateParam(name, "name");
             EwsUtilities.ValidateParam(parentFolderId, "parentFolderId");
@@ -3843,7 +3990,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.Name = name;
             request.ParentFolderId = parentFolderId;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -3856,7 +4003,8 @@ namespace Microsoft.Exchange.WebServices.Data
         internal async Task<UserConfiguration> GetUserConfiguration(
             string name,
             FolderId parentFolderId,
-            UserConfigurationProperties properties)
+            UserConfigurationProperties properties,
+            CancellationToken token)
         {
             EwsUtilities.ValidateParam(name, "name");
             EwsUtilities.ValidateParam(parentFolderId, "parentFolderId");
@@ -3867,7 +4015,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.ParentFolderId = parentFolderId;
             request.Properties = properties;
 
-            return (await request.ExecuteAsync().ConfigureAwait(false))[0].UserConfiguration;
+            return (await request.ExecuteAsync(token).ConfigureAwait(false))[0].UserConfiguration;
         }
 
         /// <summary>
@@ -3875,7 +4023,8 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="userConfiguration">The userConfiguration containing properties to load.</param>
         /// <param name="properties">Properties to retrieve.</param>
-        internal System.Threading.Tasks.Task LoadPropertiesForUserConfiguration(UserConfiguration userConfiguration, UserConfigurationProperties properties)
+        internal System.Threading.Tasks.Task LoadPropertiesForUserConfiguration(UserConfiguration userConfiguration, UserConfigurationProperties properties,
+            CancellationToken token)
         {
             EwsUtilities.Assert(
                 userConfiguration != null,
@@ -3887,14 +4036,14 @@ namespace Microsoft.Exchange.WebServices.Data
             request.UserConfiguration = userConfiguration;
             request.Properties = properties;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
         /// Updates a UserConfiguration.
         /// </summary>
         /// <param name="userConfiguration">The UserConfiguration.</param>
-        internal System.Threading.Tasks.Task UpdateUserConfiguration(UserConfiguration userConfiguration)
+        internal System.Threading.Tasks.Task UpdateUserConfiguration(UserConfiguration userConfiguration, CancellationToken token)
         {
             EwsUtilities.ValidateParam(userConfiguration, "userConfiguration");
 
@@ -3902,7 +4051,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             request.UserConfiguration = userConfiguration;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         #endregion
@@ -3912,11 +4061,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Retrieves inbox rules of the authenticated user.
         /// </summary>
         /// <returns>A RuleCollection object containing the authenticated user's inbox rules.</returns>
-        public async Task<RuleCollection> GetInboxRules()
+        public async Task<RuleCollection> GetInboxRules(CancellationToken token = default(CancellationToken))
         {
             GetInboxRulesRequest request = new GetInboxRulesRequest(this);
 
-            return (await request.Execute().ConfigureAwait(false)).Rules;
+            return (await request.Execute(token).ConfigureAwait(false)).Rules;
         }
 
         /// <summary>
@@ -3924,14 +4073,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="mailboxSmtpAddress">The SMTP address of the user whose inbox rules should be retrieved.</param>
         /// <returns>A RuleCollection object containing the inbox rules of the specified user.</returns>
-        public async Task<RuleCollection> GetInboxRules(string mailboxSmtpAddress)
+        public async Task<RuleCollection> GetInboxRules(string mailboxSmtpAddress, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(mailboxSmtpAddress, "MailboxSmtpAddress");
 
             GetInboxRulesRequest request = new GetInboxRulesRequest(this);
             request.MailboxSmtpAddress = mailboxSmtpAddress;
 
-            return (await request.Execute().ConfigureAwait(false)).Rules;
+            return (await request.Execute(token).ConfigureAwait(false)).Rules;
         }
 
         /// <summary>
@@ -3941,12 +4090,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="removeOutlookRuleBlob">Indicate whether or not to remove Outlook Rule Blob.</param>
         public System.Threading.Tasks.Task UpdateInboxRules(
             IEnumerable<RuleOperation> operations,
-            bool removeOutlookRuleBlob)
+            bool removeOutlookRuleBlob,
+            CancellationToken token = default(CancellationToken))
         {
             UpdateInboxRulesRequest request = new UpdateInboxRulesRequest(this);
             request.InboxRuleOperations = operations;
             request.RemoveOutlookRuleBlob = removeOutlookRuleBlob;
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -3958,13 +4108,14 @@ namespace Microsoft.Exchange.WebServices.Data
         public System.Threading.Tasks.Task UpdateInboxRules(
             IEnumerable<RuleOperation> operations,
             bool removeOutlookRuleBlob,
-            string mailboxSmtpAddress)
+            string mailboxSmtpAddress,
+            CancellationToken token = default(CancellationToken))
         {
             UpdateInboxRulesRequest request = new UpdateInboxRulesRequest(this);
             request.InboxRuleOperations = operations;
             request.RemoveOutlookRuleBlob = removeOutlookRuleBlob;
             request.MailboxSmtpAddress = mailboxSmtpAddress;
-            return request.Execute();
+            return request.Execute(token);
         }
         #endregion
 
@@ -3977,14 +4128,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="expandGroupMembership">True if want to expand group membership</param>
         /// <param name="inPlaceHoldConfigurationOnly">True if only want the inplacehold configuration</param>
         /// <returns>Service response object</returns>
-        public Task<GetDiscoverySearchConfigurationResponse> GetDiscoverySearchConfiguration(string searchId, bool expandGroupMembership, bool inPlaceHoldConfigurationOnly)
+        public Task<GetDiscoverySearchConfigurationResponse> GetDiscoverySearchConfiguration(string searchId, bool expandGroupMembership, bool inPlaceHoldConfigurationOnly, CancellationToken token = default(CancellationToken))
         {
             GetDiscoverySearchConfigurationRequest request = new GetDiscoverySearchConfigurationRequest(this);
             request.SearchId = searchId;
             request.ExpandGroupMembership = expandGroupMembership;
             request.InPlaceHoldConfigurationOnly = inPlaceHoldConfigurationOnly;
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -3993,13 +4144,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="searchFilter">Search filter</param>
         /// <param name="expandGroupMembership">True if want to expand group membership</param>
         /// <returns>Service response object</returns>
-        public Task<GetSearchableMailboxesResponse> GetSearchableMailboxes(string searchFilter, bool expandGroupMembership)
+        public Task<GetSearchableMailboxesResponse> GetSearchableMailboxes(string searchFilter, bool expandGroupMembership, CancellationToken token = default(CancellationToken))
         {
             GetSearchableMailboxesRequest request = new GetSearchableMailboxesRequest(this);
             request.SearchFilter = searchFilter;
             request.ExpandGroupMembership = expandGroupMembership;
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -4008,7 +4159,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="mailboxQueries">Collection of query and mailboxes</param>
         /// <param name="resultType">Search result type</param>
         /// <returns>Collection of search mailboxes response object</returns>
-        public Task<ServiceResponseCollection<SearchMailboxesResponse>> SearchMailboxes(IEnumerable<MailboxQuery> mailboxQueries, SearchResultType resultType)
+        public Task<ServiceResponseCollection<SearchMailboxesResponse>> SearchMailboxes(IEnumerable<MailboxQuery> mailboxQueries, SearchResultType resultType, CancellationToken token = default(CancellationToken))
         {
             SearchMailboxesRequest request = new SearchMailboxesRequest(this, ServiceErrorHandling.ReturnErrors);
             if (mailboxQueries != null)
@@ -4018,7 +4169,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             request.ResultType = resultType;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -4039,7 +4190,8 @@ namespace Microsoft.Exchange.WebServices.Data
             SortDirection sortOrder,
             int pageSize,
             SearchPageDirection pageDirection,
-            string pageItemReference)
+            string pageItemReference,
+            CancellationToken token = default(CancellationToken))
         {
             SearchMailboxesRequest request = new SearchMailboxesRequest(this, ServiceErrorHandling.ReturnErrors);
             if (mailboxQueries != null)
@@ -4054,7 +4206,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.PageDirection = pageDirection;
             request.PageItemReference = pageItemReference;
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -4062,13 +4214,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="searchParameters">Search mailboxes parameters</param>
         /// <returns>Collection of search mailboxes response object</returns>
-        public Task<ServiceResponseCollection<SearchMailboxesResponse>> SearchMailboxes(SearchMailboxesParameters searchParameters)
+        public Task<ServiceResponseCollection<SearchMailboxesResponse>> SearchMailboxes(SearchMailboxesParameters searchParameters, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(searchParameters, "searchParameters");
             EwsUtilities.ValidateParam(searchParameters.SearchQueries, "searchParameters.SearchQueries");
 
             SearchMailboxesRequest request = this.CreateSearchMailboxesRequest(searchParameters);
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         /// <summary>
@@ -4079,7 +4231,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="query">Query string</param>
         /// <param name="mailboxes">Collection of mailboxes</param>
         /// <returns>Service response object</returns>
-        public Task<SetHoldOnMailboxesResponse> SetHoldOnMailboxes(string holdId, HoldAction actionType, string query, string[] mailboxes)
+        public Task<SetHoldOnMailboxesResponse> SetHoldOnMailboxes(string holdId, HoldAction actionType, string query, string[] mailboxes, CancellationToken token = default(CancellationToken))
         {
             SetHoldOnMailboxesRequest request = new SetHoldOnMailboxesRequest(this);
             request.HoldId = holdId;
@@ -4088,7 +4240,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.Mailboxes = mailboxes;
             request.InPlaceHoldIdentity = null;
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -4113,7 +4265,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="inPlaceHoldIdentity">in-place hold identity</param>
         /// <param name="itemHoldPeriod">item hold period</param>
         /// <returns>Service response object</returns>
-        public Task<SetHoldOnMailboxesResponse> SetHoldOnMailboxes(string holdId, HoldAction actionType, string query, string inPlaceHoldIdentity, string itemHoldPeriod)
+        public Task<SetHoldOnMailboxesResponse> SetHoldOnMailboxes(string holdId, HoldAction actionType, string query, string inPlaceHoldIdentity, string itemHoldPeriod, CancellationToken token = default(CancellationToken))
         {
             SetHoldOnMailboxesRequest request = new SetHoldOnMailboxesRequest(this);
             request.HoldId = holdId;
@@ -4123,7 +4275,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.InPlaceHoldIdentity = inPlaceHoldIdentity;
             request.ItemHoldPeriod = itemHoldPeriod;
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -4131,7 +4283,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="parameters">Set hold parameters</param>
         /// <returns>Service response object</returns>
-        public Task<SetHoldOnMailboxesResponse> SetHoldOnMailboxes(SetHoldOnMailboxesParameters parameters)
+        public Task<SetHoldOnMailboxesResponse> SetHoldOnMailboxes(SetHoldOnMailboxesParameters parameters, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(parameters, "parameters");
 
@@ -4143,7 +4295,7 @@ namespace Microsoft.Exchange.WebServices.Data
             request.Language = parameters.Language;
             request.InPlaceHoldIdentity = parameters.InPlaceHoldIdentity;
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -4151,12 +4303,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="holdId">Hold id</param>
         /// <returns>Service response object</returns>
-        public Task<GetHoldOnMailboxesResponse> GetHoldOnMailboxes(string holdId)
+        public Task<GetHoldOnMailboxesResponse> GetHoldOnMailboxes(string holdId, CancellationToken token = default(CancellationToken))
         {
             GetHoldOnMailboxesRequest request = new GetHoldOnMailboxesRequest(this);
             request.HoldId = holdId;
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -4196,11 +4348,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="parameters">Get non indexable item details parameters</param>
         /// <returns>Service response object</returns>
-        public Task<GetNonIndexableItemDetailsResponse> GetNonIndexableItemDetails(GetNonIndexableItemDetailsParameters parameters)
+        public Task<GetNonIndexableItemDetailsResponse> GetNonIndexableItemDetails(GetNonIndexableItemDetailsParameters parameters, CancellationToken token = default(CancellationToken))
         {
             GetNonIndexableItemDetailsRequest request = this.CreateGetNonIndexableItemDetailsRequest(parameters);
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -4224,11 +4376,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="parameters">Get non indexable item statistics parameters</param>
         /// <returns>Service response object</returns>
-        public Task<GetNonIndexableItemStatisticsResponse> GetNonIndexableItemStatistics(GetNonIndexableItemStatisticsParameters parameters)
+        public Task<GetNonIndexableItemStatisticsResponse> GetNonIndexableItemStatistics(GetNonIndexableItemStatisticsParameters parameters, CancellationToken token = default(CancellationToken))
         {
             GetNonIndexableItemStatisticsRequest request = this.CreateGetNonIndexableItemStatisticsRequest(parameters);
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -4297,11 +4449,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Get user retention policy tags.
         /// </summary>
         /// <returns>Service response object.</returns>
-        public Task<GetUserRetentionPolicyTagsResponse> GetUserRetentionPolicyTags()
+        public Task<GetUserRetentionPolicyTagsResponse> GetUserRetentionPolicyTags(CancellationToken token = default(CancellationToken))
         {
             GetUserRetentionPolicyTagsRequest request = new GetUserRetentionPolicyTagsRequest(this);
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         #endregion
@@ -4498,11 +4650,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="tokenRequests">Token requests array</param>
         /// <returns>A ServiceResponseCollection providing token results for each of the specified id and types.</returns>
-        public Task<ServiceResponseCollection<GetClientAccessTokenResponse>> GetClientAccessToken(ClientAccessTokenRequest[] tokenRequests)
+        public Task<ServiceResponseCollection<GetClientAccessTokenResponse>> GetClientAccessToken(ClientAccessTokenRequest[] tokenRequests, CancellationToken token = default(CancellationToken))
         {
             GetClientAccessTokenRequest request = new GetClientAccessTokenRequest(this, ServiceErrorHandling.ReturnErrors);
             request.TokenRequests = tokenRequests;
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         #endregion
@@ -4513,10 +4665,10 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Get the app manifests.
         /// </summary>
         /// <returns>Collection of manifests</returns>
-        public async Task<Collection<XmlDocument>> GetAppManifests()
+        public async Task<Collection<XmlDocument>> GetAppManifests(CancellationToken token = default(CancellationToken))
         {
             GetAppManifestsRequest request = new GetAppManifestsRequest(this);
-            return (await request.Execute().ConfigureAwait(false)).Manifests;
+            return (await request.Execute(token).ConfigureAwait(false)).Manifests;
         }
 
         /// <summary>
@@ -4525,13 +4677,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="apiVersionSupported">The api version supported by the client.</param>
         /// <param name="schemaVersionSupported">The schema version supported by the client.</param>
         /// <returns>Collection of manifests</returns>
-        public async Task<Collection<ClientApp>> GetAppManifests(string apiVersionSupported, string schemaVersionSupported)
+        public async Task<Collection<ClientApp>> GetAppManifests(string apiVersionSupported, string schemaVersionSupported, CancellationToken token = default(CancellationToken))
         {
             GetAppManifestsRequest request = new GetAppManifestsRequest(this);
             request.ApiVersionSupported = apiVersionSupported;
             request.SchemaVersionSupported = schemaVersionSupported;
 
-            return (await request.Execute().ConfigureAwait(false)).Apps;
+            return (await request.Execute(token).ConfigureAwait(false)).Apps;
         }
 
         /// <summary>
@@ -4545,11 +4697,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// When this function succeeds, manifestStream is closed. This is by EWS design to 
         /// release resource in timely manner. </param>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        public System.Threading.Tasks.Task InstallApp(Stream manifestStream)
+        public System.Threading.Tasks.Task InstallApp(Stream manifestStream, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(manifestStream, "manifestStream");
 
-            return this.InternalInstallApp(manifestStream, marketplaceAssetId: null, marketplaceContentMarket: null, sendWelcomeEmail: false);
+            return this.InternalInstallApp(manifestStream, null, null, false, token);
         }
 
         /// <summary>
@@ -4567,13 +4719,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="sendWelcomeEmail">Whether to send welcome email for the addin</param>
         /// <returns>True if the app was not already installed. False if it was not installed. Null if it is not a user mailbox.</returns>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        internal async Task<bool?> InternalInstallApp(Stream manifestStream, string marketplaceAssetId, string marketplaceContentMarket, bool sendWelcomeEmail)
+        internal async Task<bool?> InternalInstallApp(Stream manifestStream, string marketplaceAssetId, string marketplaceContentMarket, bool sendWelcomeEmail, CancellationToken token)
         {
             EwsUtilities.ValidateParam(manifestStream, "manifestStream");
 
             InstallAppRequest request = new InstallAppRequest(this, manifestStream, marketplaceAssetId, marketplaceContentMarket, false);
 
-            InstallAppResponse response = await request.Execute().ConfigureAwait(false);
+            InstallAppResponse response = await request.Execute(token).ConfigureAwait(false);
 
             return response.WasFirstInstall;
         }
@@ -4583,13 +4735,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="id">App ID</param>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        public System.Threading.Tasks.Task UninstallApp(string id)
+        public System.Threading.Tasks.Task UninstallApp(string id, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(id, "id");
 
             UninstallAppRequest request = new UninstallAppRequest(this, id);
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -4598,14 +4750,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">App ID</param>
         /// <param name="disableReason">Disable reason</param>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        public System.Threading.Tasks.Task DisableApp(string id, DisableReasonType disableReason)
+        public System.Threading.Tasks.Task DisableApp(string id, DisableReasonType disableReason, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(id, "id");
             EwsUtilities.ValidateParam(disableReason, "disableReason");
 
             DisableAppRequest request = new DisableAppRequest(this, id, disableReason);
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -4614,14 +4766,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="id">Extension id.</param>
         /// <param name="state">Sets the consent state of an extension.</param>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        public System.Threading.Tasks.Task RegisterConsent(string id, ConsentState state)
+        public System.Threading.Tasks.Task RegisterConsent(string id, ConsentState state, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(id, "id");
             EwsUtilities.ValidateParam(state, "state");
 
             RegisterConsentRequest request = new RegisterConsentRequest(this, id, state);
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -4639,13 +4791,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="apiVersionSupported">The api version supported by the client.</param>
         /// <param name="schemaVersionSupported">The schema version supported by the client.</param>
         /// <remarks>Exception will be thrown for errors. </remarks>
-        public async Task<string> GetAppMarketplaceUrl(string apiVersionSupported, string schemaVersionSupported)
+        public async Task<string> GetAppMarketplaceUrl(string apiVersionSupported, string schemaVersionSupported, CancellationToken token = default(CancellationToken))
         {
             GetAppMarketplaceUrlRequest request = new GetAppMarketplaceUrlRequest(this);
             request.ApiVersionSupported = apiVersionSupported;
             request.SchemaVersionSupported = schemaVersionSupported;
 
-            return (await request.Execute().ConfigureAwait(false)).AppMarketplaceUrl;
+            return (await request.Execute(token).ConfigureAwait(false)).AppMarketplaceUrl;
         }
 
         /// <summary>
@@ -4677,7 +4829,8 @@ namespace Microsoft.Exchange.WebServices.Data
             string userId,
             StringList userEnabledExtensionIds,
             StringList userDisabledExtensionIds,
-            bool isDebug)
+            bool isDebug,
+            CancellationToken token = default(CancellationToken))
         {
             GetClientExtensionRequest request = new GetClientExtensionRequest(
                 this,
@@ -4689,29 +4842,29 @@ namespace Microsoft.Exchange.WebServices.Data
                 userDisabledExtensionIds,
                 isDebug);
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
         /// Get the OME (i.e. Office Message Encryption) configuration data. This method is used in server-to-server calls to retrieve OME configuration
         /// </summary>
         /// <returns>OME Configuration response object</returns>
-        public Task<GetOMEConfigurationResponse> GetOMEConfiguration()
+        public Task<GetOMEConfigurationResponse> GetOMEConfiguration(CancellationToken token = default(CancellationToken))
         {
             GetOMEConfigurationRequest request = new GetOMEConfigurationRequest(this);
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
         /// Set the OME (i.e. Office Message Encryption) configuration data. This method is used in server-to-server calls to set encryption configuration
         /// </summary>
         /// <param name="xml">The xml</param>
-        public System.Threading.Tasks.Task SetOMEConfiguration(string xml)
+        public System.Threading.Tasks.Task SetOMEConfiguration(string xml, CancellationToken token = default(CancellationToken))
         {
             SetOMEConfigurationRequest request = new SetOMEConfigurationRequest(this, xml);
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         /// <summary>
@@ -4719,11 +4872,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// extensions to support admin's management of ORG extensions via powershell/UMC.
         /// </summary>
         /// <param name="actions">List of actions to execute.</param>
-        public System.Threading.Tasks.Task SetClientExtension(List<SetClientExtensionAction> actions)
+        public System.Threading.Tasks.Task SetClientExtension(List<SetClientExtensionAction> actions, CancellationToken token = default(CancellationToken))
         {
             SetClientExtensionRequest request = new SetClientExtensionRequest(this, actions);
 
-            return request.ExecuteAsync();
+            return request.ExecuteAsync(token);
         }
 
         #endregion
@@ -4737,12 +4890,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>UserUnified groups.</returns>
         public Task<Collection<UnifiedGroupsSet>> GetUserUnifiedGroups(
                             IEnumerable<RequestedUnifiedGroupsSet> requestedUnifiedGroupsSets,
-                            string userSmtpAddress)
+                            string userSmtpAddress,
+                            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(requestedUnifiedGroupsSets, "requestedUnifiedGroupsSets");
             EwsUtilities.ValidateParam(userSmtpAddress, "userSmtpAddress");
 
-            return this.GetUserUnifiedGroupsInternal(requestedUnifiedGroupsSets, userSmtpAddress);
+            return this.GetUserUnifiedGroupsInternal(requestedUnifiedGroupsSets, userSmtpAddress, token);
         }
 
         /// <summary>
@@ -4750,10 +4904,10 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="requestedUnifiedGroupsSets">The Requested Unified Groups Sets</param>
         /// <returns>UserUnified groups.</returns>
-        public Task<Collection<UnifiedGroupsSet>> GetUserUnifiedGroups(IEnumerable<RequestedUnifiedGroupsSet> requestedUnifiedGroupsSets)
+        public Task<Collection<UnifiedGroupsSet>> GetUserUnifiedGroups(IEnumerable<RequestedUnifiedGroupsSet> requestedUnifiedGroupsSets, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(requestedUnifiedGroupsSets, "requestedUnifiedGroupsSets");
-            return this.GetUserUnifiedGroupsInternal(requestedUnifiedGroupsSets, null);
+            return this.GetUserUnifiedGroupsInternal(requestedUnifiedGroupsSets, null, token);
         }
 
         /// <summary>
@@ -4764,7 +4918,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>UserUnified groups.</returns>
         private async Task<Collection<UnifiedGroupsSet>> GetUserUnifiedGroupsInternal(
                             IEnumerable<RequestedUnifiedGroupsSet> requestedUnifiedGroupsSets,
-                            string userSmtpAddress)
+                            string userSmtpAddress, CancellationToken token)
         {
             GetUserUnifiedGroupsRequest request = new GetUserUnifiedGroupsRequest(this);
 
@@ -4778,7 +4932,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 request.RequestedUnifiedGroupsSets = requestedUnifiedGroupsSets;
             }
 
-            return (await request.Execute().ConfigureAwait(false)).GroupsSets;
+            return (await request.Execute(token).ConfigureAwait(false)).GroupsSets;
         }
 
         /// <summary>
@@ -4787,7 +4941,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="groupMailboxSmtpAddress">The smtpaddress of group for which unseendata is desired</param>
         /// <param name="lastVisitedTimeUtc">The LastVisitedTimeUtc of group for which unseendata is desired</param>
         /// <returns>UnifiedGroupsUnseenCount</returns>
-        public async Task<int> GetUnifiedGroupUnseenCount(string groupMailboxSmtpAddress, DateTime lastVisitedTimeUtc)
+        public async Task<int> GetUnifiedGroupUnseenCount(string groupMailboxSmtpAddress, DateTime lastVisitedTimeUtc, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(groupMailboxSmtpAddress, "groupMailboxSmtpAddress");
 
@@ -4796,7 +4950,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             request.AnchorMailbox = groupMailboxSmtpAddress;
 
-            return (await request.Execute().ConfigureAwait(false)).UnseenCount;
+            return (await request.Execute(token).ConfigureAwait(false)).UnseenCount;
         }
 
         /// <summary>
@@ -4804,13 +4958,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="groupMailboxSmtpAddress">The smtpaddress of group for which unseendata is desired</param>
         /// <param name="lastVisitedTimeUtc">The LastVisitedTimeUtc of group for which unseendata is desired</param>
-        public System.Threading.Tasks.Task SetUnifiedGroupLastVisitedTime(string groupMailboxSmtpAddress, DateTime lastVisitedTimeUtc)
+        public System.Threading.Tasks.Task SetUnifiedGroupLastVisitedTime(string groupMailboxSmtpAddress, DateTime lastVisitedTimeUtc, 
+            CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(groupMailboxSmtpAddress, "groupMailboxSmtpAddress");
 
             SetUnifiedGroupLastVisitedTimeRequest request = new SetUnifiedGroupLastVisitedTimeRequest(this, lastVisitedTimeUtc, UnifiedGroupIdentityType.SmtpAddress, groupMailboxSmtpAddress);
 
-            return request.Execute();
+            return request.Execute(token);
         }
 
         #endregion
@@ -4823,13 +4978,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="verb">The verb.</param>
         /// <param name="parameter">The parameter.</param>
         /// <returns></returns>
-        internal async Task<XmlDocument> ExecuteDiagnosticMethod(string verb, XmlNode parameter)
+        internal async Task<XmlDocument> ExecuteDiagnosticMethod(string verb, XmlNode parameter, CancellationToken token)
         {
             ExecuteDiagnosticMethodRequest request = new ExecuteDiagnosticMethodRequest(this);
             request.Verb = verb;
             request.Parameter = parameter;
 
-            return (await request.ExecuteAsync().ConfigureAwait(false))[0].ReturnValue;
+            return (await request.ExecuteAsync(token).ConfigureAwait(false))[0].ReturnValue;
         }
         #endregion
 

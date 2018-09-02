@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -79,14 +80,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="parentFolderId">The parent folder id.</param>
         /// <param name="messageDisposition">The message disposition.</param>
         /// <returns>Created PostItem.</returns>
-        internal async Task<PostItem> InternalCreate(FolderId parentFolderId, MessageDisposition? messageDisposition)
+        internal async Task<PostItem> InternalCreate(FolderId parentFolderId, MessageDisposition? messageDisposition, CancellationToken token)
         {
             ((ItemId)this.PropertyBag[ResponseObjectSchema.ReferenceItemId]).Assign(this.referenceItem.Id);
 
             List<Item> items = await this.Service.InternalCreateResponseObject(
                 this,
                 parentFolderId,
-                messageDisposition);
+                messageDisposition,
+                token);
             
             PostItem postItem = EwsUtilities.FindFirstItemOfType<PostItem>(items);
 
@@ -103,7 +105,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the specified set of properties on the object.
         /// </summary>
         /// <param name="propertySet">The properties to load.</param>
-        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet)
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet, CancellationToken token)
         {
             throw new InvalidOperationException(Strings.LoadingThisObjectTypeNotSupported);
         }
@@ -117,7 +119,8 @@ namespace Microsoft.Exchange.WebServices.Data
         internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
-            AffectedTaskOccurrence? affectedTaskOccurrences)
+            AffectedTaskOccurrence? affectedTaskOccurrences,
+            CancellationToken token)
         {
             throw new InvalidOperationException(Strings.DeletingThisObjectTypeNotAuthorized);
         }
@@ -126,9 +129,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Saves the post reply in the same folder as the original post item. Calling this method results in a call to EWS.
         /// </summary>
         /// <returns>A PostItem representing the posted reply.</returns>
-        public async Task<PostItem> Save()
+        public async Task<PostItem> Save(CancellationToken token = default(CancellationToken))
         {
-            return (PostItem)await this.InternalCreate(null, null).ConfigureAwait(false);
+            return (PostItem)await this.InternalCreate(null, null, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -136,11 +139,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to save the post reply.</param>
         /// <returns>A PostItem representing the posted reply.</returns>
-        public async Task<PostItem> Save(FolderId destinationFolderId)
+        public async Task<PostItem> Save(FolderId destinationFolderId, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return (PostItem)await this.InternalCreate(destinationFolderId, null).ConfigureAwait(false);
+            return (PostItem)await this.InternalCreate(destinationFolderId, null, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -148,9 +151,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to save the post reply.</param>
         /// <returns>A PostItem representing the posted reply.</returns>
-        public async Task<PostItem> Save(WellKnownFolderName destinationFolderName)
+        public async Task<PostItem> Save(WellKnownFolderName destinationFolderName, CancellationToken token = default(CancellationToken))
         {
-            return (PostItem)await this.InternalCreate(new FolderId(destinationFolderName), null).ConfigureAwait(false);
+            return (PostItem)await this.InternalCreate(new FolderId(destinationFolderName), null, token).ConfigureAwait(false);
         }
 
         #region Properties

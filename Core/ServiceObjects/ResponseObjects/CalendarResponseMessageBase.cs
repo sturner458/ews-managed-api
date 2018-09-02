@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -56,11 +57,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new async Task<CalendarActionResults> Save(FolderId destinationFolderId)
+        public new async Task<CalendarActionResults> Save(FolderId destinationFolderId, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return new CalendarActionResults(await this.InternalCreate(destinationFolderId, MessageDisposition.SaveOnly).ConfigureAwait(false));
+            return new CalendarActionResults(await this.InternalCreate(destinationFolderId, MessageDisposition.SaveOnly, token).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -71,9 +72,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new async Task<CalendarActionResults> Save(WellKnownFolderName destinationFolderName)
+        public new async Task<CalendarActionResults> Save(WellKnownFolderName destinationFolderName, CancellationToken token = default(CancellationToken))
         {
-            return new CalendarActionResults(await this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SaveOnly).ConfigureAwait(false));
+            return new CalendarActionResults(await this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SaveOnly, token).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -83,9 +84,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new async Task<CalendarActionResults> Save()
+        public new async Task<CalendarActionResults> Save(CancellationToken token = default(CancellationToken))
         {
-            return new CalendarActionResults(await this.InternalCreate(null, MessageDisposition.SaveOnly).ConfigureAwait(false));
+            return new CalendarActionResults(await this.InternalCreate(null, MessageDisposition.SaveOnly, token).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -95,9 +96,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new async Task<CalendarActionResults> Send()
+        public new async Task<CalendarActionResults> Send(CancellationToken token = default(CancellationToken))
         {
-            return new CalendarActionResults(await this.InternalCreate(null, MessageDisposition.SendOnly).ConfigureAwait(false));
+            return new CalendarActionResults(await this.InternalCreate(null, MessageDisposition.SendOnly, token).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -108,11 +109,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new async Task<CalendarActionResults> SendAndSaveCopy(FolderId destinationFolderId)
+        public new async Task<CalendarActionResults> SendAndSaveCopy(FolderId destinationFolderId, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return new CalendarActionResults(await this.InternalCreate(destinationFolderId, MessageDisposition.SendAndSaveCopy).ConfigureAwait(false));
+            return new CalendarActionResults(await this.InternalCreate(destinationFolderId, MessageDisposition.SendAndSaveCopy, token).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -123,9 +124,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new async Task<CalendarActionResults> SendAndSaveCopy(WellKnownFolderName destinationFolderName)
+        public new async Task<CalendarActionResults> SendAndSaveCopy(WellKnownFolderName destinationFolderName, CancellationToken token = default(CancellationToken))
         {
-            return new CalendarActionResults(await this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy).ConfigureAwait(false));
+            return new CalendarActionResults(await this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy, token).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -135,9 +136,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// A CalendarActionResults object containing the various items that were created or modified as a
         /// results of this operation.
         /// </returns>
-        public new async Task<CalendarActionResults> SendAndSaveCopy()
+        public new async Task<CalendarActionResults> SendAndSaveCopy(CancellationToken token = default(CancellationToken))
         {
-            return new CalendarActionResults(await this.InternalCreate(null, MessageDisposition.SendAndSaveCopy).ConfigureAwait(false));
+            return new CalendarActionResults(await this.InternalCreate(null, MessageDisposition.SendAndSaveCopy, token).ConfigureAwait(false));
         }
     }
 }

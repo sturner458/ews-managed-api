@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.Globalization;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -67,9 +68,10 @@ namespace Microsoft.Exchange.WebServices.Data
         public static new Task<Task> Bind(
             ExchangeService service,
             ItemId id,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
-            return service.BindToItem<Task>(id, propertySet);
+            return service.BindToItem<Task>(id, propertySet, token);
         }
 
         /// <summary>
@@ -124,12 +126,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// values of the task. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="deleteMode">The deletion mode.</param>
-        public Task<ServiceResponseCollection<ServiceResponse>> DeleteCurrentOccurrence(DeleteMode deleteMode)
+        public Task<ServiceResponseCollection<ServiceResponse>> DeleteCurrentOccurrence(DeleteMode deleteMode, CancellationToken token = default(CancellationToken))
         {
             return this.InternalDelete(
                 deleteMode,
                 null,
-                AffectedTaskOccurrence.SpecifiedOccurrenceOnly);
+                AffectedTaskOccurrence.SpecifiedOccurrenceOnly,
+                token);
         }
 
         /// <summary>
@@ -142,13 +145,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// a Task object representing the current occurrence if the task is recurring and the uypdate changed its recurrence
         /// pattern; or null in every other case.
         /// </returns>
-        public new async Task<Task> Update(ConflictResolutionMode conflictResolutionMode)
+        public new async Task<Task> Update(ConflictResolutionMode conflictResolutionMode, CancellationToken token = default(CancellationToken))
         {
             return (Task)await this.InternalUpdate(
                 null /* parentFolder */,
                 conflictResolutionMode,
                 MessageDisposition.SaveOnly,
-                null);
+                null,
+                token);
         }
 
         #region Properties

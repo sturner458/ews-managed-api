@@ -30,6 +30,7 @@ namespace Microsoft.Exchange.WebServices.Data.Groups
     using System.Text;
     using Microsoft.Exchange.WebServices.Data.Groups;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Represents a request to a GetUserUnifiedGroupsRequest operation
@@ -118,9 +119,9 @@ namespace Microsoft.Exchange.WebServices.Data.Groups
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<GetUserUnifiedGroupsResponse> Execute()
+        internal async Task<GetUserUnifiedGroupsResponse> Execute(CancellationToken token)
         {
-            return (GetUserUnifiedGroupsResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            return (GetUserUnifiedGroupsResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
         }
     }
 }

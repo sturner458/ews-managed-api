@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -99,9 +100,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<UninstallAppResponse> Execute()
+        internal async Task<UninstallAppResponse> Execute(CancellationToken token)
         {
-            UninstallAppResponse serviceResponse = (UninstallAppResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            UninstallAppResponse serviceResponse = (UninstallAppResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

@@ -32,6 +32,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
     using Microsoft.Exchange.WebServices.Data.Enumerations;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Represents a GetPeopleInsights request.
@@ -127,9 +128,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<GetPeopleInsightsResponse> Execute()
+        internal async Task<GetPeopleInsightsResponse> Execute(CancellationToken token)
         {
-            GetPeopleInsightsResponse serviceResponse = (GetPeopleInsightsResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            GetPeopleInsightsResponse serviceResponse = (GetPeopleInsightsResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

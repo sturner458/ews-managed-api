@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -52,7 +53,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="itemId">The Id of the message to read.</param>
         /// <param name="dialString">The full dial string used to call the phone.</param>
         /// <returns>An object providing status for the phone call.</returns>
-        public async Task<PhoneCall> PlayOnPhone(ItemId itemId, string dialString)
+        public async Task<PhoneCall> PlayOnPhone(ItemId itemId, string dialString, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(itemId, "itemId");
             EwsUtilities.ValidateParam(dialString, "dialString");
@@ -60,7 +61,7 @@ namespace Microsoft.Exchange.WebServices.Data
             PlayOnPhoneRequest request = new PlayOnPhoneRequest(service);
             request.DialString = dialString;
             request.ItemId = itemId;
-            PlayOnPhoneResponse serviceResponse = await request.Execute().ConfigureAwait(false);
+            PlayOnPhoneResponse serviceResponse = await request.Execute(token).ConfigureAwait(false);
 
             PhoneCall callInformation = new PhoneCall(service, serviceResponse.PhoneCallId);
 
@@ -72,11 +73,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="id">The Id of the phone call.</param>
         /// <returns>An object providing status for the phone call.</returns>
-        internal async Task<PhoneCall> GetPhoneCallInformation(PhoneCallId id)
+        internal async Task<PhoneCall> GetPhoneCallInformation(PhoneCallId id, CancellationToken token)
         {
             GetPhoneCallRequest request = new GetPhoneCallRequest(service);
             request.Id = id;
-            GetPhoneCallResponse response = await request.Execute().ConfigureAwait(false);
+            GetPhoneCallResponse response = await request.Execute(token).ConfigureAwait(false);
 
             return response.PhoneCall;
         }
@@ -85,11 +86,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Disconnects a phone call.
         /// </summary>
         /// <param name="id">The Id of the phone call.</param>
-        internal System.Threading.Tasks.Task DisconnectPhoneCall(PhoneCallId id)
+        internal System.Threading.Tasks.Task DisconnectPhoneCall(PhoneCallId id, CancellationToken token)
         {
             DisconnectPhoneCallRequest request = new DisconnectPhoneCallRequest(service);
             request.Id = id;
-            return request.Execute();
+            return request.Execute(token);
         }
     }
 }

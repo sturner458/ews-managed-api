@@ -30,6 +30,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.IO.Compression;
     using System.Net;
     using System.Net.Http.Headers;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
 
@@ -51,9 +52,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<object> InternalExecuteAsync()
+        internal async Task<object> InternalExecuteAsync(CancellationToken token)
         {
-            var tuple = await this.ValidateAndEmitRequest().ConfigureAwait(false);
+            var tuple = await this.ValidateAndEmitRequest(token).ConfigureAwait(false);
             try
             {
                 return await this.ReadResponse(tuple.Item2);

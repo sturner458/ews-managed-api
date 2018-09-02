@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -95,9 +96,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<GetPasswordExpirationDateResponse> Execute()
+        internal async Task<GetPasswordExpirationDateResponse> Execute(CancellationToken token)
         {
-            GetPasswordExpirationDateResponse serviceResponse = (GetPasswordExpirationDateResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            GetPasswordExpirationDateResponse serviceResponse = (GetPasswordExpirationDateResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

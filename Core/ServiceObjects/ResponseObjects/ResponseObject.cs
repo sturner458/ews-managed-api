@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -70,7 +71,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the specified set of properties on the object.
         /// </summary>
         /// <param name="propertySet">The properties to load.</param>
-        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet)
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet, CancellationToken token)
         {
             throw new NotSupportedException();
         }
@@ -84,7 +85,8 @@ namespace Microsoft.Exchange.WebServices.Data
         internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
-            AffectedTaskOccurrence? affectedTaskOccurrences)
+            AffectedTaskOccurrence? affectedTaskOccurrences,
+            CancellationToken token)
         {
             throw new NotSupportedException();
         }
@@ -95,14 +97,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="destinationFolderId">The destination folder id.</param>
         /// <param name="messageDisposition">The message disposition.</param>
         /// <returns>The list of items returned by EWS.</returns>
-        internal Task<List<Item>> InternalCreate(FolderId destinationFolderId, MessageDisposition messageDisposition)
+        internal Task<List<Item>> InternalCreate(FolderId destinationFolderId, MessageDisposition messageDisposition, CancellationToken token)
         {
             ((ItemId)this.PropertyBag[ResponseObjectSchema.ReferenceItemId]).Assign(this.referenceItem.Id);
 
             return this.Service.InternalCreateResponseObject(
                 this,
                 destinationFolderId,
-                messageDisposition);
+                messageDisposition,
+                token);
         }
 
         /// <summary>
@@ -110,11 +113,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to save the response.</param>
         /// <returns>A TMessage that represents the response.</returns>
-        public async Task<TMessage> Save(FolderId destinationFolderId)
+        public async Task<TMessage> Save(FolderId destinationFolderId, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return (await this.InternalCreate(destinationFolderId, MessageDisposition.SaveOnly).ConfigureAwait(false))[0] as TMessage;
+            return (await this.InternalCreate(destinationFolderId, MessageDisposition.SaveOnly, token).ConfigureAwait(false))[0] as TMessage;
         }
 
         /// <summary>
@@ -122,56 +125,57 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to save the response.</param>
         /// <returns>A TMessage that represents the response.</returns>
-        public async Task<TMessage> Save(WellKnownFolderName destinationFolderName)
+        public async Task<TMessage> Save(WellKnownFolderName destinationFolderName, CancellationToken token = default(CancellationToken))
         {
-            return (await this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SaveOnly).ConfigureAwait(false))[0] as TMessage;
+            return (await this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SaveOnly, token).ConfigureAwait(false))[0] as TMessage;
         }
 
         /// <summary>
         /// Saves the response in the Drafts folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <returns>A TMessage that represents the response.</returns>
-        public async Task<TMessage> Save()
+        public async Task<TMessage> Save(CancellationToken token = default(CancellationToken))
         {
-            return (await this.InternalCreate(null, MessageDisposition.SaveOnly).ConfigureAwait(false))[0] as TMessage;
+            return (await this.InternalCreate(null, MessageDisposition.SaveOnly, token).ConfigureAwait(false))[0] as TMessage;
         }
 
         /// <summary>
         /// Sends this response without saving a copy. Calling this method results in a call to EWS.
         /// </summary>
-        public System.Threading.Tasks.Task Send()
+        public System.Threading.Tasks.Task Send(CancellationToken token = default(CancellationToken))
         {
-            return this.InternalCreate(null, MessageDisposition.SendOnly);
+            return this.InternalCreate(null, MessageDisposition.SendOnly, token);
         }
 
         /// <summary>
         /// Sends this response and saves a copy in the specified folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to save the copy of the message.</param>
-        public System.Threading.Tasks.Task SendAndSaveCopy(FolderId destinationFolderId)
+        public System.Threading.Tasks.Task SendAndSaveCopy(FolderId destinationFolderId, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return this.InternalCreate(destinationFolderId, MessageDisposition.SendAndSaveCopy);
+            return this.InternalCreate(destinationFolderId, MessageDisposition.SendAndSaveCopy, token);
         }
 
         /// <summary>
         /// Sends this response and saves a copy in the specified folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to save the copy of the message.</param>
-        public System.Threading.Tasks.Task SendAndSaveCopy(WellKnownFolderName destinationFolderName)
+        public System.Threading.Tasks.Task SendAndSaveCopy(WellKnownFolderName destinationFolderName, CancellationToken token = default(CancellationToken))
         {
-            return this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy);
+            return this.InternalCreate(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy, token);
         }
 
         /// <summary>
         /// Sends this response and saves a copy in the Sent Items folder. Calling this method results in a call to EWS.
         /// </summary>
-        public System.Threading.Tasks.Task SendAndSaveCopy()
+        public System.Threading.Tasks.Task SendAndSaveCopy(CancellationToken token = default(CancellationToken))
         {
             return this.InternalCreate(
                 null,
-                MessageDisposition.SendAndSaveCopy);
+                MessageDisposition.SendAndSaveCopy,
+                token);
         }
 
         #region Properties

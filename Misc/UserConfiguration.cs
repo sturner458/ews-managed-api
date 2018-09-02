@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
 
@@ -264,12 +265,14 @@ namespace Microsoft.Exchange.WebServices.Data
             ExchangeService service,
             string name,
             FolderId parentFolderId,
-            UserConfigurationProperties properties)
+            UserConfigurationProperties properties,
+            CancellationToken token = default(CancellationToken))
         {
             UserConfiguration result = await service.GetUserConfiguration(
                 name,
                 parentFolderId,
-                properties);
+                properties,
+                token);
 
             result.isNew = false;
 
@@ -303,7 +306,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="name">The name of the user configuration.</param>
         /// <param name="parentFolderId">The Id of the folder in which to save the user configuration.</param>
-        public async System.Threading.Tasks.Task Save(string name, FolderId parentFolderId)
+        public async System.Threading.Tasks.Task Save(string name, FolderId parentFolderId, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(name, "name");
             EwsUtilities.ValidateParam(parentFolderId, "parentFolderId");
@@ -318,7 +321,7 @@ namespace Microsoft.Exchange.WebServices.Data
             this.parentFolderId = parentFolderId;
             this.name = name;
 
-            await this.service.CreateUserConfiguration(this);
+            await this.service.CreateUserConfiguration(this, token);
 
             this.isNew = false;
 
@@ -339,7 +342,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Updates the user configuration by applying local changes to the Exchange server.
         /// Calling this method results in a call to EWS.
         /// </summary>
-        public async System.Threading.Tasks.Task Update()
+        public async System.Threading.Tasks.Task Update(CancellationToken token = default(CancellationToken))
         {
             if (this.isNew)
             {
@@ -350,7 +353,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 this.IsPropertyUpdated(UserConfigurationProperties.Dictionary) ||
                 this.IsPropertyUpdated(UserConfigurationProperties.XmlData))
             {
-                await this.service.UpdateUserConfiguration(this);
+                await this.service.UpdateUserConfiguration(this, token);
             }
 
             this.ResetIsDirty();
@@ -359,7 +362,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Deletes the user configuration. Calling this method results in a call to EWS.
         /// </summary>
-        public async System.Threading.Tasks.Task Delete()
+        public async System.Threading.Tasks.Task Delete(CancellationToken token = default(CancellationToken))
         {
             if (this.isNew)
             {
@@ -367,7 +370,7 @@ namespace Microsoft.Exchange.WebServices.Data
             }
             else
             {
-                await this.service.DeleteUserConfiguration(this.name, this.parentFolderId);
+                await this.service.DeleteUserConfiguration(this.name, this.parentFolderId, token);
             }
         }
 
@@ -375,11 +378,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the specified properties on the user configuration. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="properties">The properties to load.</param>
-        public System.Threading.Tasks.Task Load(UserConfigurationProperties properties)
+        public System.Threading.Tasks.Task Load(UserConfigurationProperties properties, CancellationToken token = default(CancellationToken))
         {
             this.InitializeProperties(properties);
 
-            return this.service.LoadPropertiesForUserConfiguration(this, properties);
+            return this.service.LoadPropertiesForUserConfiguration(this, properties, token);
         }
 
         /// <summary>

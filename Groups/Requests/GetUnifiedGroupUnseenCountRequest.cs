@@ -29,6 +29,7 @@ namespace Microsoft.Exchange.WebServices.Data.Groups
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -124,9 +125,9 @@ namespace Microsoft.Exchange.WebServices.Data.Groups
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<GetUnifiedGroupUnseenCountResponse> Execute()
+        internal async Task<GetUnifiedGroupUnseenCountResponse> Execute(CancellationToken token)
         {
-            return (GetUnifiedGroupUnseenCountResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            return (GetUnifiedGroupUnseenCountResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
         }
     }
 }

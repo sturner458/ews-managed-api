@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -74,9 +75,10 @@ namespace Microsoft.Exchange.WebServices.Data
         public static Task<Item> Bind(
             ExchangeService service,
             ItemId id,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
-            return service.BindToItem<Item>(id, propertySet);
+            return service.BindToItem<Item>(id, propertySet, token);
         }
 
         /// <summary>
@@ -136,7 +138,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the specified set of properties on the object.
         /// </summary>
         /// <param name="propertySet">The properties to load.</param>
-        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet)
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet, CancellationToken token)
         {
             this.ThrowIfThisIsNew();
             this.ThrowIfThisIsAttachment();
@@ -144,7 +146,8 @@ namespace Microsoft.Exchange.WebServices.Data
             return this.Service.InternalLoadPropertiesForItems(
                 new Item[] { this },
                 propertySet,
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError,
+                token);
         }
 
         /// <summary>
@@ -156,9 +159,10 @@ namespace Microsoft.Exchange.WebServices.Data
         internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
-            AffectedTaskOccurrence? affectedTaskOccurrences)
+            AffectedTaskOccurrence? affectedTaskOccurrences,
+            CancellationToken token)
         {
-            return this.InternalDelete(deleteMode, sendCancellationsMode, affectedTaskOccurrences, false);
+            return this.InternalDelete(deleteMode, sendCancellationsMode, affectedTaskOccurrences, false, token);
         }
 
         /// <summary>
@@ -172,7 +176,8 @@ namespace Microsoft.Exchange.WebServices.Data
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
             AffectedTaskOccurrence? affectedTaskOccurrences,
-            bool suppressReadReceipts)
+            bool suppressReadReceipts,
+            CancellationToken token)
         {
             this.ThrowIfThisIsNew();
             this.ThrowIfThisIsAttachment();
@@ -194,7 +199,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 deleteMode,
                 sendCancellationsMode,
                 affectedTaskOccurrences,
-                suppressReadReceipts);
+                suppressReadReceipts,
+                token);
         }
 
         /// <summary>
@@ -206,7 +212,8 @@ namespace Microsoft.Exchange.WebServices.Data
         internal async System.Threading.Tasks.Task InternalCreate(
             FolderId parentFolderId,
             MessageDisposition? messageDisposition,
-            SendInvitationsMode? sendInvitationsMode)
+            SendInvitationsMode? sendInvitationsMode,
+            CancellationToken token)
         {
             this.ThrowIfThisIsNotNew();
             this.ThrowIfThisIsAttachment();
@@ -217,7 +224,8 @@ namespace Microsoft.Exchange.WebServices.Data
                     this,
                     parentFolderId,
                     messageDisposition,
-                    sendInvitationsMode.HasValue ? sendInvitationsMode : this.DefaultSendInvitationsMode);
+                    sendInvitationsMode.HasValue ? sendInvitationsMode : this.DefaultSendInvitationsMode,
+                    token);
 
                 await this.Attachments.Save();
             }
@@ -235,9 +243,10 @@ namespace Microsoft.Exchange.WebServices.Data
             FolderId parentFolderId,
             ConflictResolutionMode conflictResolutionMode,
             MessageDisposition? messageDisposition,
-            SendInvitationsOrCancellationsMode? sendInvitationsOrCancellationsMode)
+            SendInvitationsOrCancellationsMode? sendInvitationsOrCancellationsMode,
+            CancellationToken token)
         {
-            return this.InternalUpdate(parentFolderId, conflictResolutionMode, messageDisposition, sendInvitationsOrCancellationsMode, false);
+            return this.InternalUpdate(parentFolderId, conflictResolutionMode, messageDisposition, sendInvitationsOrCancellationsMode, false, token);
         }
 
         /// <summary>
@@ -254,7 +263,8 @@ namespace Microsoft.Exchange.WebServices.Data
             ConflictResolutionMode conflictResolutionMode,
             MessageDisposition? messageDisposition,
             SendInvitationsOrCancellationsMode? sendInvitationsOrCancellationsMode,
-            bool suppressReadReceipts)
+            bool suppressReadReceipts,
+            CancellationToken token)
         {
             this.ThrowIfThisIsNew();
             this.ThrowIfThisIsAttachment();
@@ -269,7 +279,8 @@ namespace Microsoft.Exchange.WebServices.Data
                     conflictResolutionMode,
                     messageDisposition,
                     sendInvitationsOrCancellationsMode.HasValue ? sendInvitationsOrCancellationsMode : this.DefaultSendInvitationsOrCancellationsMode,
-                    suppressReadReceipts);
+                    suppressReadReceipts,
+                    token);
             }
 
             // Regardless of whether item is dirty or not, if it has unprocessed
@@ -331,9 +342,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="suppressReadReceipts">Whether to suppress read receipts</param>
-        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode, bool suppressReadReceipts)
+        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode, bool suppressReadReceipts, CancellationToken token = default(CancellationToken))
         {
-            return this.InternalDelete(deleteMode, null, null, suppressReadReceipts);
+            return this.InternalDelete(deleteMode, null, null, suppressReadReceipts, token);
         }
 
         /// <summary>
@@ -341,14 +352,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Mutliple calls to EWS might be made if attachments have been added.
         /// </summary>
         /// <param name="parentFolderId">The Id of the folder in which to save this item.</param>
-        public System.Threading.Tasks.Task Save(FolderId parentFolderId)
+        public System.Threading.Tasks.Task Save(FolderId parentFolderId, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(parentFolderId, "parentFolderId");
 
             return this.InternalCreate(
                 parentFolderId,
                 MessageDisposition.SaveOnly,
-                null);
+                null,
+                token);
         }
 
         /// <summary>
@@ -356,24 +368,26 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Mutliple calls to EWS might be made if attachments have been added.
         /// </summary>
         /// <param name="parentFolderName">The name of the folder in which to save this item.</param>
-        public System.Threading.Tasks.Task Save(WellKnownFolderName parentFolderName)
+        public System.Threading.Tasks.Task Save(WellKnownFolderName parentFolderName, CancellationToken token = default(CancellationToken))
         {
             return this.InternalCreate(
                 new FolderId(parentFolderName),
                 MessageDisposition.SaveOnly,
-                null);
+                null,
+                token);
         }
 
         /// <summary>
         /// Saves this item in the default folder based on the item's type (for example, an e-mail message is saved to the Drafts folder).
         /// Calling this method results in at least one call to EWS. Mutliple calls to EWS might be made if attachments have been added.
         /// </summary>
-        public System.Threading.Tasks.Task Save()
+        public System.Threading.Tasks.Task Save(CancellationToken token = default(CancellationToken))
         {
             return this.InternalCreate(
                 null,
                 MessageDisposition.SaveOnly,
-                null);
+                null,
+                token);
         }
 
         /// <summary>
@@ -381,9 +395,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Mutliple calls to EWS might be made if attachments have been added or removed.
         /// </summary>
         /// <param name="conflictResolutionMode">The conflict resolution mode.</param>
-        public Task<Item> Update(ConflictResolutionMode conflictResolutionMode)
+        public Task<Item> Update(ConflictResolutionMode conflictResolutionMode, CancellationToken token = default(CancellationToken))
         {
-            return this.Update(conflictResolutionMode, false);
+            return this.Update(conflictResolutionMode, false, token);
         }
 
         /// <summary>
@@ -392,14 +406,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="conflictResolutionMode">The conflict resolution mode.</param>
         /// <param name="suppressReadReceipts">Whether to suppress read receipts</param>
-        public Task<Item> Update(ConflictResolutionMode conflictResolutionMode, bool suppressReadReceipts)
+        public Task<Item> Update(ConflictResolutionMode conflictResolutionMode, bool suppressReadReceipts, CancellationToken token = default(CancellationToken))
         {
             return this.InternalUpdate(
                 null /* parentFolder */,
                 conflictResolutionMode,
                 MessageDisposition.SaveOnly,
                 null,
-                suppressReadReceipts);
+                suppressReadReceipts,
+                token);
         }
 
         /// <summary>
@@ -411,14 +426,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to create a copy of this item.</param>
         /// <returns>The copy of this item.</returns>
-        public Task<Item> Copy(FolderId destinationFolderId)
+        public Task<Item> Copy(FolderId destinationFolderId, CancellationToken token = default(CancellationToken))
         {
             this.ThrowIfThisIsNew();
             this.ThrowIfThisIsAttachment();
 
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return this.Service.CopyItem(this.Id, destinationFolderId);
+            return this.Service.CopyItem(this.Id, destinationFolderId, token);
         }
 
         /// <summary>
@@ -444,14 +459,14 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder to which to move this item.</param>
         /// <returns>The moved copy of this item.</returns>
-        public Task<Item> Move(FolderId destinationFolderId)
+        public Task<Item> Move(FolderId destinationFolderId, CancellationToken token = default(CancellationToken))
         {
             this.ThrowIfThisIsNew();
             this.ThrowIfThisIsAttachment();
 
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return this.Service.MoveItem(this.Id, destinationFolderId);
+            return this.Service.MoveItem(this.Id, destinationFolderId, token);
         }
 
         /// <summary>

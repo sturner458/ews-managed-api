@@ -30,6 +30,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using Microsoft.Exchange.WebServices.Data;
     using System.Threading.Tasks;
     using System.Net.Http.Headers;
+    using System.Threading;
 
     /// <summary>
     /// Represents a request of a get user photo operation
@@ -184,9 +185,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal Task<GetUserPhotoResponse> Execute()
+        internal Task<GetUserPhotoResponse> Execute(CancellationToken token)
         {
-            return GetUserPhotoRequest.GetResultOrDefault(this.InternalExecuteAsync);
+            return GetUserPhotoRequest.GetResultOrDefault(() => this.InternalExecuteAsync(token));
         }
 
                 /// <summary>

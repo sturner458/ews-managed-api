@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -132,9 +133,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<GetNonIndexableItemDetailsResponse> Execute()
+        internal async Task<GetNonIndexableItemDetailsResponse> Execute(CancellationToken token)
         {
-            GetNonIndexableItemDetailsResponse serviceResponse = (GetNonIndexableItemDetailsResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            GetNonIndexableItemDetailsResponse serviceResponse = (GetNonIndexableItemDetailsResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
             return serviceResponse;
         }
 

@@ -26,6 +26,7 @@
 namespace Microsoft.Exchange.WebServices.Data
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -54,9 +55,10 @@ namespace Microsoft.Exchange.WebServices.Data
         public static Task<Folder> Bind(
             ExchangeService service,
             FolderId id,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
-            return service.BindToFolder<Folder>(id, propertySet);
+            return service.BindToFolder<Folder>(id, propertySet, token);
         }
 
         /// <summary>
@@ -171,11 +173,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads the specified set of properties on the object.
         /// </summary>
         /// <param name="propertySet">The properties to load.</param>
-        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet)
+        internal override Task<ServiceResponseCollection<ServiceResponse>> InternalLoad(PropertySet propertySet, CancellationToken token)
         {
             this.ThrowIfThisIsNew();
 
-            return this.Service.LoadPropertiesForFolder(this, propertySet);
+            return this.Service.LoadPropertiesForFolder(this, propertySet, token);
         }
 
         /// <summary>
@@ -187,20 +189,21 @@ namespace Microsoft.Exchange.WebServices.Data
         internal override Task<ServiceResponseCollection<ServiceResponse>> InternalDelete(
             DeleteMode deleteMode,
             SendCancellationsMode? sendCancellationsMode,
-            AffectedTaskOccurrence? affectedTaskOccurrences)
+            AffectedTaskOccurrence? affectedTaskOccurrences,
+            CancellationToken token)
         {
             this.ThrowIfThisIsNew();
 
-            return this.Service.DeleteFolder( this.Id, deleteMode);
+            return this.Service.DeleteFolder( this.Id, deleteMode, token);
         }
 
         /// <summary>
         /// Deletes the folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="deleteMode">Deletion mode.</param>
-        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode)
+        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode, CancellationToken token = default(CancellationToken))
         {
-            return this.InternalDelete(deleteMode, null, null);
+            return this.InternalDelete(deleteMode, null, null, token);
         }
 
         /// <summary>
@@ -210,46 +213,50 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="deleteSubFolders">Indicates whether sub-folders should also be deleted.</param>
         public Task<ServiceResponseCollection<ServiceResponse>> Empty(
             DeleteMode deleteMode,
-            bool deleteSubFolders)
+            bool deleteSubFolders,
+            CancellationToken token = default(CancellationToken))
         {
             this.ThrowIfThisIsNew();
             return this.Service.EmptyFolder(
                 this.Id,
                 deleteMode,
-                deleteSubFolders);
+                deleteSubFolders, 
+                token);
         }
 
         /// <summary>
         /// Marks all items in folder as read. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="suppressReadReceipts">If true, suppress sending read receipts for items.</param>
-        public Task<ServiceResponseCollection<ServiceResponse>> MarkAllItemsAsRead(bool suppressReadReceipts)
+        public Task<ServiceResponseCollection<ServiceResponse>> MarkAllItemsAsRead(bool suppressReadReceipts, CancellationToken token = default(CancellationToken))
         {
             this.ThrowIfThisIsNew();
             return this.Service.MarkAllItemsAsRead(
                 this.Id,
                 true,
-                suppressReadReceipts);
+                suppressReadReceipts,
+                token);
         }
 
         /// <summary>
         /// Marks all items in folder as read. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="suppressReadReceipts">If true, suppress sending read receipts for items.</param>
-        public Task<ServiceResponseCollection<ServiceResponse>> MarkAllItemsAsUnread(bool suppressReadReceipts)
+        public Task<ServiceResponseCollection<ServiceResponse>> MarkAllItemsAsUnread(bool suppressReadReceipts, CancellationToken token = default(CancellationToken))
         {
             this.ThrowIfThisIsNew();
             return this.Service.MarkAllItemsAsRead(
                 this.Id,
                 false,
-                suppressReadReceipts);
+                suppressReadReceipts,
+                token);
         }
 
         /// <summary>
         /// Saves this folder in a specific folder. Calling this method results in a call to EWS.
         /// </summary>
         /// <param name="parentFolderId">The Id of the folder in which to save this folder.</param>
-        public async System.Threading.Tasks.Task Save(FolderId parentFolderId)
+        public async System.Threading.Tasks.Task Save(FolderId parentFolderId, CancellationToken token = default(CancellationToken))
         {
             this.ThrowIfThisIsNotNew();
 
@@ -257,7 +264,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
             if (this.IsDirty)
             {
-                await this.Service.CreateFolder(this, parentFolderId);
+                await this.Service.CreateFolder(this, parentFolderId, token);
             }
         }
 
@@ -273,13 +280,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Applies the local changes that have been made to this folder. Calling this method results in a call to EWS.
         /// </summary>
-        public async System.Threading.Tasks.Task Update()
+        public async System.Threading.Tasks.Task Update(CancellationToken token = default(CancellationToken))
         {
             if (this.IsDirty)
             {
                 if (this.PropertyBag.GetIsUpdateCallNecessary())
                 {
-                    await this.Service.UpdateFolder(this);
+                    await this.Service.UpdateFolder(this, token);
                 }
             }
         }
@@ -289,13 +296,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to copy this folder.</param>
         /// <returns>A Folder representing the copy of this folder.</returns>
-        public Task<Folder> Copy(FolderId destinationFolderId)
+        public Task<Folder> Copy(FolderId destinationFolderId, CancellationToken token = default(CancellationToken))
         {
             this.ThrowIfThisIsNew();
 
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return this.Service.CopyFolder(this.Id, destinationFolderId);
+            return this.Service.CopyFolder(this.Id, destinationFolderId, token);
         }
 
         /// <summary>
@@ -313,13 +320,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to move this folder.</param>
         /// <returns>A new folder representing this folder in its new location. After Move completes, this folder does not exist anymore.</returns>
-        public Task<Folder> Move(FolderId destinationFolderId)
+        public Task<Folder> Move(FolderId destinationFolderId, CancellationToken token = default(CancellationToken))
         {
             this.ThrowIfThisIsNew();
 
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return this.Service.MoveFolder(this.Id, destinationFolderId);
+            return this.Service.MoveFolder(this.Id, destinationFolderId, token);
         }
 
         /// <summary>
@@ -343,7 +350,8 @@ namespace Microsoft.Exchange.WebServices.Data
         internal Task<ServiceResponseCollection<FindItemResponse<TItem>>> InternalFindItems<TItem>(
             string queryString,
             ViewBase view,
-            Grouping groupBy)
+            Grouping groupBy,
+            CancellationToken token)
             where TItem : Item
         {
             this.ThrowIfThisIsNew();
@@ -354,7 +362,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 queryString,
                 view,
                 groupBy,
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError,
+                token);
         }
 
         /// <summary>
@@ -370,7 +379,8 @@ namespace Microsoft.Exchange.WebServices.Data
         internal Task<ServiceResponseCollection<FindItemResponse<TItem>>> InternalFindItems<TItem>(
             SearchFilter searchFilter,
             ViewBase view,
-            Grouping groupBy)
+            Grouping groupBy,
+            CancellationToken token)
             where TItem : Item
         {
             this.ThrowIfThisIsNew();
@@ -381,7 +391,8 @@ namespace Microsoft.Exchange.WebServices.Data
                 null, /* queryString */
                 view,
                 groupBy,
-                ServiceErrorHandling.ThrowOnError);
+                ServiceErrorHandling.ThrowOnError,
+                token);
         }
 
         /// <summary>
@@ -392,14 +403,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// SearchFilter.SearchFilterCollection</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public async Task<FindItemsResults<Item>> FindItems(SearchFilter searchFilter, ItemView view)
+        public async Task<FindItemsResults<Item>> FindItems(SearchFilter searchFilter, ItemView view, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
 
             ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(
                 searchFilter,
                 view, 
-                null /* groupBy */).ConfigureAwait(false);
+                null /* groupBy */,
+                token).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -410,11 +422,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="queryString">query string to be used for indexed search</param>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public async Task<FindItemsResults<Item>> FindItems(string queryString, ItemView view)
+        public async Task<FindItemsResults<Item>> FindItems(string queryString, ItemView view, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParamAllowNull(queryString, "queryString");
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(queryString, view, null /* groupBy */).ConfigureAwait(false);
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(queryString, view, null /* groupBy */, token).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -424,12 +436,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public async Task<FindItemsResults<Item>> FindItems(ItemView view)
+        public async Task<FindItemsResults<Item>> FindItems(ItemView view, CancellationToken token = default(CancellationToken))
         {
             ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(
                 (SearchFilter)null,
                 view,
-                null /* groupBy */ ).ConfigureAwait(false);
+                null /* groupBy */ , token).ConfigureAwait(false);
 
             return responses[0].Results;
         }
@@ -443,7 +455,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The grouping criteria.</param>
         /// <returns>A collection of grouped items representing the contents of this folder.</returns>
-        public async Task<GroupedFindItemsResults<Item>> FindItems(SearchFilter searchFilter, ItemView view, Grouping groupBy)
+        public async Task<GroupedFindItemsResults<Item>> FindItems(SearchFilter searchFilter, ItemView view, Grouping groupBy, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(groupBy, "groupBy");
             EwsUtilities.ValidateParamAllowNull(searchFilter, "searchFilter");
@@ -451,7 +463,8 @@ namespace Microsoft.Exchange.WebServices.Data
             ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(
                 searchFilter,
                 view, 
-                groupBy).ConfigureAwait(false);
+                groupBy,
+                token).ConfigureAwait(false);
 
             return responses[0].GroupedFindResults;
         }
@@ -463,11 +476,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="view">The view controlling the number of items returned.</param>
         /// <param name="groupBy">The grouping criteria.</param>
         /// <returns>A collection of grouped items representing the contents of this folder.</returns>
-        public async Task<GroupedFindItemsResults<Item>> FindItems(string queryString, ItemView view, Grouping groupBy)
+        public async Task<GroupedFindItemsResults<Item>> FindItems(string queryString, ItemView view, Grouping groupBy, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(groupBy, "groupBy");
 
-            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(queryString, view, groupBy).ConfigureAwait(false);
+            ServiceResponseCollection<FindItemResponse<Item>> responses = await this.InternalFindItems<Item>(queryString, view, groupBy, token).ConfigureAwait(false);
 
             return responses[0].GroupedFindResults;
         }

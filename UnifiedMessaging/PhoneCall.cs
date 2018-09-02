@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Text;
+    using System.Threading;
 
     /// <summary>
     /// Represents a phone call.
@@ -75,9 +76,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Refreshes the state of this phone call.
         /// </summary>
-        public async System.Threading.Tasks.Task Refresh()
+        public async System.Threading.Tasks.Task Refresh(CancellationToken token = default(CancellationToken))
         {
-            PhoneCall phoneCall = await service.UnifiedMessaging.GetPhoneCallInformation(this.id).ConfigureAwait(false);
+            PhoneCall phoneCall = await service.UnifiedMessaging.GetPhoneCallInformation(this.id, token).ConfigureAwait(false);
             this.state = phoneCall.State;
             this.connectionFailureCause = phoneCall.ConnectionFailureCause;
             this.sipResponseText = phoneCall.SIPResponseText;
@@ -87,7 +88,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Disconnects this phone call.
         /// </summary>
-        public void Disconnect()
+        public async System.Threading.Tasks.Task Disconnect(CancellationToken token = default(CancellationToken))
         {
             // If call is already disconnected, throw exception
             //
@@ -96,7 +97,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 throw new ServiceLocalException(Strings.PhoneCallAlreadyDisconnected);
             }
 
-            this.service.UnifiedMessaging.DisconnectPhoneCall(this.id);
+            await this.service.UnifiedMessaging.DisconnectPhoneCall(this.id, token);
             this.state = PhoneCallState.Disconnected;
         }
 

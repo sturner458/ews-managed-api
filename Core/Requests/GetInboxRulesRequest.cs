@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Exchange.WebServices.Data
@@ -113,9 +114,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<GetInboxRulesResponse> Execute()
+        internal async Task<GetInboxRulesResponse> Execute(CancellationToken token)
         {
-            GetInboxRulesResponse serviceResponse = (GetInboxRulesResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            GetInboxRulesResponse serviceResponse = (GetInboxRulesResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
             serviceResponse.ThrowIfNecessary();
             return serviceResponse;
         }

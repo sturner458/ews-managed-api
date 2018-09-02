@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -95,9 +96,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Executes this request.
         /// </summary>
         /// <returns>Service response.</returns>
-        internal async Task<GetUserRetentionPolicyTagsResponse> Execute()
+        internal async Task<GetUserRetentionPolicyTagsResponse> Execute(CancellationToken token)
         {
-            GetUserRetentionPolicyTagsResponse serviceResponse = (GetUserRetentionPolicyTagsResponse)await this.InternalExecuteAsync().ConfigureAwait(false);
+            GetUserRetentionPolicyTagsResponse serviceResponse = (GetUserRetentionPolicyTagsResponse)await this.InternalExecuteAsync(token).ConfigureAwait(false);
             return serviceResponse;
         }
     }

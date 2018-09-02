@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -184,22 +185,24 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Loads this attachment.
         /// </summary>
         /// <param name="additionalProperties">The optional additional properties to load.</param>
-        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(params PropertyDefinitionBase[] additionalProperties)
+        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(CancellationToken token = default(CancellationToken), params PropertyDefinitionBase[] additionalProperties)
         {
             return this.InternalLoad(
                 null /* bodyType */,
-                additionalProperties);
+                additionalProperties,
+                token);
         }
 
         /// <summary>
         /// Loads this attachment.
         /// </summary>
         /// <param name="additionalProperties">The optional additional properties to load.</param>
-        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(IEnumerable<PropertyDefinitionBase> additionalProperties)
+        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(IEnumerable<PropertyDefinitionBase> additionalProperties, CancellationToken token = default(CancellationToken))
         {
             return this.InternalLoad(
                 null /* bodyType */,
-                additionalProperties);
+                additionalProperties,
+                token);
         }
 
         /// <summary>
@@ -207,11 +210,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="bodyType">The body type to load.</param>
         /// <param name="additionalProperties">The optional additional properties to load.</param>
-        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(BodyType bodyType, params PropertyDefinitionBase[] additionalProperties)
+        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(BodyType bodyType, CancellationToken token = default(CancellationToken), params PropertyDefinitionBase[] additionalProperties)
         {
             return this.InternalLoad(
                 bodyType,
-                additionalProperties);
+                additionalProperties,
+                token);
         }
 
         /// <summary>
@@ -219,11 +223,12 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="bodyType">The body type to load.</param>
         /// <param name="additionalProperties">The optional additional properties to load.</param>
-        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(BodyType bodyType, IEnumerable<PropertyDefinitionBase> additionalProperties)
+        public Task<ServiceResponseCollection<GetAttachmentResponse>> Load(BodyType bodyType, IEnumerable<PropertyDefinitionBase> additionalProperties, CancellationToken token = default(CancellationToken))
         {
             return this.InternalLoad(
                 bodyType,
-                additionalProperties);
+                additionalProperties,
+                token);
         }
     }
 }

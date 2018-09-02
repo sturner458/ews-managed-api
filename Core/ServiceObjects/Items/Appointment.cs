@@ -27,6 +27,7 @@ namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -83,9 +84,10 @@ namespace Microsoft.Exchange.WebServices.Data
         public static new Task<Appointment> Bind(
             ExchangeService service,
             ItemId id,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
-            return service.BindToItem<Appointment>(id, propertySet);
+            return service.BindToItem<Appointment>(id, propertySet, token);
         }
 
         /// <summary>
@@ -355,12 +357,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to save this appointment.</param>
         /// <param name="sendInvitationsMode">Specifies if and how invitations should be sent if this appointment is a meeting.</param>
-        public System.Threading.Tasks.Task Save(WellKnownFolderName destinationFolderName, SendInvitationsMode sendInvitationsMode)
+        public System.Threading.Tasks.Task Save(WellKnownFolderName destinationFolderName, SendInvitationsMode sendInvitationsMode, CancellationToken token = default(CancellationToken))
         {
             return this.InternalCreate(
                 new FolderId(destinationFolderName),
                 null,
-                sendInvitationsMode);
+                sendInvitationsMode,
+                token);
         }
 
         /// <summary>
@@ -369,14 +372,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to save this appointment.</param>
         /// <param name="sendInvitationsMode">Specifies if and how invitations should be sent if this appointment is a meeting.</param>
-        public System.Threading.Tasks.Task Save(FolderId destinationFolderId, SendInvitationsMode sendInvitationsMode)
+        public System.Threading.Tasks.Task Save(FolderId destinationFolderId, SendInvitationsMode sendInvitationsMode, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
             return this.InternalCreate(
                 destinationFolderId,
                 null,
-                sendInvitationsMode);
+                sendInvitationsMode,
+                token);
         }
 
         /// <summary>
@@ -384,12 +388,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// Mutliple calls to EWS might be made if attachments have been added.
         /// </summary>
         /// <param name="sendInvitationsMode">Specifies if and how invitations should be sent if this appointment is a meeting.</param>
-        public System.Threading.Tasks.Task Save(SendInvitationsMode sendInvitationsMode)
+        public System.Threading.Tasks.Task Save(SendInvitationsMode sendInvitationsMode, CancellationToken token = default(CancellationToken))
         {
             return this.InternalCreate(
                 null,
                 null,
-                sendInvitationsMode);
+                sendInvitationsMode,
+                token);
         }
 
         /// <summary>
@@ -400,13 +405,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <param name="sendInvitationsOrCancellationsMode">Specifies if and how invitations or cancellations should be sent if this appointment is a meeting.</param>
         public Task<Item> Update(
             ConflictResolutionMode conflictResolutionMode,
-            SendInvitationsOrCancellationsMode sendInvitationsOrCancellationsMode)
+            SendInvitationsOrCancellationsMode sendInvitationsOrCancellationsMode,
+            CancellationToken token = default(CancellationToken))
         {
             return this.InternalUpdate(
                 null,
                 conflictResolutionMode,
                 null,
-                sendInvitationsOrCancellationsMode);
+                sendInvitationsOrCancellationsMode,
+                token);
         }
 
         /// <summary>
@@ -414,12 +421,13 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="deleteMode">The deletion mode.</param>
         /// <param name="sendCancellationsMode">Specifies if and how cancellations should be sent if this appointment is a meeting.</param>
-        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode, SendCancellationsMode sendCancellationsMode)
+        public Task<ServiceResponseCollection<ServiceResponse>> Delete(DeleteMode deleteMode, SendCancellationsMode sendCancellationsMode, CancellationToken token = default(CancellationToken))
         {
             return this.InternalDelete(
                 deleteMode,
                 sendCancellationsMode,
-                null);
+                null,
+                token);
         }
 
         /// <summary>

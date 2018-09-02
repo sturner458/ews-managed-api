@@ -162,11 +162,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Exectures the request.
         /// </summary>
-        internal void InternalExecute()
+        internal void InternalExecute(CancellationToken token)
         {
             lock (this.lockObject)
             {
-                var tuple = this.ValidateAndEmitRequest().Result;
+                var tuple = this.ValidateAndEmitRequest(token).Result;
                 this.request = tuple.Item1;
                 this.response = tuple.Item2;
 

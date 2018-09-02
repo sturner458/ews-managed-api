@@ -33,6 +33,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System.Net.Security;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -84,7 +85,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <returns>
         /// A <see cref="T:System.Net.HttpWebResponse"/> that contains the response from the Internet resource.
         /// </returns>
-        public async Task<IEwsHttpWebResponse> GetResponse()
+        public async Task<IEwsHttpWebResponse> GetResponse(CancellationToken token)
         {
             var message = new HttpRequestMessage(new HttpMethod(Method), RequestUri);
             message.Content = new StringContent(Content);
@@ -106,7 +107,7 @@ namespace Microsoft.Exchange.WebServices.Data
             HttpResponseMessage response = null;
             try
             {
-                response = await _httpClient.SendAsync(message);
+                response = await _httpClient.SendAsync(message, token);
             }
             catch(Exception exception)
             {

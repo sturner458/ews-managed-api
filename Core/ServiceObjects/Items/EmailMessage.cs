@@ -26,6 +26,7 @@
 namespace Microsoft.Exchange.WebServices.Data
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -64,9 +65,10 @@ namespace Microsoft.Exchange.WebServices.Data
         public static new Task<EmailMessage> Bind(
             ExchangeService service,
             ItemId id,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
-            return service.BindToItem<EmailMessage>(id, propertySet);
+            return service.BindToItem<EmailMessage>(id, propertySet, token);
         }
 
         /// <summary>
@@ -107,7 +109,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="parentFolderId">The parent folder id.</param>
         /// <param name="messageDisposition">The message disposition.</param>
-        private async System.Threading.Tasks.Task InternalSend(FolderId parentFolderId, MessageDisposition messageDisposition)
+        private async System.Threading.Tasks.Task InternalSend(FolderId parentFolderId, MessageDisposition messageDisposition, CancellationToken token)
         {
             this.ThrowIfThisIsAttachment();
 
@@ -118,7 +120,8 @@ namespace Microsoft.Exchange.WebServices.Data
                     await this.InternalCreate(
                         parentFolderId,
                         messageDisposition,
-                        null);
+                        null,
+                        token);
                 }
                 else
                 {
@@ -126,9 +129,10 @@ namespace Microsoft.Exchange.WebServices.Data
                     await this.InternalCreate(
                         null,                           // null means use the Drafts folder in the mailbox of the authenticated user.
                         MessageDisposition.SaveOnly,
-                        null);
+                        null,
+                        token);
 
-                    await this.Service.SendItem(this, parentFolderId);
+                    await this.Service.SendItem(this, parentFolderId, token);
                 }
             }
             else
@@ -149,11 +153,12 @@ namespace Microsoft.Exchange.WebServices.Data
                         parentFolderId,
                         ConflictResolutionMode.AutoResolve,
                         messageDisposition,
-                        null);
+                        null,
+                        token);
                 }
                 else
                 {
-                    await this.Service.SendItem(this, parentFolderId);
+                    await this.Service.SendItem(this, parentFolderId, token);
                 }
             }
         }
@@ -225,9 +230,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Sends this e-mail message. Calling this method results in at least one call to EWS.
         /// </summary>
-        public System.Threading.Tasks.Task Send()
+        public System.Threading.Tasks.Task Send(CancellationToken token = default(CancellationToken))
         {
-            return this.InternalSend(null, MessageDisposition.SendOnly);
+            return this.InternalSend(null, MessageDisposition.SendOnly, token);
         }
 
         /// <summary>
@@ -236,11 +241,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// results in a call to EWS.
         /// </summary>
         /// <param name="destinationFolderId">The Id of the folder in which to save the copy.</param>
-        public System.Threading.Tasks.Task SendAndSaveCopy(FolderId destinationFolderId)
+        public System.Threading.Tasks.Task SendAndSaveCopy(FolderId destinationFolderId, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(destinationFolderId, "destinationFolderId");
 
-            return this.InternalSend(destinationFolderId, MessageDisposition.SendAndSaveCopy);
+            return this.InternalSend(destinationFolderId, MessageDisposition.SendAndSaveCopy, token);
         }
 
         /// <summary>
@@ -249,9 +254,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// results in a call to EWS.
         /// </summary>
         /// <param name="destinationFolderName">The name of the folder in which to save the copy.</param>
-        public System.Threading.Tasks.Task SendAndSaveCopy(WellKnownFolderName destinationFolderName)
+        public System.Threading.Tasks.Task SendAndSaveCopy(WellKnownFolderName destinationFolderName, CancellationToken token = default(CancellationToken))
         {
-            return this.InternalSend(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy);
+            return this.InternalSend(new FolderId(destinationFolderName), MessageDisposition.SendAndSaveCopy, token);
         }
 
         /// <summary>
@@ -259,19 +264,19 @@ namespace Microsoft.Exchange.WebServices.Data
         /// message has unsaved attachments. In that case, the message must first be saved and then sent. Calling this method
         /// results in a call to EWS.
         /// </summary>
-        public System.Threading.Tasks.Task SendAndSaveCopy()
+        public System.Threading.Tasks.Task SendAndSaveCopy(CancellationToken token = default(CancellationToken))
         {
-            return this.InternalSend(new FolderId(WellKnownFolderName.SentItems), MessageDisposition.SendAndSaveCopy);
+            return this.InternalSend(new FolderId(WellKnownFolderName.SentItems), MessageDisposition.SendAndSaveCopy, token);
         }
 
         /// <summary>
         /// Suppresses the read receipt on the message. Calling this method results in a call to EWS.
         /// </summary>
-        public System.Threading.Tasks.Task SuppressReadReceipt()
+        public System.Threading.Tasks.Task SuppressReadReceipt(CancellationToken token = default(CancellationToken))
         {
             this.ThrowIfThisIsNew();
 
-            return new SuppressReadReceipt(this).InternalCreate(null, null);
+            return new SuppressReadReceipt(this).InternalCreate(null, null, token);
         }
 
         #region Properties

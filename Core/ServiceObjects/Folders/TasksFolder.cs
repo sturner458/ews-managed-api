@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -56,9 +57,10 @@ namespace Microsoft.Exchange.WebServices.Data
         public static new Task<TasksFolder> Bind(
             ExchangeService service,
             FolderId id,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
-            return service.BindToFolder<TasksFolder>(id, propertySet);
+            return service.BindToFolder<TasksFolder>(id, propertySet, token);
         }
 
         /// <summary>

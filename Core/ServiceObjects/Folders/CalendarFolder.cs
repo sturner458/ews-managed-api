@@ -28,6 +28,7 @@ namespace Microsoft.Exchange.WebServices.Data
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -47,9 +48,10 @@ namespace Microsoft.Exchange.WebServices.Data
         public static new Task<CalendarFolder> Bind(
             ExchangeService service,
             FolderId id,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
-            return service.BindToFolder<CalendarFolder>(id, propertySet);
+            return service.BindToFolder<CalendarFolder>(id, propertySet, token);
         }
 
         /// <summary>
@@ -116,14 +118,15 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="view">The view controlling the range of appointments returned.</param>
         /// <returns>An object representing the results of the search operation.</returns>
-        public async Task<FindItemsResults<Appointment>> FindAppointments(CalendarView view)
+        public async Task<FindItemsResults<Appointment>> FindAppointments(CalendarView view, CancellationToken token = default(CancellationToken))
         {
             EwsUtilities.ValidateParam(view, "view");
 
             ServiceResponseCollection<FindItemResponse<Appointment>> responses = await this.InternalFindItems<Appointment>(
                 (SearchFilter)null,
                 view,
-                null /* groupBy */).ConfigureAwait(false);
+                null /* groupBy */,
+                token).ConfigureAwait(false);
 
             return responses[0].Results;
         }

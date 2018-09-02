@@ -26,6 +26,7 @@
 namespace Microsoft.Exchange.WebServices.Data
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -49,9 +50,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// in time defined by the Watermark property. When GetEvents succeeds, Watermark is updated.
         /// </summary>
         /// <returns>Returns a collection of events that occurred since the last watermark.</returns>
-        public async Task<GetEventsResults> GetEvents()
+        public async Task<GetEventsResults> GetEvents(CancellationToken token = default(CancellationToken))
         {
-            GetEventsResults results = await this.Service.GetEvents(this.Id, this.Watermark);
+            GetEventsResults results = await this.Service.GetEvents(this.Id, this.Watermark, token);
 
             this.Watermark = results.NewWatermark;
             this.moreEventsAvailable = results.MoreEventsAvailable;
@@ -62,9 +63,9 @@ namespace Microsoft.Exchange.WebServices.Data
         /// <summary>
         /// Unsubscribes from the pull subscription.
         /// </summary>
-        public System.Threading.Tasks.Task Unsubscribe()
+        public System.Threading.Tasks.Task Unsubscribe(CancellationToken token = default(CancellationToken))
         {
-            return this.Service.Unsubscribe(this.Id);
+            return this.Service.Unsubscribe(this.Id, token);
         }
 
         /// <summary>

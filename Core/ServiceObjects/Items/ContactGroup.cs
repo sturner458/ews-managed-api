@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Exchange.WebServices.Data
@@ -106,9 +107,10 @@ namespace Microsoft.Exchange.WebServices.Data
         public static new Task<ContactGroup> Bind(
             ExchangeService service,
             ItemId id,
-            PropertySet propertySet)
+            PropertySet propertySet,
+            CancellationToken token = default(CancellationToken))
         {
-            return service.BindToItem<ContactGroup>(id, propertySet);
+            return service.BindToItem<ContactGroup>(id, propertySet, token);
         }
 
         /// <summary>

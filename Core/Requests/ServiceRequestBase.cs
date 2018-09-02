@@ -650,7 +650,7 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns>The response returned by the server.</returns>
-        protected async Task<Tuple<IEwsHttpWebRequest, IEwsHttpWebResponse>> ValidateAndEmitRequest()
+        protected async Task<Tuple<IEwsHttpWebRequest, IEwsHttpWebResponse>> ValidateAndEmitRequest(CancellationToken token)
         {
             this.Validate();
 
@@ -681,7 +681,7 @@ namespace Microsoft.Exchange.WebServices.Data
 
                 try
                 {
-                    response = await this.GetEwsHttpWebResponse(request).ConfigureAwait(false);
+                    response = await this.GetEwsHttpWebResponse(request, token).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -787,11 +787,11 @@ namespace Microsoft.Exchange.WebServices.Data
         /// </summary>
         /// <param name="request">The specified IEwsHttpWebRequest</param>
         /// <returns>An IEwsHttpWebResponse instance</returns>
-        protected async Task<IEwsHttpWebResponse> GetEwsHttpWebResponse(IEwsHttpWebRequest request)
+        protected async Task<IEwsHttpWebResponse> GetEwsHttpWebResponse(IEwsHttpWebRequest request, CancellationToken token)
         {
             try
             {
-                return await request.GetResponse().ConfigureAwait(false);
+                return await request.GetResponse(token).ConfigureAwait(false);
             }
             catch (EwsHttpClientException ex)
             {
