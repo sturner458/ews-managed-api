@@ -55,7 +55,8 @@ namespace Microsoft.Exchange.WebServices.Data
         {
             Method = "GET";
             RequestUri = uri;
-            _httpClientHandler = new HttpClientHandler() {
+            _httpClientHandler = new HttpClientHandler()
+            {
                 AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip
             };
             _httpClient = new HttpClient(_httpClientHandler);
@@ -89,6 +90,8 @@ namespace Microsoft.Exchange.WebServices.Data
         {
             var message = new HttpRequestMessage(new HttpMethod(Method), RequestUri);
             message.Content = new StringContent(Content);
+            message.Content.Headers.Clear();
+            message.Content.Headers.Add("Content-Type", "text/xml; charset=utf-8");
             //if (!string.IsNullOrEmpty(ContentType))
             //    message.Content.Headers.ContentType = new MediaTypeHeaderValue(ContentType);
 
@@ -109,7 +112,7 @@ namespace Microsoft.Exchange.WebServices.Data
             {
                 response = await _httpClient.SendAsync(message, token);
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 throw new EwsHttpClientException(exception);
             }
