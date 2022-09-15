@@ -96,7 +96,7 @@ namespace Microsoft.Exchange.WebServices.Data
                 }
             }
 
-            this.token = BearerAuthenticationType + " " + rawToken;
+            this.token = rawToken;
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Microsoft.Exchange.WebServices.Data
             if (this.token != null)
             {
                 request.Headers.Remove(HttpRequestHeader.Authorization.ToString());
-                request.Headers.Authorization = new AuthenticationHeaderValue(this.token);
+                request.Headers.Authorization = new AuthenticationHeaderValue(BearerAuthenticationType, this.token);
             }
             else
             {
