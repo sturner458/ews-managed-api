@@ -115,58 +115,56 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                         request.Content.Headers.ContentType = new MediaTypeHeaderValue("text/xml") { CharSet = "utf-8" };
                     }
 
-                using (var client = this.Service.PrepareHttpClient())
-                using (IEwsHttpWebResponse webResponse = new EwsHttpWebResponse(client.SendAsync(request).Result))
-                {
-                    if (AutodiscoverRequest.IsRedirectionResponse(webResponse))
-                    {
-                        AutodiscoverResponse response = this.CreateRedirectionResponse(webResponse);
-                        if (response != null)
-                        {
-                            return response;
-                        }
-                        else
-                        {
-                            throw new ServiceRemoteException(Strings.InvalidRedirectionResponseReturned);
-                        }
+                using (var client = this.Service.PrepareHttpClient()) {
+
+                    if (this.service.Credentials is OAuthCredentials) {
+                        var token = (this.service.Credentials as OAuthCredentials).token;
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                     }
 
-                    using (Stream responseStream = await AutodiscoverRequest.GetResponseStream(webResponse))
-                    {
-                        using (MemoryStream memoryStream = new MemoryStream())
-                        {
-                            // Copy response stream to in-memory stream and reset to start
-                            EwsUtilities.CopyStream(responseStream, memoryStream);
-                            memoryStream.Position = 0;
-
-                            this.Service.TraceResponse(webResponse, memoryStream);                           
-
-                            EwsXmlReader ewsXmlReader = new EwsXmlReader(memoryStream);
-
-                            // WCF may not generate an XML declaration.
-                            ewsXmlReader.Read();
-                            if (ewsXmlReader.NodeType == XmlNodeType.XmlDeclaration)
-                            {
-                                ewsXmlReader.ReadStartElement(XmlNamespace.Soap, XmlElementNames.SOAPEnvelopeElementName);
-                            }
-                            else if ((ewsXmlReader.NodeType != XmlNodeType.Element) || (ewsXmlReader.LocalName != XmlElementNames.SOAPEnvelopeElementName) || (ewsXmlReader.NamespaceUri != EwsUtilities.GetNamespaceUri(XmlNamespace.Soap)))
-                            {
-                                throw new ServiceXmlDeserializationException(Strings.InvalidAutodiscoverServiceResponse);
-                            }
-
-                            this.ReadSoapHeaders(ewsXmlReader);
-
-                            AutodiscoverResponse response = this.ReadSoapBody(ewsXmlReader);
-
-                            ewsXmlReader.ReadEndElement(XmlNamespace.Soap, XmlElementNames.SOAPEnvelopeElementName);
-
-                            if (response.ErrorCode == AutodiscoverErrorCode.NoError)
-                            {
+                    using (IEwsHttpWebResponse webResponse = new EwsHttpWebResponse(client.SendAsync(request).Result)) {
+                        if (AutodiscoverRequest.IsRedirectionResponse(webResponse)) {
+                            AutodiscoverResponse response = this.CreateRedirectionResponse(webResponse);
+                            if (response != null) {
                                 return response;
+                            } else {
+                                throw new ServiceRemoteException(Strings.InvalidRedirectionResponseReturned);
                             }
-                            else
-                            {
-                                throw new AutodiscoverResponseException(response.ErrorCode, response.ErrorMessage);
+                        }
+
+                        using (Stream responseStream = await AutodiscoverRequest.GetResponseStream(webResponse)) {
+                            using (MemoryStream memoryStream = new MemoryStream()) {
+                                // Copy response stream to in-memory stream and reset to start
+                                EwsUtilities.CopyStream(responseStream, memoryStream);
+                                memoryStream.Position = 0;
+
+                                this.Service.TraceResponse(webResponse, memoryStream);
+                                //using (var s = new StreamReader(memoryStream)) {
+                                //    var x = s.ReadToEnd();
+                                //    Console.Write(x);
+                                //}
+
+                                EwsXmlReader ewsXmlReader = new EwsXmlReader(memoryStream);
+
+                                // WCF may not generate an XML declaration.
+                                ewsXmlReader.Read();
+                                if (ewsXmlReader.NodeType == XmlNodeType.XmlDeclaration) {
+                                    ewsXmlReader.ReadStartElement(XmlNamespace.Soap, XmlElementNames.SOAPEnvelopeElementName);
+                                } else if ((ewsXmlReader.NodeType != XmlNodeType.Element) || (ewsXmlReader.LocalName != XmlElementNames.SOAPEnvelopeElementName) || (ewsXmlReader.NamespaceUri != EwsUtilities.GetNamespaceUri(XmlNamespace.Soap))) {
+                                    throw new ServiceXmlDeserializationException(Strings.InvalidAutodiscoverServiceResponse);
+                                }
+
+                                this.ReadSoapHeaders(ewsXmlReader);
+
+                                AutodiscoverResponse response = this.ReadSoapBody(ewsXmlReader);
+
+                                ewsXmlReader.ReadEndElement(XmlNamespace.Soap, XmlElementNames.SOAPEnvelopeElementName);
+
+                                if (response.ErrorCode == AutodiscoverErrorCode.NoError) {
+                                    return response;
+                                } else {
+                                    throw new AutodiscoverResponseException(response.ErrorCode, response.ErrorMessage);
+                                }
                             }
                         }
                     }

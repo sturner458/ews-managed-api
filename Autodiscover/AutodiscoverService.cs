@@ -1551,9 +1551,13 @@ namespace Microsoft.Exchange.WebServices.Autodiscover
                 serviceCredentials.PreAuthenticate();
 
                 // TODO support different credentials
-                if (!(serviceCredentials is WebCredentials))
+                if (!(serviceCredentials is WebCredentials || serviceCredentials is OAuthCredentials))
                     throw new NotImplementedException();
-                httpClientHandler.Credentials = (this.Credentials as WebCredentials)?.Credentials;
+                if (serviceCredentials is WebCredentials) {
+                    httpClientHandler.Credentials = (this.Credentials as WebCredentials)?.Credentials;
+                } else {
+                    httpClientHandler.Credentials = null;
+                }
 
                 // Apply credentials to the request
                 // serviceCredentials.PrepareWebRequest(request);

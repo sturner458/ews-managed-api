@@ -184,14 +184,5 @@ UpgradeLog*.htm
 FakesAssemblies/
 /project.lock.json
 /.svn
-/.vs/ews-managed-api/v17/.wsuo
-/.vs/Microsoft.Exchange.WebServices.NETStandard/DesignTimeBuild/.dtbcache.v2
-/.vs/Microsoft.Exchange.WebServices.NETStandard/FileContentIndex/8f3facb7-02ce-4bce-a9d8-7a670bea5b0c.vsidx
-/.vs/Microsoft.Exchange.WebServices.NETStandard/FileContentIndex/merges/23e25b37-1c4e-434c-a134-99a5b3d63457.vsidx
-/.vs/Microsoft.Exchange.WebServices.NETStandard/FileContentIndex/merges/59eadf3d-880e-49b2-bbe3-a53a236b515f.vsidx
-/.vs/Microsoft.Exchange.WebServices.NETStandard/FileContentIndex/9152dddb-1ece-4c99-a2fd-982dc35306eb.vsidx
-/.vs/Microsoft.Exchange.WebServices.NETStandard/FileContentIndex/70f6eddf-433e-4207-863e-660ae60ba797.vsidx
-/.vs/Microsoft.Exchange.WebServices.NETStandard/FileContentIndex/merges/0352e9ef-a924-44ef-ba87-6bac650da46b.vsidx
-/.vs/Microsoft.Exchange.WebServices.NETStandard/FileContentIndex/merges
-/.vs/ProjectEvaluation
-/.vs
+/.vs/
+
