@@ -45,7 +45,7 @@ namespace Microsoft.Exchange.WebServices.Data
             @"^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$",
             RegexOptions.Compiled);
 
-        private readonly string token;
+        public readonly string token;
 
         private readonly ICredentials credentials;
 
